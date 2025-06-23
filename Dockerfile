@@ -6,6 +6,7 @@ WORKDIR /app/mlops_finalassignment
 RUN echo "Listing files in repo:" && ls -la
 RUN echo "flask\nscikit-learn" > requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install skopt
 EXPOSE 5000
 RUN pip install pandas
 CMD ["python", "main.py"]
