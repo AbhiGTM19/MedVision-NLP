@@ -8,6 +8,8 @@ RUN echo "flask\nscikit-learn\npandas" > requirements.txt
 RUN pip install --upgrade pip setuptools wheel
 RUN pip install --no-cache-dir -r requirements.txt
 RUN pip install scikit-optimize
+RUN pip install nltk
+RUN python -m nltk.downloader stopwords
 EXPOSE 5000
 RUN pip install pandas
 CMD ["python", "main.py"]
