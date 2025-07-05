@@ -1,0 +1,21 @@
+artifact_path: movie_reviews
+flavors:
+  python_function:
+    env:
+      conda: conda.yaml
+      virtualenv: python_env.yaml
+    loader_module: mlflow.sklearn
+    model_path: model.pkl
+    predict_fn: predict
+    python_version: 3.9.6
+  sklearn:
+    code: null
+    pickled_model: model.pkl
+    serialization_format: cloudpickle
+    sklearn_version: 1.6.1
+mlflow_version: 2.21.0
+model_size_bytes: 40730
+model_uuid: e33431b9e4f5498f9a18f8cd775df733
+prompts: null
+run_id: e5e91a91367946c28141b7ed636abca8
+utc_time_created: '2025-06-21 18:49:39.913934'
