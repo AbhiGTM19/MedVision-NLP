@@ -1,16 +1,30 @@
-FROM python:3.9
+FROM python:3.9-slim
+
 WORKDIR /app
-RUN apt-get update && apt-get install -y git
-RUN git clone --branch master https://github.com/nalamv/mlops_finalassignment.git
-WORKDIR /app/mlops_finalassignment
-RUN echo "Listing files in repo:" && ls -la
-RUN echo "flask\nscikit-learn\npandas" > requirements.txt
-RUN pip install --upgrade pip setuptools wheel
-RUN pip install --no-cache-dir -r requirements.txt
-RUN pip install scikit-optimize
-RUN pip install nltk
-RUN pip install mlflow
-RUN python -m nltk.downloader stopwords
+
+# Install system dependencies
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends gcc python3-dev && \
+    rm -rf /var/lib/apt/lists/*
+
+# Copy requirements first to leverage Docker cache
+COPY requirements.txt .
+
+# Install Python dependencies
+RUN pip install --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt && \
+    python -m nltk.downloader stopwords punkt
+
+# Copy the rest of the application
+COPY . .
+
+# Create models directory
+RUN mkdir -p models
+
+# Environment variables
+ENV FLASK_APP=main.py
+ENV FLASK_ENV=production
+
 EXPOSE 5000
-RUN pip install pandas
-CMD ["python", "main.py"]
+
+CMD ["flask", "run", "--host=0.0.0.0"]
