@@ -1,1 +1,6 @@
 /mlruns/
+__pycache__/
+*.py[cod]
+venv/
+.env/
+.DS_Store
