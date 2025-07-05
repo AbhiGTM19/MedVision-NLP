@@ -19,5 +19,5 @@ This project is part of an MLOps final assignment focused on building, deploying
 If you have Docker installed, pull and run directly from Docker Hub:
 
 ```bash
-docker pull nitinbarge/tm10moviereview-app:latest
-docker run -p 5000:5000 nitinbarge/tm10moviereview-app:latest
+docker pull yugandhar0458/mlops_team10:latest
+docker run -p 5000:5000 yugandhar0458/mlops_team10:latest
