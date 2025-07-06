@@ -1,8 +1,8 @@
-/mlruns/
 __pycache__/
+aclImdb/
+/mlruns/
+models/
 *.py[cod]
 venv/
 .env/
 .DS_Store
-models/
-aclImdb/
