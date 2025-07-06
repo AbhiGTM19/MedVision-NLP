@@ -1,10 +1,13 @@
-ECHO is on.
-# Ignore PyCharm project settings
 .idea/
-
-# Ignore ML artifacts
+__pycache__/
 mlartifacts/
 mlruns/
-
-# Ignore generated confusion matrix files
 confusion_matrix*
+aclImdb/
+/mlruns/
+models/
+*.py[cod]
+venv/
+.env/
+.DS_Store
+aclImdb/
