@@ -1,9 +1,10 @@
-__pycache__/
-aclImdb/
-/mlruns/
-models/
-*.py[cod]
-venv/
-.env/
-.DS_Store
-aclImdb/
+ECHO is on.
+# Ignore PyCharm project settings
+.idea/
+
+# Ignore ML artifacts
+mlartifacts/
+mlruns/
+
+# Ignore generated confusion matrix files
+confusion_matrix*
