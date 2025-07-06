@@ -1,3 +1,6 @@
+import string
+from tokenize import String
+
 from flask import Flask, request, jsonify
 import pickle
 import os
@@ -8,7 +11,24 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 @app.route("/", methods=["GET"])
 def home():
-    return "Welcome to the Movie Review Classifier!"
+    global op
+    with open('models/movies_review_classifier.pkl', 'rb') as file:
+        model = pickle.load(file)
+    params=""
+    if hasattr(model, 'best_params_'):
+        print("Best Model Parameters:")
+        for param, value in model.best_params_.items():
+            print(f"{param}: {value}")
+        print(f"Best Score: {model.best_score_:.4f}")
+    else:
+        print("No hyperparameter search found. Printing all model parameters:")
+        params = model.get_params()
+        op=""
+        for param, value in params.items():
+            op+=param+":"+str(value)+","
+            #print(f"{param}: {value}")
+        print(f"{op}")
+    return params
 
 @app.route("/predict", methods=["POST"])
 def predict_review():
@@ -46,4 +66,4 @@ def predict_review():
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+    app.run(host="0.0.0.0", port=8001)

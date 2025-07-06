@@ -6,3 +6,4 @@ models/
 venv/
 .env/
 .DS_Store
+aclImdb/
