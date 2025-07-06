@@ -16,6 +16,7 @@ RUN pip install --upgrade pip && \
     python -m nltk.downloader stopwords punkt
 
 # Copy the rest of the application
+
 COPY . .
 
 # Create models directory
