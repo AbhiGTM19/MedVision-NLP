@@ -1,4 +1,7 @@
 __pycache__/
+aclImdb/
+/mlruns/
+models/
 *.py[cod]
 venv/
 .env/
