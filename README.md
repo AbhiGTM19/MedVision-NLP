@@ -33,7 +33,7 @@ This project is part of an MLOps final assignment focused on building, tuning, a
 └── README.md
 
 -- CLone the Repository
-git clone <your-repo-url>
+git clone https://github.com/AbhiGTM19/Movie-Review-Sentiment-Classifier.git
 cd mlops_finalassignment
 
 -- Create Virtual Environment
@@ -120,6 +120,6 @@ docker run -p 5000:5000 yugandhar0458/mlops_team10:latest
 
 
 Authors
-Team 10 — M.Tech Applied AI (MLOps)
-Model tuning by: Optuna
-Deployment: Flask + Docker
+-- Abhishek Gautam
+-- Model tuning by: Optuna
+-- Deployment: Flask + Docker
