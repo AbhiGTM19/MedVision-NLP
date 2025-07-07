@@ -5,9 +5,15 @@ mlruns/
 confusion_matrix*
 aclImdb/
 /mlruns/
-models/
+/models/
 *.py[cod]
 venv/
 .env/
 .DS_Store
 aclImdb/
+.vscode/
+*.log
+*.pkl
+*.joblib
+*.csv
+*.json
