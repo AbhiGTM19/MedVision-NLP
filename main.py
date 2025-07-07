@@ -1,18 +1,40 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 import pickle
 import os
 import common
-import joblib
 
 app = Flask(__name__)
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-@app.route("/", methods=["GET"])
+""" @app.route("/", methods=["GET"])
 def home():
     with open('models/movies_review_classifier.pkl', 'rb') as file:
      model = pickle.load(file)
 
     
+    if hasattr(model, 'best_params_'):
+        best_params = model.best_params_
+        best_score = model.best_score_
+        return jsonify({
+            "best_params": best_params,
+            "best_score": round(best_score, 4)
+        })
+    else:
+        all_params = model.get_params()
+        return jsonify(all_params)
+   """  
+
+@app.route("/", methods=["GET"])
+def home():
+    return render_template("index.html")
+
+
+# Serve model info (best params, score)
+@app.route("/model-info", methods=["GET"])
+def model_info():
+    with open('models/movies_review_classifier.pkl', 'rb') as file:
+        model = pickle.load(file)
+
     if hasattr(model, 'best_params_'):
         best_params = model.best_params_
         best_score = model.best_score_

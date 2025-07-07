@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Movie Review Sentiment Classifier</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootswatch/5.3.3/lux/bootstrap.min.css"/>
+  <style>
+    body {
+      padding: 40px;
+    }
+    .response-box {
+      margin-top: 20px;
+      display: none;
+    }
+    .loader {
+      display: none;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2 class="text-center">🎬 Movie Review Sentiment Classifier</h2>
+
+    <div class="form-group mt-4">
+      <label for="reviewInput">Enter your movie review:</label>
+      <textarea class="form-control" id="reviewInput" rows="6" placeholder="Type here..."></textarea>
+    </div>
+
+    <button class="btn btn-primary mt-3" onclick="sendReview()">Analyze</button>
+    <div class="loader" id="loader">⏳ Analyzing...</div>
+
+    <div class="response-box card card-body mt-4" id="responseBox">
+      <h4>Prediction: <span id="sentimentLabel"></span></h4>
+      <p>Confidence: <span id="confidence"></span>%</p>
+      <p>Verdict: <span id="verdict"></span></p>
+      <p>Rating: <span id="rating"></span></p>
+      <p>Top Influential Words: <code id="topWords"></code></p>
+    </div>
+  </div>
+
+  <script>
+    async function sendReview() {
+      const reviewText = document.getElementById("reviewInput").value.trim();
+      const loader = document.getElementById("loader");
+      const box = document.getElementById("responseBox");
+
+      if (!reviewText) {
+        alert("Please enter a review.");
+        return;
+      }
+
+      loader.style.display = "block";
+      box.style.display = "none";
+
+      try {
+        const response = await fetch("/predict", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ review: reviewText })
+        });
+
+        const data = await response.json();
+        loader.style.display = "none";
+
+        document.getElementById("sentimentLabel").innerText = data.prediction;
+        document.getElementById("confidence").innerText = (data.confidence * 100).toFixed(2);
+        document.getElementById("verdict").innerText = data.verdict;
+        document.getElementById("rating").innerText = data.rating;
+        document.getElementById("topWords").innerText = data.top_words.join(', ');
+        box.style.display = "block";
+
+      } catch (err) {
+        loader.style.display = "none";
+        alert("Error: " + err.message);
+      }
+    }
+  </script>
+</body>
+</html>
