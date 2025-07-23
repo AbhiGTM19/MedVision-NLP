@@ -1,83 +1,168 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="scroll-smooth">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Movie Review Sentiment Classifier</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootswatch/5.3.3/lux/bootstrap.min.css"/>
-  <style>
-    body {
-      padding: 40px;
-    }
-    .response-box {
-      margin-top: 20px;
-      display: none;
-    }
-    .loader {
-      display: none;
-      margin-top: 10px;
-    }
-  </style>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sentiment Scope | Movie Review Analysis</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    
+    <script>
+        // Custom Tailwind theme to match the movie vibe
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        'brand-dark': '#111827',
+                        'brand-blue': '#1E3A8A',
+                        'brand-light': '#F9FAFB',
+                        'brand-accent': '#FBBF24',
+                        'body-bg': '#fff',
+                    }
+                }
+            }
+        }
+    </script>
 </head>
-<body>
-  <div class="container">
-    <h2 class="text-center">🎬 Movie Review Sentiment Classifier</h2>
+<body class="bg-brand-dark text-brand-light">
 
-    <div class="form-group mt-4">
-      <label for="reviewInput">Enter your movie review:</label>
-      <textarea class="form-control" id="reviewInput" rows="6" placeholder="Type here..."></textarea>
-    </div>
+    <!-- Header & Navbar -->
+    <header class="bg-brand-dark/80 backdrop-blur-sm sticky top-0 z-50">
+        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="#" class="text-2xl font-bold text-white">Sentiment Scope 🎬</a>
+            <div class="hidden md:flex space-x-6 items-center">
+                <a href="#predictor" class="hover:text-brand-accent transition-colors">Predictor</a>
+                <a href="#features" class="hover:text-brand-accent transition-colors">Features</a>
+                <a href="#about" class="hover:text-brand-accent transition-colors">About</a>
+                <a href="#predictor" class="bg-brand-accent text-brand-dark font-semibold px-4 py-2 rounded-lg hover:bg-amber-400 transition-colors">Try Now</a>
+            </div>
+            <button id="mobile-menu-button" class="md:hidden text-white">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
+                </svg>
+            </button>
+        </nav>
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden md:hidden px-6 pb-4">
+            <a href="#predictor" class="block py-2 hover:text-brand-accent transition-colors">Predictor</a>
+            <a href="#features" class="block py-2 hover:text-brand-accent transition-colors">Features</a>
+            <a href="#about" class="block py-2 hover:text-brand-accent transition-colors">About</a>
+        </div>
+    </header>
 
-    <button class="btn btn-primary mt-3" onclick="sendReview()">Analyze</button>
-    <div class="loader" id="loader">⏳ Analyzing...</div>
+    <main>
+        <!-- Hero Section -->
+        <section id="home" class="py-20 md:py-32">
+            <div class="container mx-auto px-6 text-center">
+                <h1 class="text-4xl md:text-6xl font-bold text-white leading-tight">Instantly Analyze Movie Reviews</h1>
+                <p class="mt-4 text-lg md:text-xl text-gray-300 max-w-3xl mx-auto">Harness the power of machine learning to classify movie reviews as positive or negative. Get insights in seconds.</p>
+                <a href="#predictor" class="mt-8 inline-block bg-brand-accent text-brand-dark font-bold text-lg px-8 py-4 rounded-lg hover:bg-amber-400 transition-transform hover:scale-105">
+                    Analyze Your First Review
+                </a>
+            </div>
+        </section>
 
-    <div class="response-box card card-body mt-4" id="responseBox">
-      <h4>Prediction: <span id="sentimentLabel"></span></h4>
-      <p>Confidence: <span id="confidence"></span>%</p>
-      <p>Verdict: <span id="verdict"></span></p>
-      <p>Rating: <span id="rating"></span></p>
-      <p>Top Influential Words: <code id="topWords"></code></p>
-    </div>
-  </div>
+        <!-- Predictor Section -->
+        <section id="predictor" class="py-20 bg-gray-900">
+            <div class="container mx-auto px-6">
+                <div class="bg-brand-dark rounded-2xl shadow-2xl p-8 md:p-12 max-w-4xl mx-auto">
+                    <h2 class="text-3xl font-bold text-center text-white">The Predictor</h2>
+                    <p class="text-center text-gray-400 mt-2">Enter a movie review below to see the magic happen.</p>
+                    
+                    <div class="form-group mt-8">
+                        <textarea id="reviewInput" rows="8" class="w-full p-4 bg-gray-800 border-2 border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-brand-accent focus:outline-none transition-colors" placeholder="e.g., 'The movie was an absolute masterpiece with stunning visuals and powerful performances...'"></textarea>
+                    </div>
 
-  <script>
-    async function sendReview() {
-      const reviewText = document.getElementById("reviewInput").value.trim();
-      const loader = document.getElementById("loader");
-      const box = document.getElementById("responseBox");
+                    <div class="text-center mt-6">
+                        <button class="btn-primary" onclick="sendReview()">Analyze Sentiment</button>
+                    </div>
 
-      if (!reviewText) {
-        alert("Please enter a review.");
-        return;
-      }
+                    <div id="loader" class="text-center mt-6 text-lg text-gray-400 hidden">
+                        ⏳ Analyzing... Please wait.
+                    </div>
 
-      loader.style.display = "block";
-      box.style.display = "none";
+                    <!-- Results Display -->
+                    <div id="responseBox" class="mt-8 hidden">
+                        <div class="grid md:grid-cols-2 gap-6 text-center">
+                            <div class="bg-gray-800 p-6 rounded-lg">
+                                <h4 class="text-lg font-semibold text-gray-400">Verdict</h4>
+                                <p id="verdict" class="text-3xl font-bold"></p>
+                            </div>
+                            <div class="bg-gray-800 p-6 rounded-lg">
+                                <h4 class="text-lg font-semibold text-gray-400">Confidence</h4>
+                                <p id="confidence" class="text-3xl font-bold"></p>
+                            </div>
+                        </div>
+                        <div class="bg-gray-800 p-6 rounded-lg mt-6">
+                            <h4 class="text-lg font-semibold text-gray-400 mb-2">Top Influential Words</h4>
+                            <div id="topWords" class="flex flex-wrap justify-center gap-2"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-      try {
-        const response = await fetch("/predict", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({ review: reviewText })
-        });
+        <!-- Features Section -->
+        <section id="features" class="py-20">
+            <div class="container mx-auto px-6">
+                <h2 class="text-3xl font-bold text-center text-white">Why Use Sentiment Scope?</h2>
+                <div class="mt-12 grid md:grid-cols-3 gap-8">
+                    <!-- Feature 1 -->
+                    <div class="feature-card">
+                        <svg class="h-12 w-12 text-brand-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                        <h3 class="text-xl font-bold mt-4">Lightning Fast</h3>
+                        <p class="mt-2 text-gray-400">Our optimized SGDClassifier provides near-instantaneous predictions, so you don't have to wait.</p>
+                    </div>
+                    <!-- Feature 2 -->
+                    <div class="feature-card">
+                        <svg class="h-12 w-12 text-brand-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/></svg>
+                        <h3 class="text-xl font-bold mt-4">High Accuracy</h3>
+                        <p class="mt-2 text-gray-400">Trained on the extensive IMDB dataset and tuned with Optuna for reliable and accurate sentiment classification.</p>
+                    </div>
+                    <!-- Feature 3 -->
+                    <div class="feature-card">
+                        <svg class="h-12 w-12 text-brand-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a2 2 0 01-2-2V4a2 2 0 012-2h8z"/></svg>
+                        <h3 class="text-xl font-bold mt-4">Keyword Insights</h3>
+                        <p class="mt-2 text-gray-400">Instantly see the most influential words that determined the sentiment, providing deeper analytical insight.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- About the Model Section -->
+        <section id="about" class="py-20 bg-gray-900">
+            <div class="container mx-auto px-6 text-center">
+                <h2 class="text-3xl font-bold text-white">Behind the Scenes</h2>
+                <p class="mt-4 text-lg text-gray-400 max-w-2xl mx-auto">Curious about the tech? Our model's parameters are fully transparent. Click below to see the details.</p>
+                <button class="btn-secondary mt-8" onclick="getModelInfo()">Show Model Info</button>
+                <div id="modelInfoBox" class="response-box card-body max-w-2xl mx-auto text-left mt-8 bg-brand-dark p-6 rounded-lg">
+                    <pre><code id="modelInfoContent" class="text-sm"></code></pre>
+                </div>
+            </div>
+        </section>
+    </main>
 
-        const data = await response.json();
-        loader.style.display = "none";
+    <!-- Footer -->
+    <footer class="bg-brand-dark py-8">
+        <div class="container mx-auto px-6 text-center text-gray-500">
+            <p>&copy; 2025 Sentiment Scope. All Rights Reserved.</p>
+            <p class="mt-2">A project by Abhishek Gautam, enhanced by AI.</p>
+        </div>
+    </footer>
 
-        document.getElementById("sentimentLabel").innerText = data.prediction;
-        document.getElementById("confidence").innerText = (data.confidence * 100).toFixed(2);
-        document.getElementById("verdict").innerText = data.verdict;
-        document.getElementById("rating").innerText = data.rating;
-        document.getElementById("topWords").innerText = data.top_words.join(', ');
-        box.style.display = "block";
-
-      } catch (err) {
-        loader.style.display = "none";
-        alert("Error: " + err.message);
-      }
-    }
-  </script>
+    <!-- Custom JS -->
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>

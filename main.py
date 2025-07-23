@@ -1,28 +1,10 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template # type: ignore
 import pickle
 import os
 import common
 
 app = Flask(__name__)
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-
-""" @app.route("/", methods=["GET"])
-def home():
-    with open('models/movies_review_classifier.pkl', 'rb') as file:
-     model = pickle.load(file)
-
-    
-    if hasattr(model, 'best_params_'):
-        best_params = model.best_params_
-        best_score = model.best_score_
-        return jsonify({
-            "best_params": best_params,
-            "best_score": round(best_score, 4)
-        })
-    else:
-        all_params = model.get_params()
-        return jsonify(all_params)
-   """  
 
 @app.route("/", methods=["GET"])
 def home():
