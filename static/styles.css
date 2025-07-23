@@ -1,0 +1,23 @@
+/* Custom base styles */
+body {
+    font-family: 'Inter', sans-serif;
+}
+
+/* Custom button styles */
+.btn-primary {
+    @apply bg-brand-accent text-brand-dark font-bold text-lg px-8 py-3 rounded-lg hover:bg-amber-400 transition-all duration-300 transform hover:scale-105;
+}
+
+.btn-secondary {
+    @apply bg-gray-700 text-white font-bold text-lg px-8 py-3 rounded-lg hover:bg-gray-600 transition-all duration-300 transform hover:scale-105;
+}
+
+/* Feature card styles */
+.feature-card {
+    @apply bg-gray-900 p-8 rounded-2xl border border-gray-800 text-center transition-all duration-300 hover:border-brand-accent hover:-translate-y-2;
+}
+
+/* Word tag styles for top influential words */
+.word-tag {
+    @apply bg-brand-accent text-brand-dark font-semibold px-3 py-1 rounded-full text-sm;
+}
