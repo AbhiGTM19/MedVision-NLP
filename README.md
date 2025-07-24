@@ -9,8 +9,6 @@ A full-stack web application that uses a machine learning model to perform real-
 
 **🚀 Live Application: [https://movie-review-sentiment-scope.onrender.com/](https://movie-review-sentiment-scope.onrender.com/)**
 
-![Sentiment Scope Screenshot](https://i.imgur.com/your-screenshot-url.png) <!-- It's highly recommended to replace this with a real screenshot of your app -->
-
 ---
 
 ## 📋 Features
