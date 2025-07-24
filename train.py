@@ -1,16 +1,21 @@
+import matplotlib
+# Set the backend to 'Agg' BEFORE importing pyplot
+# This is the crucial fix for running in a headless Docker environment
+matplotlib.use('Agg')
+
 import os
 import time
 import pickle
-import pandas as pd # type: ignore
-import matplotlib.pyplot as plt # type: ignore
-import seaborn as sns # type: ignore
-from sklearn.model_selection import train_test_split # type: ignore
-from sklearn.feature_extraction.text import TfidfVectorizer # type: ignore
-from sklearn.linear_model import SGDClassifier # type: ignore
-from sklearn.metrics import accuracy_score, f1_score, confusion_matrix # type: ignore
-import mlflow # type: ignore
-import mlflow.sklearn # type: ignore
-import optuna # type: ignore
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.model_selection import train_test_split
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.linear_model import SGDClassifier
+from sklearn.metrics import accuracy_score, f1_score, confusion_matrix
+import mlflow
+import mlflow.sklearn
+import optuna
 import common
 
 def load_data(pos_path, neg_path):
@@ -31,8 +36,7 @@ def objective(trial, X_train, X_test, y_train, y_test):
     alpha = trial.suggest_float("alpha", 1e-5, 1e-1, log=True)
     
     model = SGDClassifier(
-        # Use 'log' which is the correct name for logistic regression loss in this scikit-learn version
-        loss='log',  
+        loss='log',  # Use 'log' for scikit-learn v1.0.2
         penalty='l2',
         alpha=alpha,
         random_state=42,
@@ -72,7 +76,6 @@ def train_model():
     print("5. Best params found:", study.best_params)
     
     best_model = SGDClassifier(
-        # Use 'log' here as well for the final model
         loss='log',
         penalty='l2',
         alpha=study.best_params['alpha'],
