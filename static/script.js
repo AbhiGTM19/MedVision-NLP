@@ -1,94 +1,135 @@
-document.addEventListener('DOMContentLoaded', function() {
-    // Mobile menu toggle
-    const menuButton = document.getElementById('mobile-menu-button');
-    const mobileMenu = document.getElementById('mobile-menu');
-    menuButton.addEventListener('click', () => {
-        mobileMenu.classList.toggle('hidden');
+document.addEventListener('DOMContentLoaded', function () {
+    const predictButton = document.getElementById('predict-button');
+    const modelInfoButton = document.getElementById('model-info-button');
+    const modal = document.getElementById('infoModal');
+    const closeButton = document.querySelector('.close-button');
+    const okButton = document.querySelector('.modal-ok-button');
+    // Select all types of reveal elements
+    const revealElements = document.querySelectorAll('.reveal-hero, .reveal-right, .reveal-left');
+
+    // --- Event Listeners ---
+    predictButton.addEventListener('click', handlePrediction);
+    modelInfoButton.addEventListener('click', handleModelInfo);
+    closeButton.addEventListener('click', closeModal);
+    okButton.addEventListener('click', closeModal);
+    window.addEventListener('click', (event) => {
+        if (event.target === modal) {
+            closeModal();
+        }
     });
-});
+    window.addEventListener('scroll', handleScroll);
+    handleScroll(); // Trigger once on load to reveal hero section
 
-// Hide all response boxes
-function hideAllBoxes() {
-    document.getElementById('responseBox').style.display = 'none';
-    document.getElementById('modelInfoBox').style.display = 'none';
-}
-
-// Show a specific box
-function showBox(boxId) {
-    hideAllBoxes();
-    document.getElementById(boxId).style.display = 'block';
-}
-
-async function sendReview() {
-    const reviewText = document.getElementById("reviewInput").value.trim();
-    const loader = document.getElementById("loader");
-
-    if (!reviewText) {
-        alert("Please enter a review.");
-        return;
-    }
-
-    loader.style.display = "block";
-    hideAllBoxes();
-
-    try {
-        const response = await fetch("/predict", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ review: reviewText }),
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+    // --- Handlers ---
+    async function handlePrediction() {
+        const reviewText = document.getElementById('reviewInput').value.trim();
+        if (!reviewText) {
+            showModal('Error', 'Please enter a review before analyzing.');
+            return;
         }
 
-        const data = await response.json();
-        loader.style.display = "none";
+        toggleLoader(predictButton, true);
+        document.getElementById('result-area').style.display = 'none';
 
-        // Populate verdict and confidence
-        document.getElementById("verdict").innerText = data.verdict;
-        document.getElementById("confidence").innerText = `${(data.confidence * 100).toFixed(2)}%`;
-        
-        // Populate top words as tags
-        const topWordsContainer = document.getElementById("topWords");
-        topWordsContainer.innerHTML = ''; // Clear previous words
+        setTimeout(async () => {
+            try {
+                const response = await fetch("/predict", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ review: reviewText }),
+                });
+
+                if (!response.ok) throw new Error(`Server error: ${response.statusText}`);
+
+                const data = await response.json();
+                displayResults(data);
+
+            } catch (error) {
+                showModal('Prediction Error', `An error occurred: ${error.message}`);
+            } finally {
+                toggleLoader(predictButton, false);
+            }
+        }, 3000); 
+    }
+
+    async function handleModelInfo() {
+        try {
+            const response = await fetch("/model-info");
+            if (!response.ok) throw new Error(`Server error: ${response.statusText}`);
+
+            const data = await response.json();
+            const formattedData = JSON.stringify(data, null, 2);
+            showModal('Model Information', formattedData, true);
+
+        } catch (error) {
+            showModal('Error', `Could not fetch model info: ${error.message}`);
+        }
+    }
+
+    // --- Animation Handler ---
+    function handleScroll() {
+        const windowHeight = window.innerHeight;
+        revealElements.forEach(el => {
+            const elementTop = el.getBoundingClientRect().top;
+            if (elementTop < windowHeight - 100) { // 100px buffer
+                el.classList.add('active');
+            }
+        });
+    }
+
+    // --- UI Functions ---
+    function displayResults(data) {
+        const verdictEl = document.getElementById('verdict');
+        verdictEl.textContent = data.verdict;
+        verdictEl.classList.remove('verdict-positive', 'verdict-negative');
+        if (data.prediction === 'positive') {
+            verdictEl.classList.add('verdict-positive');
+        } else {
+            verdictEl.classList.add('verdict-negative');
+        }
+
+        document.getElementById('confidence').textContent = `${(data.confidence * 100).toFixed(2)}%`;
+
+        const topWordsContainer = document.getElementById('topWords');
+        topWordsContainer.innerHTML = ''; // Clear previous
         data.top_words.forEach(word => {
             const tag = document.createElement('span');
-            tag.className = 'word-tag';
-            tag.innerText = word;
+            tag.className = 'keyword-tag';
+            tag.textContent = word;
             topWordsContainer.appendChild(tag);
         });
 
-        showBox('responseBox');
-
-    } catch (err) {
-        loader.style.display = "none";
-        alert("Error analyzing review: " + err.message);
+        document.getElementById('result-area').style.display = 'block';
     }
-}
 
-async function getModelInfo() {
-    const loader = document.getElementById("loader");
-    
-    loader.style.display = "block";
-    hideAllBoxes();
-
-    try {
-        const response = await fetch("/model-info");
+    function showModal(title, body, isCode = false) {
+        document.getElementById('modalTitle').textContent = title;
+        const modalBody = document.getElementById('modalBody');
         
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+        if (isCode) {
+            modalBody.innerHTML = `<pre><code>${body}</code></pre>`;
+        } else {
+            modalBody.innerHTML = `<p>${body}</p>`;
         }
         
-        const data = await response.json();
-        loader.style.display = "none";
-        
-        // Format the JSON data for pretty printing
-        document.getElementById("modelInfoContent").innerText = JSON.stringify(data, null, 2);
-        showBox('modelInfoBox');
-
-    } catch (err) {
-        loader.style.display = "none";
-        alert("Error fetching model info: " + err.message);
+        modal.style.display = 'flex';
     }
-}
+
+    function closeModal() {
+        modal.style.display = 'none';
+    }
+
+    function toggleLoader(button, isLoading) {
+        const btnText = button.querySelector('.btn-text');
+        const btnLoader = button.querySelector('.btn-loader');
+        if (isLoading) {
+            if (btnText) btnText.style.display = 'none';
+            if (btnLoader) btnLoader.style.display = 'block';
+            button.disabled = true;
+        } else {
+            if (btnText) btnText.style.display = 'inline';
+            if (btnLoader) btnLoader.style.display = 'none';
+            button.disabled = false;
+        }
+    }
+});
