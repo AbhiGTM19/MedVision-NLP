@@ -1,168 +1,138 @@
 <!DOCTYPE html>
-<html lang="en" class="scroll-smooth">
+<html lang="en">
+
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Sentiment Scope | Movie Review Analysis</title>
-    
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sentiment Scope - Movie Review Analyzer</title>
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    
-    <script>
-        // Custom Tailwind theme to match the movie vibe
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                    },
-                    colors: {
-                        'brand-dark': '#111827',
-                        'brand-blue': '#1E3A8A',
-                        'brand-light': '#F9FAFB',
-                        'brand-accent': '#FBBF24',
-                        'body-bg': '#fff',
-                    }
-                }
-            }
-        }
-    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+    <!-- Custom Stylesheet -->
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
 </head>
-<body class="bg-brand-dark text-brand-light">
 
-    <!-- Header & Navbar -->
-    <header class="bg-brand-dark/80 backdrop-blur-sm sticky top-0 z-50">
-        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
-            <a href="#" class="text-2xl font-bold text-white">Sentiment Scope 🎬</a>
-            <div class="hidden md:flex space-x-6 items-center">
-                <a href="#predictor" class="hover:text-brand-accent transition-colors">Predictor</a>
-                <a href="#features" class="hover:text-brand-accent transition-colors">Features</a>
-                <a href="#about" class="hover:text-brand-accent transition-colors">About</a>
-                <a href="#predictor" class="bg-brand-accent text-brand-dark font-semibold px-4 py-2 rounded-lg hover:bg-amber-400 transition-colors">Try Now</a>
-            </div>
-            <button id="mobile-menu-button" class="md:hidden text-white">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
-                </svg>
-            </button>
-        </nav>
-        <!-- Mobile Menu -->
-        <div id="mobile-menu" class="hidden md:hidden px-6 pb-4">
-            <a href="#predictor" class="block py-2 hover:text-brand-accent transition-colors">Predictor</a>
-            <a href="#features" class="block py-2 hover:text-brand-accent transition-colors">Features</a>
-            <a href="#about" class="block py-2 hover:text-brand-accent transition-colors">About</a>
+<body>
+    <nav class="navbar">
+        <div class="nav-brand">Sentiment Scope 🎬</div>
+        <ul class="nav-links">
+            <li><a href="#about"><span>About</span></a></li>
+            <li><a href="#features"><span>Features</span></a></li>
+            <li><a href="#predictor"><span>Predictor</span></a></li>
+            <li><a href="#contact"><span>Contact</span></a></li>
+        </ul>
+    </nav>
+
+    <header class="hero-section">
+        <div class="hero-overlay"></div>
+        <!-- ADDED reveal-hero class for animation -->
+        <div class="hero-content reveal-hero">
+            <h1>Analyze Movie Reviews with AI</h1>
+            <p>Leveraging machine learning to instantly classify sentiment and uncover key insights.</p>
+            <a href="#predictor" class="hero-btn">Try the Analyzer</a>
         </div>
     </header>
 
     <main>
-        <!-- Hero Section -->
-        <section id="home" class="py-20 md:py-32">
-            <div class="container mx-auto px-6 text-center">
-                <h1 class="text-4xl md:text-6xl font-bold text-white leading-tight">Instantly Analyze Movie Reviews</h1>
-                <p class="mt-4 text-lg md:text-xl text-gray-300 max-w-3xl mx-auto">Harness the power of machine learning to classify movie reviews as positive or negative. Get insights in seconds.</p>
-                <a href="#predictor" class="mt-8 inline-block bg-brand-accent text-brand-dark font-bold text-lg px-8 py-4 rounded-lg hover:bg-amber-400 transition-transform hover:scale-105">
-                    Analyze Your First Review
-                </a>
+        <!-- ADDED alternating reveal classes -->
+        <section id="about" class="section reveal-right">
+            <div class="container">
+                <h2>About This Project</h2>
+                <p>This project provides a complete machine learning solution to classify movie reviews as positive or negative. It uses Natural Language Processing (NLP) techniques to understand and interpret the sentiment expressed in text.</p>
+                <p>Built with an MLOps-first approach, the application showcases a full model lifecycle: from data preprocessing and hyperparameter tuning with Optuna, to experiment tracking with MLflow and deployment via a Flask API. The goal is to deliver not just accurate predictions, but a robust and reproducible system.</p>
+                
+                <div class="model-info-container">
+                    <p>Curious about the model's technical details?</p>
+                    <button class="info-btn" id="model-info-button">Show Model Info</button>
+                </div>
             </div>
         </section>
 
-        <!-- Predictor Section -->
-        <section id="predictor" class="py-20 bg-gray-900">
-            <div class="container mx-auto px-6">
-                <div class="bg-brand-dark rounded-2xl shadow-2xl p-8 md:p-12 max-w-4xl mx-auto">
-                    <h2 class="text-3xl font-bold text-center text-white">The Predictor</h2>
-                    <p class="text-center text-gray-400 mt-2">Enter a movie review below to see the magic happen.</p>
-                    
-                    <div class="form-group mt-8">
-                        <textarea id="reviewInput" rows="8" class="w-full p-4 bg-gray-800 border-2 border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-brand-accent focus:outline-none transition-colors" placeholder="e.g., 'The movie was an absolute masterpiece with stunning visuals and powerful performances...'"></textarea>
+        <section id="features" class="section reveal-left">
+            <div class="container">
+                <h2>Key Features</h2>
+                <div class="feature-grid">
+                    <div class="feature-item">
+                        <i class="fas fa-bolt-lightning"></i>
+                        <h3>Lightning-Fast Analysis</h3>
+                        <p>Utilizes a highly efficient SGD classifier, fine-tuned with Optuna for speed and accuracy on text data.</p>
                     </div>
-
-                    <div class="text-center mt-6">
-                        <button class="btn-primary" onclick="sendReview()">Analyze Sentiment</button>
+                    <div class="feature-item">
+                        <i class="fas fa-crosshairs"></i>
+                        <h3>High-Accuracy Predictions</h3>
+                        <p>An interactive and responsive UI provides instant sentiment classification without page reloads, thanks to asynchronous JavaScript.</p>
                     </div>
-
-                    <div id="loader" class="text-center mt-6 text-lg text-gray-400 hidden">
-                        ⏳ Analyzing... Please wait.
-                    </div>
-
-                    <!-- Results Display -->
-                    <div id="responseBox" class="mt-8 hidden">
-                        <div class="grid md:grid-cols-2 gap-6 text-center">
-                            <div class="bg-gray-800 p-6 rounded-lg">
-                                <h4 class="text-lg font-semibold text-gray-400">Verdict</h4>
-                                <p id="verdict" class="text-3xl font-bold"></p>
-                            </div>
-                            <div class="bg-gray-800 p-6 rounded-lg">
-                                <h4 class="text-lg font-semibold text-gray-400">Confidence</h4>
-                                <p id="confidence" class="text-3xl font-bold"></p>
-                            </div>
-                        </div>
-                        <div class="bg-gray-800 p-6 rounded-lg mt-6">
-                            <h4 class="text-lg font-semibold text-gray-400 mb-2">Top Influential Words</h4>
-                            <div id="topWords" class="flex flex-wrap justify-center gap-2"></div>
-                        </div>
+                    <div class="feature-item">
+                        <i class="fas fa-search-plus"></i>
+                        <h3>Keyword Insights</h3>
+                        <p>Goes beyond a simple prediction to highlight the specific words that most influenced the model's decision.</p>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- Features Section -->
-        <section id="features" class="py-20">
-            <div class="container mx-auto px-6">
-                <h2 class="text-3xl font-bold text-center text-white">Why Use Sentiment Scope?</h2>
-                <div class="mt-12 grid md:grid-cols-3 gap-8">
-                    <!-- Feature 1 -->
-                    <div class="feature-card">
-                        <svg class="h-12 w-12 text-brand-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                        <h3 class="text-xl font-bold mt-4">Lightning Fast</h3>
-                        <p class="mt-2 text-gray-400">Our optimized SGDClassifier provides near-instantaneous predictions, so you don't have to wait.</p>
+        <section id="predictor" class="section reveal-right">
+            <div class="container">
+                <h2>Sentiment Predictor</h2>
+                <p>Enter a movie review below to get an instant sentiment analysis.</p>
+                <div class="predictor-form">
+                    <textarea id="reviewInput" rows="8" placeholder="e.g., 'The acting was phenomenal and the storyline was captivating...'"></textarea>
+                    <button class="action-btn" id="predict-button">
+                        <span class="btn-text">Analyze Sentiment</span>
+                        <span class="btn-loader" style="display: none;"></span>
+                    </button>
+                </div>
+                <!-- Results Area -->
+                <div id="result-area" class="result-area" style="display: none;">
+                    <div class="result-grid">
+                        <div class="result-item">
+                            <h4>Verdict</h4>
+                            <p id="verdict"></p>
+                        </div>
+                        <div class="result-item">
+                            <h4>Confidence</h4>
+                            <p id="confidence"></p>
+                        </div>
                     </div>
-                    <!-- Feature 2 -->
-                    <div class="feature-card">
-                        <svg class="h-12 w-12 text-brand-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/></svg>
-                        <h3 class="text-xl font-bold mt-4">High Accuracy</h3>
-                        <p class="mt-2 text-gray-400">Trained on the extensive IMDB dataset and tuned with Optuna for reliable and accurate sentiment classification.</p>
-                    </div>
-                    <!-- Feature 3 -->
-                    <div class="feature-card">
-                        <svg class="h-12 w-12 text-brand-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a2 2 0 01-2-2V4a2 2 0 012-2h8z"/></svg>
-                        <h3 class="text-xl font-bold mt-4">Keyword Insights</h3>
-                        <p class="mt-2 text-gray-400">Instantly see the most influential words that determined the sentiment, providing deeper analytical insight.</p>
+                    <div class="result-keywords">
+                        <h4>Top Influential Words</h4>
+                        <div id="topWords"></div>
                     </div>
                 </div>
             </div>
         </section>
-        
-        <!-- About the Model Section -->
-        <section id="about" class="py-20 bg-gray-900">
-            <div class="container mx-auto px-6 text-center">
-                <h2 class="text-3xl font-bold text-white">Behind the Scenes</h2>
-                <p class="mt-4 text-lg text-gray-400 max-w-2xl mx-auto">Curious about the tech? Our model's parameters are fully transparent. Click below to see the details.</p>
-                <button class="btn-secondary mt-8" onclick="getModelInfo()">Show Model Info</button>
-                <div id="modelInfoBox" class="response-box card-body max-w-2xl mx-auto text-left mt-8 bg-brand-dark p-6 rounded-lg">
-                    <pre><code id="modelInfoContent" class="text-sm"></code></pre>
+
+        <section id="contact" class="section reveal-left">
+            <div class="container">
+                <h2>Contact</h2>
+                <p>Feel free to connect or explore my other projects.</p>
+                <div class="contact-links">
+                    <a href="https://www.linkedin.com/in/abhishek-gautam-03b56926b/" target="_blank" class="social-icon"><i class="fab fa-linkedin"></i> LinkedIn</a>
+                    <a href="https://github.com/AbhiGTM19" target="_blank" class="social-icon"><i class="fab fa-github"></i> GitHub</a>
                 </div>
             </div>
         </section>
     </main>
-
-    <!-- Footer -->
-    <footer class="bg-brand-dark py-8">
-        <div class="container mx-auto px-6 text-center text-gray-500">
-            <p>&copy; 2025 Sentiment Scope. All Rights Reserved.</p>
-            <p class="mt-2">A project by Abhishek Gautam, enhanced by AI.</p>
-        </div>
+    
+    <footer class="footer">
+        <p>&copy; 2025 Sentiment Scope. All rights reserved.</p>
+        <p>Developed by Abhishek Gautam</p>
+        <p style="color:crimson;">*** Future Enhancements will be made in the project ***</p>
     </footer>
 
-    <!-- Custom JS -->
+    <!-- Modal for Model Info and Errors -->
+    <div id="infoModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h2 id="modalTitle"></h2>
+            <div id="modalBody"></div>
+            <button class="action-btn modal-ok-button">OK</button>
+        </div>
+    </div>
+
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>

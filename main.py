@@ -10,8 +10,6 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 def home():
     return render_template("index.html")
 
-
-# Serve model info (best params, score)
 @app.route("/model-info", methods=["GET"])
 def model_info():
     with open('models/movies_review_classifier.pkl', 'rb') as file:
