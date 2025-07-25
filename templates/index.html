@@ -11,13 +11,18 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <!-- Font Awesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+    <!-- Chart.js for Gauge -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Custom Stylesheet -->
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎬</text></svg>"
+        type="image/svg+xml">
 </head>
 
 <body>
     <nav class="navbar">
-        <div class="nav-brand">Sentiment Scope 🎬</div>
+        <div class="nav-brand">Sentiment Scope</div>
         <ul class="nav-links">
             <li><a href="#about"><span>About</span></a></li>
             <li><a href="#features"><span>Features</span></a></li>
@@ -28,7 +33,6 @@
 
     <header class="hero-section">
         <div class="hero-overlay"></div>
-        <!-- ADDED reveal-hero class for animation -->
         <div class="hero-content reveal-hero">
             <h1>Analyze Movie Reviews with AI</h1>
             <p>Leveraging machine learning to instantly classify sentiment and uncover key insights.</p>
@@ -37,13 +41,17 @@
     </header>
 
     <main>
-        <!-- ADDED alternating reveal classes -->
         <section id="about" class="section reveal-right">
             <div class="container">
                 <h2>About This Project</h2>
-                <p>This project provides a complete machine learning solution to classify movie reviews as positive or negative. It uses Natural Language Processing (NLP) techniques to understand and interpret the sentiment expressed in text.</p>
-                <p>Built with an MLOps-first approach, the application showcases a full model lifecycle: from data preprocessing and hyperparameter tuning with Optuna, to experiment tracking with MLflow and deployment via a Flask API. The goal is to deliver not just accurate predictions, but a robust and reproducible system.</p>
-                
+                <p>This project provides a complete machine learning solution to classify movie reviews as positive or
+                    negative. It uses Natural Language Processing (NLP) techniques to understand and interpret the
+                    sentiment expressed in text.</p>
+                <p>Built with an MLOps-first approach, the application showcases a full model lifecycle: from data
+                    preprocessing and hyperparameter tuning with Optuna, to experiment tracking with MLflow and
+                    deployment via a Flask API. The goal is to deliver not just accurate predictions, but a robust and
+                    reproducible system.</p>
+
                 <div class="model-info-container">
                     <p>Curious about the model's technical details?</p>
                     <button class="info-btn" id="model-info-button">Show Model Info</button>
@@ -57,18 +65,21 @@
                 <div class="feature-grid">
                     <div class="feature-item">
                         <i class="fas fa-bolt-lightning"></i>
-                        <h3>Lightning-Fast Analysis</h3>
-                        <p>Utilizes a highly efficient SGD classifier, fine-tuned with Optuna for speed and accuracy on text data.</p>
-                    </div>
-                    <div class="feature-item">
-                        <i class="fas fa-crosshairs"></i>
-                        <h3>High-Accuracy Predictions</h3>
-                        <p>An interactive and responsive UI provides instant sentiment classification without page reloads, thanks to asynchronous JavaScript.</p>
+                        <h3>Dual Analysis Models</h3>
+                        <p>Choose between a lightning-fast SGD Classifier for quick results or a highly-accurate
+                            DistilBERT Transformer for deeper analysis.</p>
                     </div>
                     <div class="feature-item">
                         <i class="fas fa-search-plus"></i>
-                        <h3>Keyword Insights</h3>
-                        <p>Goes beyond a simple prediction to highlight the specific words that most influenced the model's decision.</p>
+                        <h3>Explainable AI</h3>
+                        <p>Goes beyond a simple prediction to highlight the specific words that most influenced the
+                            model's decision (available with the fast model).</p>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-chart-pie"></i>
+                        <h3>Interactive Visuals</h3>
+                        <p>An interactive UI with animated charts and a recent history panel provides a rich and
+                            engaging user experience.</p>
                     </div>
                 </div>
             </div>
@@ -78,8 +89,20 @@
             <div class="container">
                 <h2>Sentiment Predictor</h2>
                 <p>Enter a movie review below to get an instant sentiment analysis.</p>
+
+                <!-- New Model Selector -->
+                <div class="model-selector-dropdown">
+                    <label for="model-select" class="toggle-label">Select Model:</label>
+                    <select id="model-select">
+                        <option value="fast">Fast (SGD Classifier)</option>
+                        <option value="accurate">Accurate (DistilBERT)</option>
+                    </select>
+                </div>
+
+
                 <div class="predictor-form">
-                    <textarea id="reviewInput" rows="8" placeholder="e.g., 'The acting was phenomenal and the storyline was captivating...'"></textarea>
+                    <textarea id="reviewInput" rows="8"
+                        placeholder="e.g., 'The acting was phenomenal and the storyline was captivating...'"></textarea>
                     <button class="action-btn" id="predict-button">
                         <span class="btn-text">Analyze Sentiment</span>
                         <span class="btn-loader" style="display: none;"></span>
@@ -92,35 +115,54 @@
                             <h4>Verdict</h4>
                             <p id="verdict"></p>
                         </div>
-                        <div class="result-item">
+                        <div class="result-item gauge-container">
                             <h4>Confidence</h4>
-                            <p id="confidence"></p>
+                            <div class="gauge-wrapper">
+                                <canvas id="confidenceGauge"></canvas>
+                                <div class="gauge-label" id="confidence-label"></div>
+                            </div>
                         </div>
                     </div>
-                    <div class="result-keywords">
-                        <h4>Top Influential Words</h4>
-                        <div id="topWords"></div>
+                    <div class="highlighted-review-container" id="breakdown-container">
+                        <h4>Analysis Breakdown</h4>
+                        <div id="highlighted-review"></div>
                     </div>
+                    <button class="copy-btn" id="copy-results-button">
+                        <i class="fas fa-clipboard"></i>
+                        <span>Copy Results</span>
+                    </button>
                 </div>
             </div>
         </section>
 
-        <section id="contact" class="section reveal-left">
+        <section id="history" class="section reveal-left">
+            <div class="container">
+                <h2>Recent Analyses</h2>
+                <div id="history-list"></div>
+                <p id="history-empty-message" style="display: none;">Your recent analyses will appear here.</p>
+                <button class="info-btn" id="clear-history-button" style="display: none;">
+                    <i class="fas fa-trash"></i> Clear History
+                </button>
+            </div>
+        </section>
+
+        <section id="contact" class="section reveal-right">
             <div class="container">
                 <h2>Contact</h2>
                 <p>Feel free to connect or explore my other projects.</p>
                 <div class="contact-links">
-                    <a href="https://www.linkedin.com/in/abhishek-gautam-03b56926b/" target="_blank" class="social-icon"><i class="fab fa-linkedin"></i> LinkedIn</a>
-                    <a href="https://github.com/AbhiGTM19" target="_blank" class="social-icon"><i class="fab fa-github"></i> GitHub</a>
+                    <a href="https://www.linkedin.com/in/abhishek-gautam-03b56926b/" target="_blank"
+                        class="social-icon"><i class="fab fa-linkedin"></i> LinkedIn</a>
+                    <a href="https://github.com/AbhiGTM19" target="_blank" class="social-icon"><i
+                            class="fab fa-github"></i> GitHub</a>
                 </div>
             </div>
         </section>
     </main>
-    
+
     <footer class="footer">
         <p>&copy; 2025 Sentiment Scope. All rights reserved.</p>
         <p>Developed by Abhishek Gautam</p>
-        <p style="color:crimson;">*** Future Enhancements will be made in the project ***</p>
     </footer>
 
     <!-- Modal for Model Info and Errors -->
@@ -135,4 +177,5 @@
 
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
+
 </html>

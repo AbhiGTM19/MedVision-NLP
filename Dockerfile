@@ -1,18 +1,13 @@
-# --- Stage 1: Build Stage ---
-# Use a slim Python image as a base
+# --- Stage 1: Builder ---
+# This stage installs dependencies and builds necessary artifacts
 FROM python:3.9-slim as builder
 
-# Set the working directory in the container
 WORKDIR /app
 
-# Prevent Python from writing .pyc files and disable buffering
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
-
-# Install system dependencies
+# Install build tools
 RUN apt-get update && apt-get install -y --no-install-recommends gcc && rm -rf /var/lib/apt/lists/*
 
-# Copy and install Python dependencies
+# Copy requirements and install dependencies
 COPY requirements.txt .
 RUN pip install --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
@@ -20,40 +15,38 @@ RUN pip install --upgrade pip && \
 # Download NLTK data
 RUN python -m nltk.downloader punkt stopwords
 
-# --- Stage 2: Final Stage ---
-# Use a fresh, clean base image for the final product
+# --- Stage 2: Final Image ---
+# This stage creates the final, lean production image
 FROM python:3.9-slim
 
-# Create a non-root user and group for security
+# Create a non-root user for security
 RUN addgroup --system app && adduser --system --group app
 
 # Set the working directory
 WORKDIR /home/app
 
-# --- THIS IS THE NEW CRITICAL FIX ---
-# Give the 'app' user ownership of its home directory
-RUN chown app:app /home/app
-
-# Copy the installed packages and executables from the builder stage
+# Copy installed packages, executables, and NLTK data from the builder stage
 COPY --from=builder /usr/local/lib/python3.9/site-packages/ /usr/local/lib/python3.9/site-packages/
 COPY --from=builder /usr/local/bin/ /usr/local/bin/
-# Copy the downloaded NLTK data from the builder stage
 COPY --from=builder /root/nltk_data/ /home/app/nltk_data/
 
-# Copy the application source code AND set the owner to the 'app' user
+# Set the NLTK_DATA environment variable
+ENV NLTK_DATA=/home/app/nltk_data
+
+# Copy the application code and set ownership
 COPY --chown=app:app . .
 
-# Set environment variable for NLTK to find the data
-ENV NLTK_DATA=/home/app/nltk_data
+# --- CRITICAL STEP: Train Both Models ---
+# Run the training scripts to generate the model files inside the container
+# This will create ./models/ and ./models/distilbert/
+RUN python train.py
+RUN python train_transformer.py
 
 # Switch to the non-root user
 USER app
 
-# Run the training script to generate the model files
-RUN python train.py
-
 # Expose the port the app will run on
 EXPOSE 5000
 
-# Command to run the application using Gunicorn
+# Run the application with Gunicorn
 CMD ["gunicorn", "--bind", "0.0.0.0:5000", "main:app"]
