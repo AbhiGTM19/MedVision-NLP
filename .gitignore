@@ -17,3 +17,4 @@ aclImdb/
 *.joblib
 *.csv
 *.json
+results/
