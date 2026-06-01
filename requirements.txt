@@ -11,3 +11,9 @@ matplotlib
 seaborn
 optuna
 gunicorn
+transformers==4.28.1
+torch
+datasets==2.12.0
+accelerate
+evaluate==0.4.0
+pyarrow==12.0.1
