@@ -1,5 +1,6 @@
-import pickle
 import os
+import pickle
+
 
 def load_pickle_safe(path):
     if not os.path.exists(path):
