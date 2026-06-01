@@ -37,13 +37,13 @@ A full-stack web application that uses a machine learning model to perform real-
 
 ### Prerequisites
 
--   Python 3.9 (recommended to manage with `pyenv`)
+-   Python 3.14 (recommended to manage with `pyenv`)
 -   Docker Desktop
 
 ### 1. Clone the Repository
 
 ```bash
-git clone [https://github.com/AbhiGTM19/Movie-Review-Sentiment-Classifier.git](https://github.com/AbhiGTM19/Movie-Review-Sentiment-Classifier.git)
+git clone https://github.com/AbhiGTM19/Movie-Review-Sentiment-Classifier.git
 cd Movie-Review-Sentiment-Classifier
 ```
 
@@ -53,12 +53,12 @@ It is highly recommended to use the specific Python version this project was bui
 
 ```bash
 # Install and set the local Python version using pyenv
-pyenv install 3.9.18
-pyenv local 3.9.18
+pyenv install 3.14.4
+pyenv local 3.14.4
 
 # Create and activate a virtual environment
-python -m venv venv
-source venv/bin/activate
+python -m venv .venv
+source .venv/bin/activate
 ```
 
 ### 3. Install Dependencies

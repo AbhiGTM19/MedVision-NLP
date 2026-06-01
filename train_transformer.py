@@ -1,13 +1,19 @@
 import os
-import torch
-import pandas as pd
+
+import evaluate
+import mlflow  # Import mlflow
 import numpy as np
-import evaluate 
-import mlflow # Import mlflow
-from sklearn.model_selection import train_test_split
-from transformers import DistilBertTokenizerFast, DistilBertForSequenceClassification, Trainer, TrainingArguments
-from datasets import Dataset
-import common
+import pandas as pd
+from datasets import Dataset, load_dataset
+from transformers import (
+    DistilBertForSequenceClassification,
+    DistilBertTokenizerFast,
+    Trainer,
+    TrainingArguments,
+)
+
+from core.config import settings
+
 
 def load_raw_data(pos_path, neg_path):
     """Loads raw movie review data from text files into a pandas DataFrame."""
@@ -24,14 +30,17 @@ def load_raw_data(pos_path, neg_path):
 
 def main():
     """Main function to fine-tune and save the DistilBERT model."""
+    import transformers
+    transformers.logging.set_verbosity_error()
     print("--- Starting DistilBERT Fine-Tuning ---")
 
-    print("1. Loading raw IMDB data...")
-    pos_path = "aclImdb/train/pos"
-    neg_path = "aclImdb/train/neg"
-    df = load_raw_data(pos_path, neg_path)
+    print("1. Loading raw IMDB data using HF datasets...")
+    # Using datasets library for efficient out-of-core loading
+    dataset = load_dataset('imdb', cache_dir='./dataset/huggingface_cache')
     
-    train_df, val_df = train_test_split(df, test_size=0.2, random_state=42, stratify=df['label'])
+    # Take a smaller split for quicker fine-tuning, or use the full split
+    train_df = dataset['train'].to_pandas()
+    val_df = dataset['test'].to_pandas().sample(frac=0.2, random_state=42) # Taking 20% of test for validation
 
     train_dataset = Dataset.from_pandas(train_df)
     val_dataset = Dataset.from_pandas(val_df)
@@ -60,7 +69,7 @@ def main():
         weight_decay=0.01,
         logging_dir='./logs',
         logging_steps=100,
-        evaluation_strategy="steps",
+        eval_strategy="steps",
         eval_steps=500,
         save_strategy="steps",
         save_steps=500,
@@ -89,7 +98,7 @@ def main():
     print("4. Fine-tuning the model...")
     trainer.train()
 
-    output_model_dir = './models/distilbert'
+    output_model_dir = settings.TRANSFORMER_MODEL_PATH
     os.makedirs(output_model_dir, exist_ok=True)
     print(f"5. Saving fine-tuned model and tokenizer to {output_model_dir}...")
     

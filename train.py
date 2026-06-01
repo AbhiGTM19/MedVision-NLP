@@ -1,22 +1,27 @@
 import matplotlib
+
 # Set the backend to 'Agg' BEFORE importing pyplot
 # This is the crucial fix for running in a headless Docker environment
 matplotlib.use('Agg')
 
 import os
-import time
 import pickle
-import pandas as pd
+import time
+
 import matplotlib.pyplot as plt
-import seaborn as sns
-from sklearn.model_selection import train_test_split
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.linear_model import SGDClassifier
-from sklearn.metrics import accuracy_score, f1_score, confusion_matrix
 import mlflow
 import mlflow.sklearn
 import optuna
+import pandas as pd
+import seaborn as sns
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.linear_model import SGDClassifier
+from sklearn.metrics import accuracy_score, confusion_matrix, f1_score
+from sklearn.model_selection import train_test_split
+
 import common
+from core.config import settings
+
 
 def load_data(pos_path, neg_path):
     """Loads positive and negative review data from specified paths."""
@@ -36,7 +41,7 @@ def objective(trial, X_train, X_test, y_train, y_test):
     alpha = trial.suggest_float("alpha", 1e-5, 1e-1, log=True)
     
     model = SGDClassifier(
-        loss='log',  # Use 'log' for scikit-learn v1.0.2
+        loss='log_loss',  # Use 'log_loss' for modern scikit-learn
         penalty='l2',
         alpha=alpha,
         random_state=42,
@@ -54,8 +59,8 @@ def train_model():
     start = time.time()
     
     print("1. Loading and preprocessing data...")
-    pos_path = "aclImdb/train/pos"
-    neg_path = "aclImdb/train/neg"
+    pos_path = settings.POS_DATA_PATH
+    neg_path = settings.NEG_DATA_PATH
     df = load_data(pos_path, neg_path)
     df['processed_review'] = df['review'].apply(common.preprocess_text)
 
@@ -76,7 +81,7 @@ def train_model():
     print("5. Best params found:", study.best_params)
     
     best_model = SGDClassifier(
-        loss='log',
+        loss='log_loss',
         penalty='l2',
         alpha=study.best_params['alpha'],
         random_state=42,
@@ -95,10 +100,10 @@ def train_model():
         mlflow.log_metric("accuracy", accuracy)
         mlflow.log_metric("f1_score", f1)
 
-        os.makedirs("models", exist_ok=True)
-        with open("models/tfidf_vectorizer.pkl", "wb") as f:
+        os.makedirs(os.path.dirname(settings.VECTORIZER_PATH), exist_ok=True)
+        with open(settings.VECTORIZER_PATH, "wb") as f:
             pickle.dump(vectorizer, f)
-        with open("models/movies_review_classifier.pkl", "wb") as f:
+        with open(settings.FAST_MODEL_PATH, "wb") as f:
             pickle.dump(best_model, f)
         mlflow.log_artifacts("models")
 
