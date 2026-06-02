@@ -13,6 +13,19 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&family=Public+Sans:wght@400;600&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
         rel="stylesheet" />
+    <style>
+        /* Force Mermaid Flow Diagram text to solid black in light mode */
+        .mermaid .nodeLabel, .mermaid span, .mermaid text {
+            fill: #000 !important;
+            color: #000 !important;
+        }
+
+        /* Force Mermaid Flow Diagram text to solid white in dark mode */
+        .dark .mermaid .nodeLabel, .dark .mermaid span, .dark .mermaid text {
+            fill: #fff !important;
+            color: #fff !important;
+        }
+    </style>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
     <script>
@@ -234,8 +247,8 @@
                             <div
                                 class="mermaid min-w-[400px] md:min-w-0 w-full text-xs sm:text-sm font-label flex justify-center md:[&>svg]:max-h-[600px] [&>svg]:w-full md:[&>svg]:w-auto">
                                 graph TD
-                                classDef default fill:transparent,stroke:#888888,stroke-width:1px,color:#888888;
-                                classDef highlight fill:#f59e0b20,stroke:#f59e0b,stroke-width:2px,color:#888888;
+                                classDef default fill:transparent,stroke:#888888,stroke-width:1px;
+                                classDef highlight fill:#f59e0b20,stroke:#f59e0b,stroke-width:2px;
 
                                 UI(Vanilla JS Client) -->|REST Request| API[FastAPI Gateway]
                                 API --> Router{Inference Router}
