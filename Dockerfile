@@ -43,5 +43,5 @@ USER 1000
 # Expose the port for Hugging Face Spaces
 EXPOSE 7860
 
-# Run the application with Uvicorn (FastAPI) instead of standard Gunicorn
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "7860"]
+# Run the application with Uvicorn (FastAPI) and enable proxy headers to prevent mixed-content blocking over HTTPS
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "7860", "--proxy-headers", "--forwarded-allow-ips", "*"]
