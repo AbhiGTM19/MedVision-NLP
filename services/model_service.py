@@ -18,6 +18,19 @@ class ModelService:
         self._load_models()
 
     def _load_models(self):
+        # Debug logs
+        logger.info(f"🔍 Current working directory: {os.getcwd()}")
+        if os.path.exists('models'):
+            logger.info(f"🔍 Contents of 'models' directory: {os.listdir('models')}")
+            if os.path.exists('models/distilbert'):
+                logger.info(f"🔍 Contents of 'models/distilbert': {os.listdir('models/distilbert')}")
+        else:
+            logger.warning("🔍 'models' directory does NOT exist at all!")
+            
+        logger.info(f"🔍 Checking FAST_MODEL_PATH: {settings.FAST_MODEL_PATH} -> Exists? {os.path.exists(settings.FAST_MODEL_PATH)}")
+        logger.info(f"🔍 Checking VECTORIZER_PATH: {settings.VECTORIZER_PATH} -> Exists? {os.path.exists(settings.VECTORIZER_PATH)}")
+        logger.info(f"🔍 Checking TRANSFORMER_MODEL_PATH: {settings.TRANSFORMER_MODEL_PATH} -> Exists? {os.path.exists(settings.TRANSFORMER_MODEL_PATH)}")
+
         # Load fast model
         try:
             if os.path.exists(settings.FAST_MODEL_PATH) and os.path.exists(settings.VECTORIZER_PATH):
