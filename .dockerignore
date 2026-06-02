@@ -12,7 +12,6 @@ mlruns/
 mlartifacts/
 *.DS_Store
 *.log
-models/
-*.pkl
+
 results/
 .venv/
