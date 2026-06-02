@@ -30,9 +30,9 @@ class ModelService:
             logger.info("Downloading fast model weights from Hugging Face Hub...")
             try:
                 from huggingface_hub import hf_hub_download
-                os.makedirs('models', exist_ok=True)
-                hf_hub_download(repo_id=settings.HF_MODEL_REPO_ID, filename="movies_review_classifier.pkl", local_dir="models")
-                hf_hub_download(repo_id=settings.HF_MODEL_REPO_ID, filename="tfidf_vectorizer.pkl", local_dir="models")
+                # Download to HF cache and update settings to point to the cached absolute paths
+                settings.FAST_MODEL_PATH = hf_hub_download(repo_id=settings.HF_MODEL_REPO_ID, filename="movies_review_classifier.pkl")
+                settings.VECTORIZER_PATH = hf_hub_download(repo_id=settings.HF_MODEL_REPO_ID, filename="tfidf_vectorizer.pkl")
             except Exception as e:
                 logger.error(f"Failed to download fast models: {e}")
 
