@@ -20,25 +20,31 @@ A full-stack web application that uses a machine learning model to perform real-
 
 ---
 
-## 📋 Features
+## 🌟 Architecture & Skills Highlighted
 
--   **Real-Time Sentiment Analysis**: Instantly classifies movie reviews as positive or negative.
--   **Keyword Insights**: Highlights the specific words that most influenced the model's decision.
--   **Efficient ML Model**: Utilizes a highly optimized **SGD Classifier (Logistic Regression)** for fast and accurate predictions.
--   **Hyperparameter Tuning**: Leverages **Optuna** with parallel processing to efficiently find the best model parameters.
--   **Full MLOps Lifecycle**: Tracks experiments, parameters, and metrics using **MLflow**.
--   **Interactive Frontend**: A responsive, single-page application built with vanilla JavaScript, HTML, and CSS, featuring a "Dark Mode Cinema" theme and reveal-on-scroll animations.
--   **Containerized Deployment**: Packaged into a production-ready **Docker** image and deployed on **Render**.
+This project serves as a comprehensive portfolio piece demonstrating modern, production-ready software and machine learning engineering practices.
 
----
+### 🧠 Machine Learning & MLOps
+-   **Deep Learning (NLP)**: Fine-tuned a **DistilBERT Transformer** using Hugging Face pipelines for high-accuracy semantic analysis.
+-   **Heuristics & Baselines**: Implemented **Scikit-Learn SGD Classifiers** with TF-IDF vectorization for ultra-low latency fallback inference.
+-   **Explainable AI (XAI)**: Created a transparent glass-box mechanism to map token weights back to natural language, highlighting exactly *why* a model made its prediction.
+-   **Experiment Tracking**: Managed hyperparameters and model lifecycle metrics using **MLflow** and optimized training with **Optuna**.
+-   **Dynamic Model Loading**: Completely decoupled ML weights from the source code. Models are dynamically fetched at runtime via the **Hugging Face Hub API**, bypassing Git file-size limitations.
 
-## 🛠️ Tech Stack
+### ⚙️ Software Engineering (Backend)
+-   **Modern API Framework**: Built a highly performant, asynchronous API gateway using **FastAPI** and **Uvicorn** (ASGI).
+-   **N-Tier Architecture**: Strictly decoupled the application layer into Controllers (Routes), Services (Business Logic), and Core configurations, adhering to SOLID principles.
+-   **Type Safety**: Enforced strict data validation and serialization using **Pydantic** models.
 
--   **Backend**: Python, Flask
--   **Machine Learning**: Scikit-learn, Pandas, NLTK
--   **MLOps**: MLflow, Optuna, Gunicorn
--   **Frontend**: HTML, CSS, JavaScript
---   **Deployment**: Docker, Render
+### 🎨 Frontend Engineering
+-   **Vanilla JS & TailwindCSS**: Built a responsive, zero-dependency Single Page Application (SPA).
+-   **Modern UI/UX**: Implemented a "Dark Mode Cinema" aesthetic using Glassmorphism, CSS View Transitions, and reveal-on-scroll animations.
+-   **Client-Side Rendering**: Dynamically renders complex Explainable AI data and Mermaid.js architecture diagrams on the fly.
+
+### 🚀 DevOps & CI/CD
+-   **Containerization**: Built highly optimized, multi-stage **Docker** images. The container runs via a secure, non-root user specifically designed for PaaS environments.
+-   **Continuous Integration**: Automated testing and linting pipelines via **GitHub Actions**.
+-   **Testing**: Test-Driven Development (TDD) using **Pytest** to ensure robust API contracts and text-preprocessing functions.
 
 ---
 
