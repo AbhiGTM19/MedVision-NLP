@@ -1,3 +1,12 @@
+---
+title: Sentiment Scope
+emoji: 🎬
+colorFrom: blue
+colorTo: indigo
+sdk: docker
+app_port: 7860
+---
+
 # Sentiment Scope: AI Movie Review Analyzer
 
 [![Deployment](https://img.shields.io/badge/Deployment-Render-000?style=for-the-badge&logo=render)](https://movie-review-sentiment-scope.onrender.com/)
