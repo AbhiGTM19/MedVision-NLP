@@ -9,9 +9,11 @@ def test_preprocess_text():
     nltk.data.path.append(settings.NLTK_DATA_PATH)
     try:
         nltk.corpus.stopwords.words("english")
+        nltk.data.find("tokenizers/punkt_tab")
     except LookupError:
         nltk.download("stopwords", download_dir=settings.NLTK_DATA_PATH)
         nltk.download("punkt", download_dir=settings.NLTK_DATA_PATH)
+        nltk.download("punkt_tab", download_dir=settings.NLTK_DATA_PATH)
         
     text = "The quick brown fox jumps over the lazy dog! 123"
     processed = preprocess_text(text)
