@@ -22,11 +22,20 @@ class ModelService:
         logger.info(f"🔍 Current working directory: {os.getcwd()}")
         if os.path.exists('models'):
             logger.info(f"🔍 Contents of 'models' directory: {os.listdir('models')}")
-            if os.path.exists('models/distilbert'):
-                logger.info(f"🔍 Contents of 'models/distilbert': {os.listdir('models/distilbert')}")
         else:
-            logger.warning("🔍 'models' directory does NOT exist at all!")
+            logger.warning("🔍 'models' directory does NOT exist locally. This is expected in production.")
             
+        # Download fast model files dynamically if missing (e.g. in production)
+        if not os.path.exists(settings.FAST_MODEL_PATH) or not os.path.exists(settings.VECTORIZER_PATH):
+            logger.info("Downloading fast model weights from Hugging Face Hub...")
+            try:
+                from huggingface_hub import hf_hub_download
+                os.makedirs('models', exist_ok=True)
+                hf_hub_download(repo_id=settings.HF_MODEL_REPO_ID, filename="movies_review_classifier.pkl", local_dir="models")
+                hf_hub_download(repo_id=settings.HF_MODEL_REPO_ID, filename="tfidf_vectorizer.pkl", local_dir="models")
+            except Exception as e:
+                logger.error(f"Failed to download fast models: {e}")
+
         logger.info(f"🔍 Checking FAST_MODEL_PATH: {settings.FAST_MODEL_PATH} -> Exists? {os.path.exists(settings.FAST_MODEL_PATH)}")
         logger.info(f"🔍 Checking VECTORIZER_PATH: {settings.VECTORIZER_PATH} -> Exists? {os.path.exists(settings.VECTORIZER_PATH)}")
         logger.info(f"🔍 Checking TRANSFORMER_MODEL_PATH: {settings.TRANSFORMER_MODEL_PATH} -> Exists? {os.path.exists(settings.TRANSFORMER_MODEL_PATH)}")
@@ -46,26 +55,28 @@ class ModelService:
 
         # Load accurate model
         try:
-            # If in prod and HF_TRANSFORMER_MODEL_ID is set, download directly from Hugging Face Hub
+            # Always try to load from the remote HF Model repo if not found locally
             model_path = settings.TRANSFORMER_MODEL_PATH
-            if settings.ENV == "prod" and settings.HF_TRANSFORMER_MODEL_ID:
-                model_path = settings.HF_TRANSFORMER_MODEL_ID
-                logger.info(f"Downloading DistilBERT from Hugging Face Hub: {model_path}")
-            
-            if settings.ENV == "prod" and settings.HF_TRANSFORMER_MODEL_ID or os.path.exists(settings.TRANSFORMER_MODEL_PATH):
+            if not os.path.exists(settings.TRANSFORMER_MODEL_PATH) or (settings.ENV == "prod"):
+                model_path = settings.HF_MODEL_REPO_ID
+                logger.info(f"Downloading DistilBERT from Hugging Face Hub: {model_path} (subfolder: distilbert)")
+                
+                # Fetching from HF Hub requires the subfolder if weights are nested
+                tokenizer = DistilBertTokenizerFast.from_pretrained(model_path, subfolder="distilbert")
+                model = DistilBertForSequenceClassification.from_pretrained(model_path, subfolder="distilbert")
+            else:
                 tokenizer = DistilBertTokenizerFast.from_pretrained(model_path)
                 model = DistilBertForSequenceClassification.from_pretrained(model_path)
-                self.accurate_pipeline = pipeline(
-                    "sentiment-analysis",
-                    model=model,
-                    tokenizer=tokenizer,
-                    device=-1,
-                    truncation=True,
-                    max_length=512
-                )
-                logger.info("✅ DistilBERT model loaded successfully!")
-            else:
-                logger.warning("🔴 DistilBert model directory not found.")
+
+            self.accurate_pipeline = pipeline(
+                "sentiment-analysis",
+                model=model,
+                tokenizer=tokenizer,
+                device=-1,
+                truncation=True,
+                max_length=512
+            )
+            logger.info("✅ DistilBERT model loaded successfully!")
         except Exception as e:
             logger.error(f"Error loading DistilBert model: {e}")
 
