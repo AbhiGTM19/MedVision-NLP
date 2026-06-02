@@ -13,8 +13,11 @@ class Settings(BaseSettings):
     VECTORIZER_PATH: str = "models/tfidf_vectorizer.pkl"
     TRANSFORMER_MODEL_PATH: str = "models/distilbert"
     
-    # Hugging Face Hub (Production)
-    HF_TRANSFORMER_MODEL_ID: str = os.getenv("HF_TRANSFORMER_MODEL_ID", "")
+    # Remote Hugging Face Model Repository
+    HF_MODEL_REPO_ID: str = "abhshkgtm19/Movie-Review-Sentiment-Models"
+    
+    # Pre-trained Transformer configurations
+    HF_TRANSFORMER_MODEL_ID: str = os.getenv("HF_TRANSFORMER_MODEL_ID", "distilbert-base-uncased-finetuned-sst-2-english")
     
     # Dataset Paths
     POS_DATA_PATH: str = "dataset/aclImdb/train/pos"
