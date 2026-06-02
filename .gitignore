@@ -30,5 +30,8 @@ nltk_data/
 *.pkl
 *.joblib
 *.csv
-*.json
 confusion_matrix*
+
+# Other
+PAT.txt
+node_modules/

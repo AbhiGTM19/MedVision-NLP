@@ -33,14 +33,22 @@ class ModelService:
 
         # Load accurate model
         try:
-            if os.path.exists(settings.TRANSFORMER_MODEL_PATH):
-                tokenizer = DistilBertTokenizerFast.from_pretrained(settings.TRANSFORMER_MODEL_PATH)
-                model = DistilBertForSequenceClassification.from_pretrained(settings.TRANSFORMER_MODEL_PATH)
+            # If in prod and HF_TRANSFORMER_MODEL_ID is set, download directly from Hugging Face Hub
+            model_path = settings.TRANSFORMER_MODEL_PATH
+            if settings.ENV == "prod" and settings.HF_TRANSFORMER_MODEL_ID:
+                model_path = settings.HF_TRANSFORMER_MODEL_ID
+                logger.info(f"Downloading DistilBERT from Hugging Face Hub: {model_path}")
+            
+            if settings.ENV == "prod" and settings.HF_TRANSFORMER_MODEL_ID or os.path.exists(settings.TRANSFORMER_MODEL_PATH):
+                tokenizer = DistilBertTokenizerFast.from_pretrained(model_path)
+                model = DistilBertForSequenceClassification.from_pretrained(model_path)
                 self.accurate_pipeline = pipeline(
                     "sentiment-analysis",
                     model=model,
                     tokenizer=tokenizer,
-                    device=-1
+                    device=-1,
+                    truncation=True,
+                    max_length=512
                 )
                 logger.info("✅ DistilBERT model loaded successfully!")
             else:
@@ -81,7 +89,13 @@ class ModelService:
         result = self.accurate_pipeline(review)[0]
         prediction_label = "positive" if result['label'] == 'LABEL_1' else "negative"
         confidence = result['score']
-        return prediction_label, confidence, {}
+        
+        # Surrogate explainability: Use the linear fast model to generate word weights for the UI
+        word_importances = {}
+        if self.is_fast_ready():
+            _, _, word_importances = self.predict_fast(review)
+            
+        return prediction_label, confidence, word_importances
 
 # Singleton instance
 model_service = ModelService()

@@ -133,7 +133,7 @@ docker push <your-dockerhub-username>/sentiment-scope
       "confidence": 0.987,
       "prediction": "positive",
       "top_words": ["fantastic", "absolutely"],
-      "verdict": "Recommended ✅"
+      "verdict": "Recommended"
     }
     ```
 

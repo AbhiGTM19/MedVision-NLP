@@ -2,180 +2,476 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sentiment Scope - Movie Review Analyzer</title>
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-    <!-- Font Awesome for Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
-    <!-- Chart.js for Gauge -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Custom Stylesheet -->
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Sentiment Scope</title>
+    <!-- Dynamic SVG Favicon -->
     <link rel="icon"
-        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎬</text></svg>"
-        type="image/svg+xml">
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎬</text></svg>">
+
+    <!-- Tailwind & Fonts -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&family=Public+Sans:wght@400;600&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            mermaid.initialize({
+                startOnLoad: true,
+                theme: 'base',
+                themeVariables: {
+                    background: 'transparent',
+                    primaryColor: 'transparent',
+                    primaryTextColor: 'currentColor',
+                    primaryBorderColor: 'transparent',
+                    lineColor: 'currentColor',
+                    textColor: 'currentColor',
+                    edgeLabelBackground: 'transparent',
+                    fontFamily: 'Inter, sans-serif'
+                }
+            });
+        });
+    </script>
+
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', path='styles.css') }}">
 </head>
 
-<body>
-    <nav class="navbar">
-        <div class="nav-brand">Sentiment Scope</div>
-        <ul class="nav-links">
-            <li><a href="#about"><span>About</span></a></li>
-            <li><a href="#features"><span>Features</span></a></li>
-            <li><a href="#predictor"><span>Predictor</span></a></li>
-            <li><a href="#contact"><span>Contact</span></a></li>
-        </ul>
-    </nav>
+<body class="bg-background text-on-surface font-body overflow-x-hidden selection:bg-primary/30">
 
-    <header class="hero-section">
-        <div class="hero-overlay"></div>
-        <div class="hero-content reveal-hero">
-            <h1>Analyze Movie Reviews with AI</h1>
-            <p>Leveraging machine learning to instantly classify sentiment and uncover key insights.</p>
-            <a href="#predictor" class="hero-btn">Try the Analyzer</a>
-        </div>
+    <!-- TopAppBar Shell -->
+    <header class="fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-md border-b border-outline-variant/30">
+        <nav class="flex justify-between items-center px-4 sm:px-6 py-4 max-w-7xl mx-auto">
+            <div class="flex items-center gap-2 cursor-pointer active:scale-95 group shrink-0">
+                <span
+                    class="material-symbols-outlined text-primary text-2xl sm:text-3xl transition-transform group-hover:rotate-12"
+                    data-icon="analytics">analytics</span>
+                <span class="text-xl sm:text-2xl font-black text-primary tracking-tighter">Sentiment Scope</span>
+            </div>
+            <div class="hidden md:flex gap-8 items-center font-label text-sm uppercase tracking-widest">
+                <a class="text-on-surface-variant hover:text-primary transition-colors" href="#about">About</a>
+                <a class="text-on-surface-variant hover:text-primary transition-colors" href="#features">Features</a>
+                <a class="text-on-surface-variant hover:text-primary transition-colors" href="#predictor">Predictor</a>
+                <a class="text-on-surface-variant hover:text-primary transition-colors" href="#history">History</a>
+                <a class="text-on-surface-variant hover:text-primary transition-colors flex items-center gap-1"
+                    href="/docs" target="_blank">API Docs <span
+                        class="material-symbols-outlined text-[16px]">open_in_new</span></a>
+            </div>
+            <div class="flex items-center gap-4">
+                <button class="p-2 hover:bg-surface-container/50 rounded-full transition-all active:scale-95"
+                    id="theme-btn">
+                    <span class="material-symbols-outlined" data-icon="dark_mode" id="theme-icon">dark_mode</span>
+                </button>
+                <button class="md:hidden p-2">
+                    <span class="material-symbols-outlined" data-icon="menu">menu</span>
+                </button>
+            </div>
+        </nav>
     </header>
 
-    <main>
-        <section id="about" class="section reveal-right">
-            <div class="container">
-                <h2>About This Project</h2>
-                <p>This project provides a complete machine learning solution to classify movie reviews as positive or
-                    negative. It uses Natural Language Processing (NLP) techniques to understand and interpret the
-                    sentiment expressed in text.</p>
-                <p>Built with an MLOps-first approach, the application showcases a full model lifecycle: from data
-                    preprocessing and hyperparameter tuning with Optuna, to experiment tracking with MLflow and
-                    deployment via a Flask API. The goal is to deliver not just accurate predictions, but a robust and
-                    reproducible system.</p>
+    <main class="pt-20">
+        <!-- Hero Section -->
+        <section
+            class="relative min-h-[707px] flex flex-col items-center justify-center text-center px-6 overflow-hidden z-0">
+            <!-- Mode-specific Base Gradient -->
+            <div
+                class="absolute inset-0 bg-gradient-to-b from-surface to-surface-container-low dark:from-background dark:to-surface-container-lowest -z-10">
+            </div>
+            <!-- Ambient Glowing Orbs -->
+            <div class="absolute top-[-5%] left-[-5%] w-[40vw] h-[40vw] max-w-[500px] max-h-[500px] bg-primary opacity-10 dark:opacity-[0.05] rounded-full blur-[100px] mix-blend-multiply dark:mix-blend-screen animate-pulse -z-10"
+                style="animation-duration: 4s;"></div>
+            <div class="absolute bottom-[-10%] right-[-5%] w-[50vw] h-[50vw] max-w-[600px] max-h-[600px] bg-tertiary opacity-10 dark:opacity-[0.05] rounded-full blur-[120px] mix-blend-multiply dark:mix-blend-screen animate-pulse -z-10"
+                style="animation-duration: 6s; animation-delay: 1s;"></div>
 
-                <div class="model-info-container">
-                    <p>Curious about the model's technical details?</p>
-                    <button class="info-btn" id="model-info-button">Show Model Info</button>
-                </div>
+            <h1
+                class="font-headline text-4xl sm:text-5xl md:text-7xl font-black tracking-tight mb-6 max-w-4xl text-on-surface relative z-10">
+                Cinematic Intelligence for <span
+                    class="text-transparent bg-clip-text bg-gradient-to-r from-primary via-secondary to-primary">Movie
+                    Reviews</span>
+            </h1>
+            <p class="text-on-surface-variant text-lg md:text-xl max-w-2xl mb-10 font-light relative z-10">
+                An end-to-end Machine Learning pipeline tracking sentiment. Evolving from a baseline MLOps assignment to
+                a full-stack web application powered by Deep Learning APIs.
+            </p>
+            <div class="flex flex-col sm:flex-row gap-4">
+                <a class="px-8 py-4 bg-primary text-on-primary rounded-xl font-bold hover:bg-primary/90 transition-colors flex justify-center items-center gap-2 shadow-lg dark:shadow-xl shadow-primary/20 dark:shadow-white/5"
+                    href="#predictor">
+                    Try the Analyzer <span class="material-symbols-outlined"
+                        data-icon="arrow_downward">arrow_downward</span>
+                </a>
+                <a class="px-8 py-4 bg-surface text-on-surface rounded-xl font-bold hover:bg-surface-container transition-colors flex justify-center items-center gap-2 border border-outline-variant/50"
+                    href="https://github.com/AbhiGTM19/Movie-Review-Sentiment-Classifier" target="_blank">
+                    View Source <span class="material-symbols-outlined" data-icon="code">code</span>
+                </a>
             </div>
         </section>
 
-        <section id="features" class="section reveal-left">
-            <div class="container">
-                <h2>Key Features</h2>
-                <div class="feature-grid">
-                    <div class="feature-item">
-                        <i class="fas fa-bolt-lightning"></i>
-                        <h3>Dual Analysis Models</h3>
-                        <p>Choose between a lightning-fast SGD Classifier for quick results or a highly-accurate
-                            DistilBERT Transformer for deeper analysis.</p>
+        <!-- Features Bento -->
+        <section class="max-w-7xl mx-auto px-8 py-8" id="features">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Card 1 -->
+                <div
+                    class="glass relative overflow-hidden bg-gradient-to-br from-surface to-surface-container-low dark:from-surface-container dark:to-surface-container-high p-8 rounded-2xl border border-outline-variant/50 dark:border-outline-variant/10 flex flex-col gap-4 group hover:border-primary/50 transition-colors shadow-sm dark:shadow-none">
+                    <div
+                        class="absolute inset-0 bg-gradient-to-br from-primary to-transparent opacity-0 group-hover:opacity-10 transition-opacity duration-500">
                     </div>
-                    <div class="feature-item">
-                        <i class="fas fa-search-plus"></i>
-                        <h3>Explainable AI</h3>
-                        <p>Goes beyond a simple prediction to highlight the specific words that most influenced the
-                            model's decision (available with the fast model).</p>
+                    <div
+                        class="relative z-10 w-12 h-12 rounded-xl bg-primary-container flex items-center justify-center text-on-primary-container">
+                        <span class="material-symbols-outlined" data-icon="bolt">bolt</span>
                     </div>
-                    <div class="feature-item">
-                        <i class="fas fa-chart-pie"></i>
-                        <h3>Interactive Visuals</h3>
-                        <p>An interactive UI with animated charts and a recent history panel provides a rich and
-                            engaging user experience.</p>
+                    <h3 class="relative z-10 text-xl font-bold">Dual Models</h3>
+                    <p class="relative z-10 text-on-surface-variant text-sm leading-relaxed">Choose between a
+                        lightweight Scikit-Learn SGD Classifier for speed, or a fine-tuned Hugging Face DistilBERT
+                        Transformer for maximum accuracy.</p>
+                </div>
+                <!-- Card 2 -->
+                <div
+                    class="glass relative overflow-hidden bg-gradient-to-br from-surface to-surface-container-low dark:from-surface-container dark:to-surface-container-high p-8 rounded-2xl border border-outline-variant/50 dark:border-outline-variant/10 flex flex-col gap-4 group hover:border-secondary/50 dark:hover:border-secondary/50 transition-colors shadow-sm dark:shadow-none">
+                    <div
+                        class="absolute inset-0 bg-gradient-to-br from-secondary to-transparent opacity-0 group-hover:opacity-10 transition-opacity duration-500">
                     </div>
+                    <div
+                        class="relative z-10 w-12 h-12 rounded-xl bg-secondary-container flex items-center justify-center text-on-secondary-container">
+                        <span class="material-symbols-outlined" data-icon="visibility">visibility</span>
+                    </div>
+                    <h3 class="relative z-10 text-xl font-bold">Explainable AI</h3>
+                    <p class="relative z-10 text-on-surface-variant text-sm leading-relaxed">Our system acts as a
+                        transparent glass-box. It leverages the linear TF-IDF vector weights to highlight exactly which
+                        words influenced the final prediction.</p>
+                </div>
+                <!-- Card 3 -->
+                <div
+                    class="glass relative overflow-hidden bg-gradient-to-br from-surface to-surface-container-low dark:from-surface-container dark:to-surface-container-high p-8 rounded-2xl border border-outline-variant/50 dark:border-outline-variant/10 flex flex-col gap-4 group hover:border-tertiary/50 dark:hover:border-tertiary/50 transition-colors shadow-sm dark:shadow-none">
+                    <div
+                        class="absolute inset-0 bg-gradient-to-br from-tertiary to-transparent opacity-0 group-hover:opacity-10 transition-opacity duration-500">
+                    </div>
+                    <div
+                        class="relative z-10 w-12 h-12 rounded-xl bg-tertiary-container flex items-center justify-center text-on-tertiary-container">
+                        <span class="material-symbols-outlined"
+                            data-icon="precision_manufacturing">precision_manufacturing</span>
+                    </div>
+                    <h3 class="relative z-10 text-xl font-bold">Precision UI</h3>
+                    <p class="relative z-10 text-on-surface-variant text-sm leading-relaxed">Wrapped in a responsive
+                        frontend. The decoupled architecture uses FastAPI to serve model inferences to a dynamic,
+                        client-side UI.</p>
                 </div>
             </div>
-        </section>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                <!-- Card 4: Fast Model -->
+                <div
+                    class="glass relative overflow-hidden bg-gradient-to-br from-surface to-surface-container-low dark:from-surface-container dark:to-surface-container-high p-8 rounded-2xl border border-outline-variant/50 dark:border-outline-variant/10 flex flex-col gap-4 group hover:border-primary/50 transition-colors shadow-sm dark:shadow-none">
+                    <div
+                        class="absolute inset-0 bg-gradient-to-br from-primary to-transparent opacity-0 group-hover:opacity-10 transition-opacity duration-500">
+                    </div>
+                    <div
+                        class="relative z-10 w-12 h-12 rounded-xl bg-primary-container flex items-center justify-center text-on-primary-container">
+                        <span class="material-symbols-outlined" data-icon="speed">speed</span>
+                    </div>
+                    <div class="relative z-10 flex items-center gap-2">
+                        <h3 class="text-xl font-bold">Fast Model</h3>
+                        <span
+                            class="bg-primary/10 text-primary px-2 py-0.5 rounded text-[10px] font-bold border border-primary/20">SGD</span>
+                    </div>
+                    <p class="relative z-10 text-on-surface-variant text-sm leading-relaxed">Prioritizes inference speed
+                        using Scikit-Learn's SGD Classifier with TF-IDF vectorization.</p>
 
-        <section id="predictor" class="section reveal-right">
-            <div class="container">
-                <h2>Sentiment Predictor</h2>
-                <p>Enter a movie review below to get an instant sentiment analysis.</p>
-
-                <!-- New Model Selector -->
-                <div class="model-selector-dropdown">
-                    <label for="model-select" class="toggle-label">Select Model:</label>
-                    <select id="model-select">
-                        <option value="fast">Fast (SGD Classifier)</option>
-                        <option value="accurate">Accurate (DistilBERT)</option>
-                    </select>
-                </div>
-
-
-                <div class="predictor-form">
-                    <textarea id="reviewInput" rows="8"
-                        placeholder="e.g., 'The acting was phenomenal and the storyline was captivating...'"></textarea>
-                    <button class="action-btn" id="predict-button">
-                        <span class="btn-text">Analyze Sentiment</span>
-                        <span class="btn-loader" style="display: none;"></span>
-                    </button>
-                </div>
-                <!-- Results Area -->
-                <div id="result-area" class="result-area" style="display: none;">
-                    <div class="result-grid">
-                        <div class="result-item">
-                            <h4>Verdict</h4>
-                            <p id="verdict"></p>
+                    <div class="relative z-10 flex flex-col gap-2 mt-2 pt-4 border-t border-outline-variant/30 text-sm">
+                        <div class="flex justify-between items-center">
+                            <span class="text-on-surface-variant">Accuracy</span>
+                            <span class="font-bold">85.3%</span>
                         </div>
-                        <div class="result-item gauge-container">
-                            <h4>Confidence</h4>
-                            <div class="gauge-wrapper">
-                                <canvas id="confidenceGauge"></canvas>
-                                <div class="gauge-label" id="confidence-label"></div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-on-surface-variant">F1-Score</span>
+                            <span class="font-bold">85.6%</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-on-surface-variant">Avg Latency</span>
+                            <span class="font-bold text-primary">4.7 ms</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- Card 5: Deep Model -->
+                <div
+                    class="glass relative overflow-hidden bg-gradient-to-br from-surface to-surface-container-low dark:from-surface-container dark:to-surface-container-high p-8 rounded-2xl border border-outline-variant/50 dark:border-outline-variant/10 flex flex-col gap-4 group hover:border-secondary/50 transition-colors shadow-sm dark:shadow-none">
+                    <div
+                        class="absolute inset-0 bg-gradient-to-br from-secondary to-transparent opacity-0 group-hover:opacity-10 transition-opacity duration-500">
+                    </div>
+                    <div
+                        class="relative z-10 w-12 h-12 rounded-xl bg-secondary-container flex items-center justify-center text-on-secondary-container">
+                        <span class="material-symbols-outlined" data-icon="psychology">psychology</span>
+                    </div>
+                    <div class="relative z-10 flex items-center gap-2">
+                        <h3 class="text-xl font-bold">Deep Transformer</h3>
+                        <span
+                            class="bg-secondary/10 text-secondary px-2 py-0.5 rounded text-[10px] font-bold border border-secondary/20">DistilBERT</span>
+                    </div>
+                    <p class="relative z-10 text-on-surface-variant text-sm leading-relaxed">Maximizes semantic
+                        understanding and accuracy using a fine-tuned Hugging Face transformer model.</p>
+
+                    <div class="relative z-10 flex flex-col gap-2 mt-2 pt-4 border-t border-outline-variant/30 text-sm">
+                        <div class="flex justify-between items-center">
+                            <span class="text-on-surface-variant">Accuracy</span>
+                            <span class="font-bold">91.8%</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-on-surface-variant">F1-Score</span>
+                            <span class="font-bold">91.8%</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-on-surface-variant">Avg Latency</span>
+                            <span class="font-bold text-secondary">81.1 ms</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- About Section -->
+        <section class="bg-surface-container-low py-24 border-y border-outline-variant/30" id="about">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col md:flex-row items-center gap-16">
+                <div class="flex-1 w-full min-w-0">
+                    <div
+                        class="relative w-full rounded-2xl overflow-hidden shadow-xl dark:shadow-2xl border border-outline-variant/30 dark:border-outline-variant/10 bg-surface flex flex-col items-center justify-center p-6 min-h-[300px]">
+                        <div class="w-full overflow-x-auto pb-4">
+                            <!-- prettier-ignore -->
+                            <div
+                                class="mermaid min-w-[400px] md:min-w-0 w-full text-xs sm:text-sm font-label flex justify-center md:[&>svg]:max-h-[600px] [&>svg]:w-full md:[&>svg]:w-auto">
+                                graph TD
+                                classDef default fill:transparent,stroke:currentColor,stroke-width:1px,color:currentColor;
+                                classDef highlight fill:#f59e0b20,stroke:#f59e0b,stroke-width:2px,color:currentColor;
+
+                                UI(Vanilla JS Client) -->|REST Request| API[FastAPI Gateway]
+                                API --> Router{Inference Router}
+
+                                Router -->|model=fast| Fast[SGD Classifier]:::highlight
+                                Fast --> TFIDF(TF-IDF Weights)
+
+                                Router -->|model=accurate| Deep[DistilBERT]:::highlight
+                                Deep --> HuggingFace(Transformers Pipeline)
+
+                                TFIDF --> Response{Aggregator}
+                                HuggingFace --> Response
+                                Response -->|Prediction JSON| UI
                             </div>
                         </div>
                     </div>
-                    <div class="highlighted-review-container" id="breakdown-container">
-                        <h4>Analysis Breakdown</h4>
-                        <div id="highlighted-review"></div>
+                </div>
+                <div class="flex-1 flex flex-col gap-6">
+                    <span class="text-primary font-label text-sm uppercase tracking-widest">The Engine</span>
+                    <h2 class="text-4xl font-black text-on-surface leading-tight">Engineering Context</h2>
+                    <p class="text-on-surface-variant text-base font-light leading-relaxed">
+                        This project began as a dedicated MLOps assignment focused on containerization and model
+                        tracking using <strong class="font-semibold text-primary">Docker</strong> and <strong
+                            class="font-semibold text-primary">MLflow</strong>. I extended the scope by integrating a
+                        fine-tuned Transformer model and decoupling the architecture. The backend is served via a
+                        lightweight <strong class="font-semibold text-primary">FastAPI</strong> wrapper, which
+                        seamlessly communicates with a modern <strong class="font-semibold text-primary">Vanilla JS and
+                            TailwindCSS</strong> frontend. It's designed to be effortlessly deployed across Hugging Face
+                        Spaces and Netlify.
+                    </p>
+
+                    <div class="flex flex-wrap gap-2 mt-4 mb-2">
+                        <div
+                            class="flex items-center gap-1.5 sm:gap-2 bg-surface p-2 sm:p-3 rounded-lg border border-outline-variant/50 text-[10px] sm:text-xs font-bold text-on-surface-variant shadow-sm dark:shadow-none">
+                            <span class="text-primary text-lg sm:text-xl material-symbols-outlined"
+                                data-icon="deployed_code">deployed_code</span> Docker
+                        </div>
+                        <div
+                            class="flex items-center gap-1.5 sm:gap-2 bg-surface p-2 sm:p-3 rounded-lg border border-outline-variant/50 text-[10px] sm:text-xs font-bold text-on-surface-variant shadow-sm dark:shadow-none">
+                            <span class="text-primary text-lg sm:text-xl material-symbols-outlined"
+                                data-icon="monitoring">monitoring</span> MLflow
+                        </div>
+                        <div
+                            class="flex items-center gap-1.5 sm:gap-2 bg-surface p-2 sm:p-3 rounded-lg border border-outline-variant/50 text-[10px] sm:text-xs font-bold text-on-surface-variant shadow-sm dark:shadow-none">
+                            <span class="text-primary text-lg sm:text-xl material-symbols-outlined"
+                                data-icon="dns">dns</span>
+                            FastAPI
+                        </div>
+                        <div
+                            class="flex items-center gap-1.5 sm:gap-2 bg-surface p-2 sm:p-3 rounded-lg border border-outline-variant/50 text-[10px] sm:text-xs font-bold text-on-surface-variant shadow-sm dark:shadow-none">
+                            <span class="text-primary text-lg sm:text-xl material-symbols-outlined"
+                                data-icon="memory">memory</span> Scikit-Learn
+                        </div>
+                        <div
+                            class="flex items-center gap-1.5 sm:gap-2 bg-surface p-2 sm:p-3 rounded-lg border border-outline-variant/50 text-[10px] sm:text-xs font-bold text-on-surface-variant shadow-sm dark:shadow-none">
+                            <span class="text-primary text-lg sm:text-xl material-symbols-outlined"
+                                data-icon="psychology">psychology</span> Hugging Face
+                        </div>
+                        <div
+                            class="flex items-center gap-1.5 sm:gap-2 bg-surface p-2 sm:p-3 rounded-lg border border-outline-variant/50 text-[10px] sm:text-xs font-bold text-on-surface-variant shadow-sm dark:shadow-none">
+                            <span class="text-primary text-lg sm:text-xl material-symbols-outlined"
+                                data-icon="palette">palette</span> TailwindCSS
+                        </div>
                     </div>
-                    <button class="copy-btn" id="copy-results-button">
-                        <i class="fas fa-clipboard"></i>
-                        <span>Copy Results</span>
+
+
+
+                    <button
+                        class="w-fit border border-primary text-primary px-6 py-3 rounded-lg font-semibold hover:bg-primary/5 transition-all flex items-center gap-2"
+                        id="model-info-btn">
+                        Show Model Architecture <span class="material-symbols-outlined"
+                            data-icon="account_tree">account_tree</span>
                     </button>
                 </div>
             </div>
         </section>
 
-        <section id="history" class="section reveal-left">
-            <div class="container">
-                <h2>Recent Analyses</h2>
-                <div id="history-list"></div>
-                <p id="history-empty-message" style="display: none;">Your recent analyses will appear here.</p>
-                <button class="info-btn" id="clear-history-button" style="display: none;">
-                    <i class="fas fa-trash"></i> Clear History
+        <!-- Predictor Section -->
+        <section class="py-24 max-w-5xl mx-auto px-4 sm:px-6" id="predictor">
+            <div class="glass p-5 sm:p-8 md:p-12 rounded-3xl border border-outline-variant/50 shadow-xl bg-surface">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
+                    <div>
+                        <h2 class="text-3xl font-bold mb-2">Sentiment Predictor</h2>
+                        <p class="text-on-surface-variant">Paste your review below for a deep-learning analysis.</p>
+                    </div>
+                    <div class="flex flex-col gap-1 w-full md:w-48">
+                        <label class="text-xs font-label uppercase text-outline">Engine</label>
+                        <select
+                            class="bg-surface border-outline-variant text-on-surface rounded-lg focus:ring-primary focus:border-primary shadow-sm"
+                            id="model-select">
+                            <option value="fast">Fast Heuristics</option>
+                            <option value="accurate" selected>Deep Transformer</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="relative mb-8">
+                    <textarea
+                        class="w-full bg-surface-container-low border border-outline-variant rounded-xl p-6 text-on-surface focus:ring-2 focus:ring-primary focus:border-primary focus:outline-none placeholder:text-outline/70 transition-all resize-none shadow-inner"
+                        id="review-input" placeholder="Enter movie review here..." rows="6"></textarea>
+                    <div class="absolute bottom-4 right-4 text-xs text-outline font-medium">Characters: <span
+                            id="char-count">0</span></div>
+                </div>
+                <button
+                    class="w-full bg-primary text-on-primary py-4 rounded-xl font-black text-lg shadow-lg dark:shadow-xl shadow-primary/20 dark:shadow-white/5 hover:shadow-primary/40 dark:hover:shadow-none hover:brightness-105 dark:hover:brightness-90 active:scale-[0.98] transition-all flex items-center justify-center gap-3"
+                    id="analyze-btn">
+                    <span id="btn-text">ANALYZE SENTIMENT</span>
+                    <div class="hidden animate-spin h-5 w-5 border-2 border-on-primary border-t-transparent rounded-full"
+                        id="btn-spinner"></div>
                 </button>
+
+                <!-- Results - Hidden by default -->
+                <div class="hidden mt-12 pt-12 border-t border-outline-variant animate-in fade-in slide-in-from-bottom-4 duration-700"
+                    id="results-area">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+                        <div
+                            class="flex flex-col items-center justify-center bg-surface-container-low rounded-2xl p-8 border border-outline-variant/50">
+                            <h3 class="text-sm font-label uppercase tracking-widest text-outline mb-4">Confidence Score
+                            </h3>
+                            <div class="relative w-full max-w-[240px]">
+                                <canvas id="gaugeChart"></canvas>
+                                <div class="absolute inset-0 flex flex-col items-center justify-end pb-4">
+                                    <span class="text-4xl font-black text-primary" id="score-val">0%</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex flex-col justify-center gap-6">
+                            <div>
+                                <h3 class="text-sm font-label uppercase tracking-widest text-outline mb-2">Final Verdict
+                                </h3>
+                                <div class="text-4xl font-black flex items-center gap-3" id="verdict-tag">
+                                    <span class="material-symbols-outlined text-5xl" id="verdict-icon"
+                                        style="font-variation-settings: 'FILL' 1;">thumb_up</span>
+                                    <span id="verdict-text">-</span>
+                                </div>
+                            </div>
+                            <div id="breakdown-container">
+
+                                <h3 class="text-sm font-label uppercase tracking-widest text-outline mb-2">Analysis
+                                    Breakdown</h3>
+                                <div class="text-on-surface-variant leading-relaxed p-4 bg-surface-container-low rounded-lg italic border border-outline-variant/50"
+                                    id="breakdown-text">
+                                    <!-- Explainable AI Text injected here -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </section>
 
-        <section id="contact" class="section reveal-right">
-            <div class="container">
-                <h2>Contact</h2>
-                <p>Feel free to connect or explore my other projects.</p>
-                <div class="contact-links">
-                    <a href="https://www.linkedin.com/in/abhishek-gautam-03b56926b/" target="_blank"
-                        class="social-icon"><i class="fab fa-linkedin"></i> LinkedIn</a>
-                    <a href="https://github.com/AbhiGTM19" target="_blank" class="social-icon"><i
-                            class="fab fa-github"></i> GitHub</a>
+        <!-- History Section -->
+        <section class="max-w-5xl mx-auto px-4 sm:px-6 py-24" id="history">
+            <div class="flex flex-col sm:flex-row sm:justify-between items-start sm:items-center gap-4 mb-10">
+                <div class="flex items-center gap-3">
+                    <span class="material-symbols-outlined text-primary" data-icon="history">history</span>
+                    <h2 class="text-2xl font-bold">Recent Analyses</h2>
                 </div>
+                <button
+                    class="text-sm font-label text-outline hover:text-error transition-colors flex items-center gap-1"
+                    id="clear-history-button">
+                    <span class="material-symbols-outlined text-sm" data-icon="delete_sweep">delete_sweep</span> Clear
+                </button>
+            </div>
+
+            <div class="flex flex-col gap-4" id="history-list">
+                <!-- Dynamic History -->
+            </div>
+            <div id="history-empty-message" class="text-center py-8 text-outline italic hidden">
+                No recent history. Start analyzing to build your list.
             </div>
         </section>
     </main>
 
-    <footer class="footer">
-        <p>&copy; 2025 Sentiment Scope. All rights reserved.</p>
-        <p>Developed by Abhishek Gautam</p>
+    <!-- Footer -->
+    <footer class="w-full mt-auto py-12 bg-surface-container-low border-t border-outline-variant/50">
+        <div class="max-w-7xl mx-auto px-8 flex flex-col md:flex-row justify-between items-center gap-8">
+            <div class="flex flex-col gap-2 items-center md:items-start">
+                <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary" data-icon="analytics">analytics</span>
+                    <span class="font-headline font-bold text-on-surface">Sentiment Scope</span>
+                </div>
+                <p class="font-body text-xs text-on-surface-variant">© 2026 Sentiment Scope Movie Sentiment Analysis.
+                    All rights reserved.</p>
+            </div>
+            <div class="flex gap-6 items-center mt-4 md:mt-0">
+                <a href="https://github.com/AbhiGTM19" target="_blank" rel="noopener noreferrer"
+                    class="text-on-surface-variant hover:text-primary transition-colors hover:scale-110 transform duration-200">
+                    <span class="sr-only">GitHub</span>
+                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path fill-rule="evenodd"
+                            d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"
+                            clip-rule="evenodd"></path>
+                    </svg>
+                </a>
+                <a href="https://linkedin.com/in/AbhiGTM19" target="_blank" rel="noopener noreferrer"
+                    class="text-on-surface-variant hover:text-primary transition-colors hover:scale-110 transform duration-200">
+                    <span class="sr-only">LinkedIn</span>
+                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path fill-rule="evenodd"
+                            d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"
+                            clip-rule="evenodd"></path>
+                    </svg>
+                </a>
+            </div>
+        </div>
     </footer>
 
-    <!-- Modal for Model Info and Errors -->
-    <div id="infoModal" class="modal">
-        <div class="modal-content">
-            <span class="close-button">&times;</span>
-            <h2 id="modalTitle"></h2>
-            <div id="modalBody"></div>
-            <button class="action-btn modal-ok-button">OK</button>
+    <!-- Modal Architecture -->
+    <div class="fixed inset-0 z-[100] hidden flex items-center justify-center p-4 sm:p-6" id="arch-modal">
+        <div class="absolute inset-0 bg-on-surface/20 dark:bg-background/90 backdrop-blur-sm dark:backdrop-blur-md"
+            id="modal-overlay"></div>
+        <div
+            class="glass max-w-2xl w-full max-h-[95vh] sm:max-h-[90vh] flex flex-col rounded-2xl sm:rounded-3xl p-5 sm:p-8 relative z-[110] animate-in zoom-in-95 duration-300 border border-outline-variant dark:border-transparent shadow-2xl bg-surface dark:bg-transparent">
+            <button
+                class="absolute top-6 right-6 p-2 hover:bg-surface-container rounded-full text-outline transition-all z-10"
+                id="close-modal-btn">
+                <span class="material-symbols-outlined" data-icon="close">close</span>
+            </button>
+            <div class="pr-12 mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-0">
+                <h3 class="text-2xl font-black shrink" id="modalTitle">Model Architecture</h3>
+                <select id="modalModelSelect"
+                    class="shrink-0 min-w-[160px] bg-surface border border-outline-variant rounded-lg text-sm p-2 pr-8 text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none cursor-pointer">
+                    <option value="fast">Fast Heuristics</option>
+                    <option value="accurate">Deep Transformer</option>
+                </select>
+            </div>
+            <div class="flex flex-col gap-4 overflow-y-auto pr-4 pb-2" id="modalBody">
+                <!-- Content Injected Here -->
+            </div>
         </div>
     </div>
 
-    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <script src="{{ url_for('static', path='script.js') }}?v=3"></script>
 </body>
 
 </html>

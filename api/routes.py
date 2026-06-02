@@ -49,7 +49,7 @@ def predict(request: PredictionRequest):
         else:
             raise HTTPException(status_code=400, detail="Invalid model choice.")
         
-        verdict = "Recommended ✅" if label == "positive" else "Not Recommended ❌"
+        verdict = "Recommended" if label == "positive" else "Not Recommended"
         return PredictionResponse(
             prediction=label,
             confidence=conf,
