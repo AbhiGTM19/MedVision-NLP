@@ -84,14 +84,14 @@ class ModelService:
         
         prediction_val = self.fast_model.predict(new_review_tfidf)[0]
         proba = self.fast_model.predict_proba(new_review_tfidf)[0]
-        confidence = max(proba)
+        confidence = float(max(proba))
         prediction_label = "positive" if prediction_val == 1 else "negative"
         
         feature_names = self.vectorizer.get_feature_names_out()
         coef = self.fast_model.coef_[0]
-        word_coef_map = {word: coef_val for word, coef_val in zip(feature_names, coef)}
+        word_coef_map = {word: float(coef_val) for word, coef_val in zip(feature_names, coef)}
         present_words = preprocessed_review.split()
-        word_importances = {word: word_coef_map.get(word, 0) for word in present_words if word in word_coef_map}
+        word_importances = {word: word_coef_map.get(word, 0.0) for word in present_words if word in word_coef_map}
         
         return prediction_label, confidence, word_importances
 
