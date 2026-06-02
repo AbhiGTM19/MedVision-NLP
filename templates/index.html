@@ -237,7 +237,8 @@
                             <div
                                 class="mermaid min-w-[400px] md:min-w-0 w-full text-xs sm:text-sm font-label flex justify-center md:[&>svg]:max-h-[600px] [&>svg]:w-full md:[&>svg]:w-auto">
                                 graph TD
-                                classDef default fill:transparent,stroke:currentColor,stroke-width:1px,color:currentColor;
+                                classDef default
+                                fill:transparent,stroke:currentColor,stroke-width:1px,color:currentColor;
                                 classDef highlight fill:#f59e0b20,stroke:#f59e0b,stroke-width:2px,color:currentColor;
 
                                 UI(Vanilla JS Client) -->|REST Request| API[FastAPI Gateway]
@@ -260,14 +261,17 @@
                     <span class="text-primary font-label text-sm uppercase tracking-widest">The Engine</span>
                     <h2 class="text-4xl font-black text-on-surface leading-tight">Engineering Context</h2>
                     <p class="text-on-surface-variant text-base font-light leading-relaxed">
-                        This project began as a dedicated MLOps assignment focused on containerization and model
-                        tracking using <strong class="font-semibold text-primary">Docker</strong> and <strong
-                            class="font-semibold text-primary">MLflow</strong>. I extended the scope by integrating a
-                        fine-tuned Transformer model and decoupling the architecture. The backend is served via a
-                        lightweight <strong class="font-semibold text-primary">FastAPI</strong> wrapper, which
-                        seamlessly communicates with a modern <strong class="font-semibold text-primary">Vanilla JS and
-                            TailwindCSS</strong> frontend. It's designed to be effortlessly deployed across Hugging Face
-                        Spaces and Netlify.
+                        This application demonstrates a production-grade <strong>Machine Learning Engineering</strong>
+                        lifecycle. It implements a decoupled <strong>N-Tier Architecture</strong> powered by a
+                        lightning-fast <strong>FastAPI</strong> backend and ASGI server.
+                        To handle massive Transformer weights efficiently, the system completely decouples the source
+                        code from the model artifacts, dynamically streaming <strong>fine-tuned DistilBERT</strong>
+                        weights directly from a dedicated <strong>Hugging Face Model Registry</strong> at runtime.
+                        <br><br>
+                        The deployment pipeline is fully automated via <strong>GitHub Actions CI/CD</strong> (Pytest,
+                        Ruff) and containerized using secure, multi-stage <strong>Docker</strong> builds. The entire
+                        experience is wrapped in a bespoke <strong>Vanilla JS & TailwindCSS</strong> frontend that
+                        highlights transparent <strong>Explainable AI</strong> insights.
                     </p>
 
                     <div class="flex flex-wrap gap-2 mt-4 mb-2">
