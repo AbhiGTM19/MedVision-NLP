@@ -1,13 +1,14 @@
 import os
-import time
 import random
-import numpy as np
+import time
+
 from sklearn.metrics import accuracy_score, precision_recall_fscore_support
 
 # Suppress Hugging Face warnings
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 from services.model_service import model_service
+
 
 def load_test_data(sample_size=500):
     """Load a random sample of pos and neg reviews from the test set."""
@@ -38,7 +39,7 @@ def evaluate_models():
     if not reviews:
         return
         
-    print(f"Evaluating Fast Model (SGDClassifier)...")
+    print("Evaluating Fast Model (SGDClassifier)...")
     fast_preds = []
     fast_start_time = time.time()
     for review in reviews:
@@ -46,7 +47,7 @@ def evaluate_models():
         fast_preds.append(1 if label == "positive" else 0)
     fast_end_time = time.time()
     
-    print(f"Evaluating Deep Transformer (DistilBERT)...")
+    print("Evaluating Deep Transformer (DistilBERT)...")
     accurate_preds = []
     accurate_start_time = time.time()
     for review in reviews:
