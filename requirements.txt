@@ -1,7 +1,12 @@
 --extra-index-url https://download.pytorch.org/whl/cpu
+python-dotenv==1.0.0
+
+# Monitoring and MLOps
+evidently==0.4.33
+pandas==2.2.1
+scikit-learn==1.4.1.post1
+
 numpy
-pandas
-scikit-learn
 nltk
 mlflow
 scikit-optimize
