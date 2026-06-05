@@ -4,7 +4,7 @@ from pydantic import BaseModel, Field
 
 
 class PredictionRequest(BaseModel):
-    review: str = Field(..., min_length=1, description="The movie review text")
+    review: str = Field(..., min_length=1, max_length=5000, description="The movie review text")
     model_choice: str = Field(default="fast", description="The model to use: 'fast' or 'accurate'")
 
 class PredictionResponse(BaseModel):

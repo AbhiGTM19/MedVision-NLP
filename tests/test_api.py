@@ -29,3 +29,11 @@ def test_predict_fast_mocked(monkeypatch):
 def test_predict_invalid_model():
     response = client.post("/predict", json={"review": "Testing", "model_choice": "nonexistent"})
     assert response.status_code == 400
+
+def test_predict_empty_review():
+    response = client.post("/predict", json={"review": "", "model_choice": "fast"})
+    assert response.status_code == 422  # Unprocessable Entity due to min_length=1
+
+def test_predict_massive_review():
+    response = client.post("/predict", json={"review": "A" * 5001, "model_choice": "fast"})
+    assert response.status_code == 422  # Unprocessable Entity due to max_length=5000
