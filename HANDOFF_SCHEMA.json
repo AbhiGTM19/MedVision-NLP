@@ -1,0 +1,44 @@
+{
+  "handoff_id": "INIT_SYNC_SENTIMENT",
+  "source_role": "Integration QA Specialist",
+  "target_roles": ["Lead ML/Backend Engineer", "Lead Frontend Engineer"],
+  "payload": {
+    "api_endpoints": {
+      "predict": "/predict",
+      "health": "/health",
+      "model_info": "/model-info"
+    },
+    "input_schema": {
+      "PredictionRequest": {
+        "review": "string (required, min_length=1)",
+        "model_choice": "string (default='fast', options: 'fast' | 'accurate')"
+      }
+    },
+    "output_schema": {
+      "PredictionResponse": {
+        "prediction": "string ('positive' | 'negative')",
+        "confidence": "float",
+        "verdict": "string ('Recommended' | 'Not Recommended')",
+        "word_importances": "Dict[string, float]",
+        "model_used": "string",
+        "error": "Optional[string]"
+      }
+    },
+    "models": {
+      "fast": {
+        "type": "SGDClassifier (Scikit-Learn)",
+        "model_path": "models/movies_review_classifier.pkl",
+        "vectorizer_path": "models/tfidf_vectorizer.pkl"
+      },
+      "accurate": {
+        "type": "DistilBERT (Transformers)",
+        "model_path": "models/distilbert/",
+        "hf_repo_id": "abhshkgtm19/Movie-Review-Sentiment-Models"
+      }
+    }
+  },
+  "required_actions": {
+    "frontend": "Ensure forms submit JSON body with 'review' (not 'review_text') and 'model_choice' fields to POST /predict",
+    "ml": "Run project_sync_audit.py before next deployment to verify Pydantic schemas match"
+  }
+}
