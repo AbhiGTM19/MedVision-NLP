@@ -1,6 +1,6 @@
 {
   "agent_id": "integration_qa",
-  "status": "idle",
+  "status": "active",
   "confidence_score": 10,
   "last_audit_passed": true,
   "open_tasks": []

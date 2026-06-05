@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-import os
+import glob
 import json
+import os
 import re
 import sys
-import glob
 
 MANDATORY_SECTIONS = [
     "## 1. Target Components:",
@@ -44,12 +44,12 @@ def validate_all():
         try:
             with open(handoff_path, 'r') as f:
                 json.load(f)
-            print(f"  PASS: HANDOFF_SCHEMA.json")
+            print("  PASS: HANDOFF_SCHEMA.json")
         except Exception as e:
             print(f"  FAIL: HANDOFF_SCHEMA.json: {e}")
             errors += 1
     else:
-        print(f"  FAIL: HANDOFF_SCHEMA.json not found at project root!")
+        print("  FAIL: HANDOFF_SCHEMA.json not found at project root!")
         errors += 1
 
     # ── Phase 2: SKILL.md 9-Section Compliance ──

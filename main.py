@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Request
+from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
@@ -16,8 +17,9 @@ templates = Jinja2Templates(directory="templates")
 # Include API routes
 app.include_router(api_router)
 
-@app.get("/")
-def home(request: Request):
+
+@app.get("/", response_class=HTMLResponse)
+def home(request: Request) -> HTMLResponse:
     return templates.TemplateResponse(request=request, name="index.html")
 
 if __name__ == "__main__":
