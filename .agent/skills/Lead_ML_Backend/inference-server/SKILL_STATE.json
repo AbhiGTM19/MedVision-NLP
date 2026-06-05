@@ -1,0 +1,7 @@
+{
+  "agent_id": "backend_inference_server",
+  "status": "idle",
+  "confidence_score": 10,
+  "last_audit_passed": true,
+  "open_tasks": []
+}
