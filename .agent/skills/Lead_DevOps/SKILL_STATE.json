@@ -1,6 +1,6 @@
 {
-  "agent_id": "devops_specialist",
-  "status": "idle",
+  "agent_id": "lead_devops",
+  "status": "active",
   "confidence_score": 10,
   "last_audit_passed": true,
   "open_tasks": []

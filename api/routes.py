@@ -8,7 +8,7 @@ from services.model_service import model_service
 router = APIRouter()
 
 @router.get("/health")
-def health_check():
+def health_check() -> dict:
     nltk_ok = True
     try:
         nltk.data.path.append(settings.NLTK_DATA_PATH)
@@ -30,7 +30,7 @@ def health_check():
     }
 
 @router.get("/model-info")
-def model_info(model: str = "fast"):
+def model_info(model: str = "fast") -> dict:
     if model == "fast":
         if model_service.is_fast_ready():
             return model_service.fast_model.get_params()

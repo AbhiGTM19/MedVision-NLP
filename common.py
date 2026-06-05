@@ -19,7 +19,7 @@ else:
     print("⚠️ NLTK path does not exist:", nltk.data.path[0])
 
 
-def preprocess_text(text):
+def preprocess_text(text: str) -> str:
     text = text.lower()
     text = re.sub(r'[^a-zA-Z\s]', '', text)
     tokens = word_tokenize(text)

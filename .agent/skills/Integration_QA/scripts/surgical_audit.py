@@ -1,6 +1,5 @@
 import sys
-import subprocess
-from pathlib import Path
+
 
 def audit_surgical_precision(diff_file):
     """Audits a diff file for surgical precision according to Karpathy standards."""
@@ -21,7 +20,7 @@ def audit_surgical_precision(diff_file):
         if line.startswith('-') and not line.startswith('---'):
             deleted += 1
             
-    print(f"Metrics:")
+    print("Metrics:")
     print(f"  - Files Touched: {len(files_touched)}")
     print(f"  - Lines Added:   {added}")
     print(f"  - Lines Deleted: {deleted}")

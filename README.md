@@ -11,7 +11,7 @@ app_port: 7860
 
 [![Deployment](https://img.shields.io/badge/Deployment-Render-000?style=for-the-badge&logo=render)](https://movie-review-sentiment-scope.onrender.com/)
 [![Language](https://img.shields.io/badge/Language-Python-3776AB?style=for-the-badge&logo=python)](https://www.python.org/)
-[![Framework](https://img.shields.io/badge/Framework-Flask-000?style=for-the-badge&logo=flask)](https://flask.palletsprojects.com/)
+[![Framework](https://img.shields.io/badge/Framework-FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![MLOps](https://img.shields.io/badge/MLOps-MLflow-000?style=for-the-badge&logo=m&logoColor=F0523A)](https://mlflow.org/)
 
 A full-stack web application that uses a machine learning model to perform real-time sentiment analysis on movie reviews. This project demonstrates an end-to-end MLOps workflow, from data preprocessing and hyperparameter tuning to containerized deployment.
@@ -40,6 +40,11 @@ This project serves as a comprehensive portfolio piece demonstrating modern, pro
 -   **Vanilla JS & TailwindCSS**: Built a responsive, zero-dependency Single Page Application (SPA).
 -   **Modern UI/UX**: Implemented a "Dark Mode Cinema" aesthetic using Glassmorphism, CSS View Transitions, and reveal-on-scroll animations.
 -   **Client-Side Rendering**: Dynamically renders complex Explainable AI data and Mermaid.js architecture diagrams on the fly.
+
+### 🛡️ Deep Auditing & Security (Agentic Ecosystem)
+-   **Strict Boundary Validation**: Implemented rigid AST-parsing sync checks to prevent schema drift between backend Pydantic models and frontend payloads.
+-   **OWASP Compliance**: Enforced strict request limits (`max_length=5000`) and rigorous input sanitization to prevent Denial of Service and injection.
+-   **Type Safety**: 100% strict Python type hinting enforced across the entire backend.
 
 ### 🚀 DevOps & CI/CD
 -   **Containerization**: Built highly optimized, multi-stage **Docker** images. The container runs via a secure, non-root user specifically designed for PaaS environments.
@@ -83,7 +88,7 @@ pip install --upgrade pip
 pip install -r requirements.txt
 
 # Download required NLTK data
-python -m nltk.downloader punkt stopwords
+python -m nltk.downloader punkt punkt_tab stopwords
 ```
 
 ### 4. Train the Model
@@ -121,10 +126,10 @@ docker build -t <your-dockerhub-username>/sentiment-scope .
 ### 2. Run the Container Locally
 
 ```bash
-docker run -p 5000:5000 <your-dockerhub-username>/sentiment-scope
+docker run -p 7860:7860 <your-dockerhub-username>/sentiment-scope
 ```
 
-The application will be available at `http://localhost:5000`.
+The application will be available at `http://localhost:7860`.
 
 ### 3. Push to Docker Hub and Deploy
 
@@ -141,26 +146,54 @@ docker push <your-dockerhub-username>/sentiment-scope
 ### `/predict`
 
 -   **Method**: `POST`
--   **Body**: `{ "review": "The movie was absolutely fantastic!" }`
+-   **Body**: 
+    ```json
+    { 
+      "review": "The movie was absolutely fantastic!", 
+      "model_choice": "fast" 
+    }
+    ```
 -   **Response**:
     ```json
     {
-      "confidence": 0.987,
       "prediction": "positive",
-      "top_words": ["fantastic", "absolutely"],
-      "verdict": "Recommended"
+      "confidence": 0.987,
+      "verdict": "Recommended",
+      "word_importances": {
+        "fantastic": 1.25,
+        "absolutely": 0.85
+      },
+      "model_used": "fast",
+      "error": null
     }
     ```
 
 ### `/model-info`
 
 -   **Method**: `GET`
--   **Response**: Returns the model's hyperparameters.
+-   **Query Parameters**: `?model=fast` (default) or `?model=accurate`
+-   **Response** (for `fast`): Returns the Scikit-Learn model's hyperparameters.
     ```json
     {
       "alpha": 0.0001,
       "loss": "log",
       "penalty": "l2"
+    }
+    ```
+-   **Response** (for `accurate`): Returns the DistilBERT configuration dictionary.
+
+### `/health`
+
+-   **Method**: `GET`
+-   **Response**: Returns the operational status of the inference engines and NLTK data.
+    ```json
+    {
+      "status": "ok",
+      "models": {
+        "fast_model": true,
+        "transformer_model": true
+      },
+      "nltk_data": true
     }
     ```
 
