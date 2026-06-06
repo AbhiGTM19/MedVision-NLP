@@ -31,6 +31,7 @@ nltk_data/
 *.joblib
 *.csv
 confusion_matrix*
+metrics.txt
 
 # Other
 PAT.txt
