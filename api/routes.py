@@ -1,5 +1,7 @@
 import nltk
 from fastapi import APIRouter, HTTPException
+from fastapi.responses import HTMLResponse
+import os
 
 from core.config import settings
 from schemas.predict import PredictionRequest, PredictionResponse
@@ -28,6 +30,14 @@ def health_check() -> dict:
         "models": models_status,
         "nltk_data": nltk_ok
     }
+
+@router.get("/monitoring", response_class=HTMLResponse)
+def get_monitoring_report():
+    report_path = "static/monitoring_report.html"
+    if not os.path.exists(report_path):
+        raise HTTPException(status_code=404, detail="Monitoring report not found. Run scripts/generate_evidently_report.py first.")
+    with open(report_path, "r", encoding="utf-8") as f:
+        return f.read()
 
 @router.get("/model-info")
 def model_info(model: str = "fast") -> dict:
