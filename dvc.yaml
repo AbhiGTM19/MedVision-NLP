@@ -1,0 +1,9 @@
+stages:
+  train:
+    cmd: python train.py
+    deps:
+      - train.py
+      - common.py
+    outs:
+      - models/movies_review_classifier.pkl
+      - models/tfidf_vectorizer.pkl
