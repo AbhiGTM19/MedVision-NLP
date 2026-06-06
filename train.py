@@ -100,6 +100,10 @@ def train_model():
         mlflow.log_metric("accuracy", accuracy)
         mlflow.log_metric("f1_score", f1)
 
+        with open("metrics.txt", "w") as f:
+            f.write(f"Accuracy: {accuracy:.4f}\n")
+            f.write(f"F1 Score: {f1:.4f}\n")
+
         os.makedirs(os.path.dirname(settings.VECTORIZER_PATH), exist_ok=True)
         with open(settings.VECTORIZER_PATH, "wb") as f:
             pickle.dump(vectorizer, f)
