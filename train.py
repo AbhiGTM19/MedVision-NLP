@@ -62,7 +62,7 @@ def train_model():
     pos_path = settings.POS_DATA_PATH
     neg_path = settings.NEG_DATA_PATH
     df = load_data(pos_path, neg_path)
-    df['processed_review'] = df['review'].apply(common.preprocess_text)
+    df = df.assign(processed_review=df['review'].apply(common.preprocess_text))
 
     print("2. Splitting data...")
     X_train_text, X_test_text, y_train, y_test = train_test_split(
