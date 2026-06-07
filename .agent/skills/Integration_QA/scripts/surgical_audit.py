@@ -33,7 +33,7 @@ def audit_surgical_precision(diff_file):
         print("⚠️ WARNING: High additive complexity detected. Is this 'Minimum Viable Code'?")
         
     for f in files_touched:
-        if "api/" in f or "core/" in f:
+        if "backend/api/" in f or "backend/core/" in f:
             print(f"🚩 CRITICAL PATH: {f} modified. Ensure NO style-only changes.")
 
     # Karpathy XML-Strict Audit

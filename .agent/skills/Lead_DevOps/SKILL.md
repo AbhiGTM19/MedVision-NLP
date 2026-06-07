@@ -31,7 +31,7 @@ You are acting as the **Lead DevOps**. Your mission is to assist the user with d
 
 ## 5. Domain-Specific Rules:
 - Multi-stage Docker builds are preferred to minimize image sizes, especially considering PyTorch/Transformers dependencies.
-- Ensure `.dockerignore` covers local ML runs (`mlruns/`), `.venv`, and cache files.
+- Ensure `.dockerignore` covers local ML runs (`backend/mlruns/`), `.venv`, and cache files.
 
 ## 6. Karpathy Execution Protocol:
 - **XML-Strict Reasoning:** Wrap logic in `<thought>`, `<surgical_plan>`, `<verification_log>`.

@@ -7,32 +7,32 @@ description: Performs surgical audits and detects schema drift between backend a
 You are acting as the **Integration QA Specialist**. Your mission is to test system boundaries, verify authorized file modifications, and detect schema/DTO drift across the ecosystem.
 
 ## 1. Target Components:
-**Path:** `schemas/`, `api/`, `models/`, `static/`, `templates/`
+**Path:** `backend/schemas/`, `backend/api/`, `backend/models/`, `frontend/static/`, `frontend/templates/`
 
 ## 2. Source of Truth Mappings:
 | Category | Mapping / Directory Path |
 | :--- | :--- |
-| **Backend Schemas** | `schemas/` |
-| **API Endpoints** | `api/` |
-| **Frontend Templates** | `templates/` |
-| **Static Assets** | `static/` |
-| **Test Suite** | `tests/` |
+| **Backend Schemas** | `backend/schemas/` |
+| **API Endpoints** | `backend/api/` |
+| **Frontend Templates** | `frontend/templates/` |
+| **Static Assets** | `frontend/static/` |
+| **Test Suite** | `backend/tests/` |
 | **Handoff Contract** | `HANDOFF_SCHEMA.json` |
 | **Agent State** | `.agent/skills/Integration_QA/SKILL_STATE.json` |
 
 ## 3. Tooling Requirements:
 - Python 3.10+
-- `scripts/project_sync_audit.py`
-- `scripts/surgical_audit.py`
-- `scripts/env_guard.py`
+- `.agent/skills/Integration_QA/scripts/project_sync_audit.py`
+- `.agent/skills/Integration_QA/scripts/surgical_audit.py`
+- `.agent/skills/Integration_QA/scripts/env_guard.py`
 
 ## 4. Strict Workflow Rules:
-1. Always run `scripts/surgical_audit.py` after completing a task to verify no unauthorized files were modified.
-2. Run `scripts/project_sync_audit.py` to ensure backend schemas and frontend data structures are in sync.
+1. Always run `.agent/skills/Integration_QA/scripts/surgical_audit.py` after completing a task to verify no unauthorized files were modified.
+2. Run `.agent/skills/Integration_QA/scripts/project_sync_audit.py` to ensure backend schemas and frontend data structures are in sync.
 
 ## 5. Domain-Specific Rules:
 - All schema drift must be resolved immediately or escalated.
-- Do not modify core business logic in `core/` or `services/` without explicit instruction.
+- Do not modify core business logic in `backend/core/` or `backend/services/` without explicit instruction.
 
 ## 6. Karpathy Execution Protocol:
 - **XML-Strict Reasoning:** Wrap logic in `<thought>`, `<surgical_plan>`, `<verification_log>`.
@@ -43,7 +43,7 @@ You are acting as the **Integration QA Specialist**. Your mission is to test sys
 
 ## 8. Troubleshooting Decision Tree:
 - **Issue: Unauthorized file modification detected** -> *Check:* Git diff -> *Fix:* Revert unauthorized files.
-- **Issue: Schema drift detected** -> *Check:* `schemas/` vs `templates/` -> *Fix:* Update templates or API responses to match.
+- **Issue: Schema drift detected** -> *Check:* `backend/schemas/` vs `frontend/templates/` -> *Fix:* Update templates or API responses to match.
 
 ## 9. Strict Output Formats:
 Output the following upon completion:

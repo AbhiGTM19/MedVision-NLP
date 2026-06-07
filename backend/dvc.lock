@@ -1,0 +1,26 @@
+schema: '2.0'
+stages:
+  train:
+    cmd: cd backend && python train.py
+    deps:
+    - path: backend/common.py
+      hash: md5
+      md5: 9c47e50d2fc12ffea926688363f8d334
+      size: 982
+    - path: backend/dataset/clinical_notes.csv
+      hash: md5
+      md5: 2d7fb9b51878a34408b6a94eabd895ab
+      size: 57561
+    - path: backend/train.py
+      hash: md5
+      md5: 85a5f1b78dbd89df0942ff5ab7210261
+      size: 4384
+    outs:
+    - path: backend/models/clinical_text_classifier.pkl
+      hash: md5
+      md5: a029ec779bfa09de7a27067f2db4988b
+      size: 6007
+    - path: backend/models/tfidf_vectorizer.pkl
+      hash: md5
+      md5: aef84e31d025b47e645b6d1cd7a760d7
+      size: 6473

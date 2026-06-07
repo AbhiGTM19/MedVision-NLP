@@ -1,6 +1,6 @@
 # Antigravity Agentic Ecosystem Guide
 
-> **This document is the absolute master source of truth** for the `Movie-Review-Sentiment-Classifier` multi-agent ecosystem. All agents, scripts, and workflows must defer to this document for architectural context.
+> **This document is the absolute master source of truth** for the `MedVision-NLP` multi-agent ecosystem. All agents, scripts, and workflows must defer to this document for architectural context.
 
 ---
 
@@ -11,7 +11,7 @@ The Antigravity ecosystem utilizes a deeply nested, hierarchical agentic structu
 ## Directory Structure
 
 ```
-Movie-Review-Sentiment-Classifier/
+MedVision-NLP/
 ├── HANDOFF_SCHEMA.json              # Cross-boundary contract (Backend ↔ Frontend)
 ├── .agent/
 │   ├── rules/
@@ -70,7 +70,7 @@ The root-level `HANDOFF_SCHEMA.json` is the **immutable boundary contract** betw
 - **API Endpoints:** `POST /predict`, `GET /health`, `GET /model-info`
 - **Input Schema:** `PredictionRequest { review: string, model_choice: string }`
 - **Output Schema:** `PredictionResponse { prediction, confidence, verdict, word_importances, model_used, error }`
-- **Model Artifacts:** SGDClassifier (`models/movies_review_classifier.pkl`) and DistilBERT (`models/distilbert/`)
+- **Model Artifacts:** SGDClassifier (`models/clinical_text_classifier.pkl`) and DistilBERT (`models/distilbert/`)
 
 Any agent modifying schemas or API routes **must** update `HANDOFF_SCHEMA.json` and run `/sync-pass`.
 

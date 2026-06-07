@@ -1,0 +1,37 @@
+--extra-index-url https://download.pytorch.org/whl/cpu
+
+# Environment & Config
+python-dotenv
+pydantic
+pydantic-settings
+
+# API Server
+fastapi
+uvicorn
+python-multipart
+
+# Data Processing & ML Baseline
+numpy
+pandas
+scikit-learn
+nltk
+
+# OCR & Vision
+easyocr
+Pillow
+
+# MLOps & Monitoring
+mlflow
+optuna
+evidently
+matplotlib
+seaborn
+
+# Deep Learning (Transformers)
+torch
+transformers
+datasets
+accelerate
+evaluate
+pyarrow
+kagglehub
