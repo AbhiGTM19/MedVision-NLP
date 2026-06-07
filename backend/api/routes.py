@@ -1,11 +1,13 @@
-import nltk
-from fastapi import APIRouter, HTTPException
-from fastapi.responses import HTMLResponse
 import os
+
+import nltk
+from fastapi import APIRouter, File, HTTPException, UploadFile
+from fastapi.responses import HTMLResponse
 
 from core.config import settings
 from schemas.predict import PredictionRequest, PredictionResponse
 from services.model_service import model_service
+from services.ocr_service import ocr_service
 
 router = APIRouter()
 
@@ -33,9 +35,9 @@ def health_check() -> dict:
 
 @router.get("/monitoring", response_class=HTMLResponse)
 def get_monitoring_report():
-    report_path = "static/monitoring_report.html"
+    report_path = settings.BASE_DIR.parent / "frontend" / "static" / "monitoring_report.html"
     if not os.path.exists(report_path):
-        raise HTTPException(status_code=404, detail="Monitoring report not found. Run scripts/generate_evidently_report.py first.")
+        raise HTTPException(status_code=404, detail="Monitoring report not found. Run backend/scripts/generate_evidently_report.py first.")
     with open(report_path, "r", encoding="utf-8") as f:
         return f.read()
 
@@ -51,25 +53,53 @@ def model_info(model: str = "fast") -> dict:
 
 @router.post("/predict", response_model=PredictionResponse)
 def predict(request: PredictionRequest):
+    """
+    Predicts the medical specialty from raw clinical text.
+    """
     try:
         if request.model_choice == "fast":
-            label, conf, importances = model_service.predict_fast(request.review)
+            prediction, confidence, importances = model_service.predict_fast(request.text)
         elif request.model_choice == "accurate":
-            label, conf, importances = model_service.predict_accurate(request.review)
+            prediction, confidence, importances = model_service.predict_accurate(request.text)
         else:
             raise HTTPException(status_code=400, detail="Invalid model choice.")
         
-        verdict = "Recommended" if label == "positive" else "Not Recommended"
+        explanation = f"Patient likely belongs to the {prediction} department."
         return PredictionResponse(
-            prediction=label,
-            confidence=conf,
-            verdict=verdict,
+            prediction=prediction,
+            confidence=confidence,
+            explanation=explanation,
             word_importances=importances,
             model_used=request.model_choice
         )
-    except ValueError as e:
+    except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-    except HTTPException:
-        raise
-    except Exception:
-        raise HTTPException(status_code=500, detail="Internal server error")
+
+@router.post("/predict-image")
+async def predict_image(file: UploadFile = File(...)):
+    """
+    Accepts an image, runs OCR via EasyOCR, and returns the specialty prediction.
+    """
+    try:
+        # Read image bytes
+        image_bytes = await file.read()
+        
+        # Extract text via EasyOCR
+        extracted_text = ocr_service.extract_text(image_bytes)
+        
+        if not extracted_text or not extracted_text.strip():
+            raise HTTPException(status_code=400, detail="No readable text found in the image.")
+            
+        # Predict specialty
+        prediction, confidence, importances = model_service.predict_fast(extracted_text)
+        
+        return {
+            "extracted_text": extracted_text,
+            "prediction": prediction,
+            "confidence": confidence,
+            "top_features": importances
+        }
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Image processing failed: {str(e)}")

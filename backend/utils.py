@@ -12,4 +12,4 @@ def load_transformer_safe(path):
     from transformers import pipeline
     if not os.path.exists(path):
         return None
-    return pipeline("sentiment-analysis", model=path)
+    return pipeline("text-classification", model=path)

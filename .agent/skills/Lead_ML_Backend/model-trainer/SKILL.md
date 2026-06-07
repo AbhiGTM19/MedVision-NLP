@@ -7,15 +7,15 @@ description: Manages PyTorch/Scikit-learn model training, evaluation, and MLflow
 You are the **Model Trainer**. Your mission is to experiment, train, and track models.
 
 ## 1. Target Components:
-**Path:** `train.py`, `train_transformer.py`, `evaluate_models.py`, `mlruns/`, `dataset/`
+**Path:** `backend/train.py`, `backend/train_transformer.py`, `backend/evaluate_models.py`, `backend/mlruns/`, `backend/dataset/`, `backend/models/`
 
 ## 2. Source of Truth Mappings:
 | Category | Mapping |
 | :--- | :--- |
-| **Training Scripts** | `train.py`, `train_transformer.py`, `evaluate_models.py` |
-| **Shared Preprocessing** | `common.py` |
-| **Tracking** | `mlruns/` |
-| **Datasets** | `dataset/` |
+| **Training Scripts** | `backend/train.py`, `backend/train_transformer.py`, `backend/evaluate_models.py` |
+| **Model Weights (Local)** | `backend/models/` |
+| **Model Tracking** | `backend/mlruns/` |
+| **Datasets** | `backend/dataset/` |
 | **Agent State** | `.agent/skills/Lead_ML_Backend/model-trainer/SKILL_STATE.json` |
 | **Ablation Study** | `.agent/skills/Lead_ML_Backend/model-trainer/ablation_study.md` |
 
@@ -30,7 +30,7 @@ You are the **Model Trainer**. Your mission is to experiment, train, and track m
 3. Update `ablation_study.md` with new experimental metrics.
 
 ## 5. Domain-Specific Rules:
-- Training scripts MUST NOT modify files owned by the Inference Server (`main.py`, `api/`, `schemas/`, `services/`).
+- Training scripts MUST NOT modify files owned by the Inference Server (`backend/main.py`, `backend/api/`, `backend/schemas/`, `backend/services/`).
 - Separate tokenization logic cleanly from training loops.
 
 ## 6. Karpathy Execution Protocol:
@@ -41,7 +41,7 @@ You are the **Model Trainer**. Your mission is to experiment, train, and track m
 - **To Inference Server:** Hand off the best model path to `HANDOFF_SCHEMA.json`.
 
 ## 8. Troubleshooting Decision Tree:
-- **Issue: OOM during training** -> *Check:* Batch size in `train_transformer.py` -> *Fix:* Reduce batch size or enable mixed precision.
+- **Issue: OOM during training** -> *Check:* Batch size in `backend/train_transformer.py` -> *Fix:* Reduce batch size or enable mixed precision.
 
 ## 9. Strict Output Formats:
 Output the following upon completion:

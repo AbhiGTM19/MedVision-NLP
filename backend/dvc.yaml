@@ -4,6 +4,7 @@ stages:
     deps:
       - train.py
       - common.py
+      - dataset/clinical_notes.csv
     outs:
-      - models/movies_review_classifier.pkl
+      - models/clinical_text_classifier.pkl
       - models/tfidf_vectorizer.pkl

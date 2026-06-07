@@ -19,11 +19,11 @@ __pycache__/
 mlartifacts/
 mlruns/
 /mlruns/
-models/
-dataset/
+backend/models/
+backend/dataset/
 results/
 logs/
-nltk_data/
+backend/nltk_data/
 
 # Extensions & Reports
 *.log
@@ -32,6 +32,10 @@ nltk_data/
 *.csv
 confusion_matrix*
 metrics.txt
+
+# Frontend Build Artifacts
+frontend/node_modules/
+frontend/static/monitoring_report.html
 
 # Other
 PAT.txt

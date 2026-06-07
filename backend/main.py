@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
@@ -8,11 +10,15 @@ from core.config import settings
 
 app = FastAPI(title=settings.PROJECT_NAME, version=settings.VERSION)
 
+# Paths to the frontend directory
+BASE_DIR = Path(__file__).resolve().parent
+FRONTEND_DIR = BASE_DIR.parent / "frontend"
+
 # Mount static files
-app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/static", StaticFiles(directory=str(FRONTEND_DIR / "static")), name="static")
 
 # Templates
-templates = Jinja2Templates(directory="templates")
+templates = Jinja2Templates(directory=str(FRONTEND_DIR / "templates"))
 
 # Include API routes
 app.include_router(api_router)

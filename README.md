@@ -1,55 +1,56 @@
 ---
-title: Sentiment Scope
-emoji: 🎬
-colorFrom: blue
-colorTo: indigo
+title: MedVision NLP
+emoji: 🏥
+colorFrom: teal
+colorTo: blue
 sdk: docker
 app_port: 7860
 ---
 
-# Sentiment Scope: AI Movie Review Analyzer
+# MedVision NLP: Healthcare NLP Pipeline
 
-[![Deployment](https://img.shields.io/badge/Deployment-Render-000?style=for-the-badge&logo=render)](https://movie-review-sentiment-scope.onrender.com/)
 [![Language](https://img.shields.io/badge/Language-Python-3776AB?style=for-the-badge&logo=python)](https://www.python.org/)
 [![Framework](https://img.shields.io/badge/Framework-FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![MLOps](https://img.shields.io/badge/MLOps-MLflow-000?style=for-the-badge&logo=m&logoColor=F0523A)](https://mlflow.org/)
+[![Data](https://img.shields.io/badge/Dataset-MTSamples-2196F3?style=for-the-badge&logo=huggingface)](https://huggingface.co/datasets/tchebonenko/MedicalTranscriptions)
 
-A full-stack web application that uses a machine learning model to perform real-time sentiment analysis on movie reviews. This project demonstrates an end-to-end MLOps workflow, from data preprocessing and hyperparameter tuning to containerized deployment.
-
-**🚀 Live Application: [https://movie-review-sentiment-scope.onrender.com/](https://movie-review-sentiment-scope.onrender.com/)**
+A full-stack web application that classifies clinical notes and medical transcriptions into medical specialties using a production-grade ML pipeline. This project demonstrates end-to-end MLOps, from data preprocessing and hyperparameter tuning to containerized deployment.
 
 ---
 
 ## 🌟 Architecture & Skills Highlighted
 
-This project serves as a comprehensive portfolio piece demonstrating modern, production-ready software and machine learning engineering practices.
+This project serves as a comprehensive portfolio piece demonstrating modern, production-ready software and machine learning engineering practices in the **Healthcare NLP** domain.
 
 ### 🧠 Machine Learning & MLOps
--   **Deep Learning (NLP)**: Fine-tuned a **DistilBERT Transformer** using Hugging Face pipelines for high-accuracy semantic analysis.
+-   **Deep Learning (NLP)**: Fine-tuned a **DistilBERT Transformer** on the MTSamples medical transcription dataset for multi-class specialty classification.
 -   **Heuristics & Baselines**: Implemented **Scikit-Learn SGD Classifiers** with TF-IDF vectorization for ultra-low latency fallback inference.
 -   **Explainable AI (XAI)**: Created a transparent glass-box mechanism to map token weights back to natural language, highlighting exactly *why* a model made its prediction.
 -   **Experiment Tracking**: Managed hyperparameters and model lifecycle metrics using **MLflow** and optimized training with **Optuna**.
--   **Dynamic Model Loading**: Completely decoupled ML weights from the source code. Models are dynamically fetched at runtime via the **Hugging Face Hub API**, bypassing Git file-size limitations.
+-   **Data Monitoring**: Integrated **Evidently AI** for model performance and data drift monitoring dashboards.
+-   **Dynamic Model Loading**: Completely decoupled ML weights from the source code. Models are dynamically fetched at runtime via the **Hugging Face Hub API**.
 
 ### ⚙️ Software Engineering (Backend)
 -   **Modern API Framework**: Built a highly performant, asynchronous API gateway using **FastAPI** and **Uvicorn** (ASGI).
 -   **N-Tier Architecture**: Strictly decoupled the application layer into Controllers (Routes), Services (Business Logic), and Core configurations, adhering to SOLID principles.
 -   **Type Safety**: Enforced strict data validation and serialization using **Pydantic** models.
+-   **Monorepo Structure**: Clean separation of `backend/` and `frontend/` with DVC pipeline integration.
 
 ### 🎨 Frontend Engineering
 -   **Vanilla JS & TailwindCSS**: Built a responsive, zero-dependency Single Page Application (SPA).
--   **Modern UI/UX**: Implemented a "Dark Mode Cinema" aesthetic using Glassmorphism, CSS View Transitions, and reveal-on-scroll animations.
--   **Client-Side Rendering**: Dynamically renders complex Explainable AI data and Mermaid.js architecture diagrams on the fly.
+-   **Modern UI/UX**: Implemented a healthcare-themed design using Glassmorphism, CSS View Transitions, and reveal-on-scroll animations.
+-   **Client-Side Rendering**: Dynamically renders complex Explainable AI data and Mermaid.js architecture diagrams.
 
-### 🛡️ Deep Auditing & Security (Agentic Ecosystem)
+### 🛡️ Deep Auditing & Security
 -   **Strict Boundary Validation**: Implemented rigid AST-parsing sync checks to prevent schema drift between backend Pydantic models and frontend payloads.
--   **OWASP Compliance**: Enforced strict request limits (`max_length=5000`) and rigorous input sanitization to prevent Denial of Service and injection.
+-   **OWASP Compliance**: Enforced strict request limits (`max_length=5000`) and rigorous input sanitization.
 -   **Type Safety**: 100% strict Python type hinting enforced across the entire backend.
 
 ### 🚀 DevOps & CI/CD
--   **Containerization**: Built highly optimized, multi-stage **Docker** images. The container runs via a secure, non-root user specifically designed for PaaS environments.
--   **Continuous Integration**: Automated testing and linting pipelines via **GitHub Actions**.
--   **Testing**: Test-Driven Development (TDD) using **Pytest** to ensure robust API contracts and text-preprocessing functions.
+-   **Containerization**: Built highly optimized, multi-stage **Docker** images with secure, non-root user execution.
+-   **Continuous Integration**: Automated testing and linting pipelines via **GitHub Actions** with CML reporting.
+-   **DVC Pipeline**: Reproducible training via **Data Version Control** (`dvc repro`).
+-   **Testing**: Test-Driven Development (TDD) using **Pytest** to ensure robust API contracts.
 
 ---
 
@@ -63,13 +64,11 @@ This project serves as a comprehensive portfolio piece demonstrating modern, pro
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/AbhiGTM19/Movie-Review-Sentiment-Classifier.git
-cd Movie-Review-Sentiment-Classifier
+git clone https://github.com/AbhiGTM19/MedVision-NLP.git
+cd MedVision-NLP
 ```
 
 ### 2. Set Up the Python Environment
-
-It is highly recommended to use the specific Python version this project was built with.
 
 ```bash
 # Install and set the local Python version using pyenv
@@ -93,19 +92,25 @@ python -m nltk.downloader punkt punkt_tab stopwords
 
 ### 4. Train the Model
 
-This script will run the Optuna tuning process and generate the model files (`movies_review_classifier.pkl` and `tfidf_vectorizer.pkl`) inside a `models/` directory.
+This script runs within the `backend/` directory. It processes the clinical notes CSV, performs Optuna hyperparameter tuning, and generates model artifacts in `backend/models/`.
 
 ```bash
-python train.py
+cd backend && python train.py
+```
+
+Or use the DVC pipeline:
+
+```bash
+dvc repro
 ```
 
 ### 5. Run the Application
 
 ```bash
-python main.py
+cd backend && uvicorn main:app --reload
 ```
 
-The application will be available at `http://127.0.0.1:5000`.
+The application will be available at `http://127.0.0.1:8000`.
 
 ---
 
@@ -113,31 +118,21 @@ The application will be available at `http://127.0.0.1:5000`.
 
 ### 1. Build the Docker Image
 
-The `Dockerfile` is optimized for production. **If you are on an M1/M2 Mac**, you must build for the `linux/amd64` platform to deploy to Render.
-
 ```bash
 # For M1/M2 Macs (Recommended for deployment)
-docker build --platform linux/amd64 -t <your-dockerhub-username>/sentiment-scope .
+docker build --platform linux/amd64 -t <your-dockerhub-username>/medvision-nlp .
 
 # For other systems
-docker build -t <your-dockerhub-username>/sentiment-scope .
+docker build -t <your-dockerhub-username>/medvision-nlp .
 ```
 
 ### 2. Run the Container Locally
 
 ```bash
-docker run -p 7860:7860 <your-dockerhub-username>/sentiment-scope
+docker run -p 7860:7860 <your-dockerhub-username>/medvision-nlp
 ```
 
 The application will be available at `http://localhost:7860`.
-
-### 3. Push to Docker Hub and Deploy
-
-Push the image to Docker Hub and then deploy it on Render by pointing to your public image URL.
-
-```bash
-docker push <your-dockerhub-username>/sentiment-scope
-```
 
 ---
 
@@ -149,19 +144,19 @@ docker push <your-dockerhub-username>/sentiment-scope
 -   **Body**: 
     ```json
     { 
-      "review": "The movie was absolutely fantastic!", 
+      "text": "Patient presents with chest pain radiating to left arm. ECG shows ST elevation.",
       "model_choice": "fast" 
     }
     ```
 -   **Response**:
     ```json
     {
-      "prediction": "positive",
-      "confidence": 0.987,
-      "verdict": "Recommended",
+      "prediction": "Cardiovascular / Pulmonary",
+      "confidence": 0.92,
+      "explanation": "Routed to Cardiovascular / Pulmonary based on clinical indicators.",
       "word_importances": {
-        "fantastic": 1.25,
-        "absolutely": 0.85
+        "chest": 1.25,
+        "ecg": 0.85
       },
       "model_used": "fast",
       "error": null
@@ -172,32 +167,24 @@ docker push <your-dockerhub-username>/sentiment-scope
 
 -   **Method**: `GET`
 -   **Query Parameters**: `?model=fast` (default) or `?model=accurate`
--   **Response** (for `fast`): Returns the Scikit-Learn model's hyperparameters.
-    ```json
-    {
-      "alpha": 0.0001,
-      "loss": "log",
-      "penalty": "l2"
-    }
-    ```
--   **Response** (for `accurate`): Returns the DistilBERT configuration dictionary.
+-   **Response**: Returns the model's hyperparameters and configuration.
 
 ### `/health`
 
 -   **Method**: `GET`
 -   **Response**: Returns the operational status of the inference engines and NLTK data.
-    ```json
-    {
-      "status": "ok",
-      "models": {
-        "fast_model": true,
-        "transformer_model": true
-      },
-      "nltk_data": true
-    }
-    ```
 
 ---
+
+## 📊 Dataset
+
+This project uses the **MTSamples Medical Transcription** dataset, a widely used benchmark for medical specialty classification containing ~5,000 transcribed medical reports across 40+ specialties.
+
+-   **Source**: [Hugging Face - tchebonenko/MedicalTranscriptions](https://huggingface.co/datasets/tchebonenko/MedicalTranscriptions)
+-   **Original**: [mtsamples.com](https://mtsamples.com/)
+
+---
+
 ## 🧑‍💻 Author
 
 -   **Abhishek Gautam**

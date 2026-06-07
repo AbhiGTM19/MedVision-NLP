@@ -4,7 +4,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const themeIcon = document.getElementById('theme-icon');
     const htmlElement = document.documentElement;
     
-    const reviewInput = document.getElementById('review-input');
+    const textInput = document.getElementById('text-input');
     const charCount = document.getElementById('char-count');
     const modelSelect = document.getElementById('model-select');
     const analyzeBtn = document.getElementById('analyze-btn');
@@ -22,6 +22,13 @@ document.addEventListener("DOMContentLoaded", () => {
     const historyList = document.getElementById('history-list');
     const historyEmptyMessage = document.getElementById('history-empty-message');
     const clearHistoryBtn = document.getElementById('clear-history-button');
+
+    // OCR Elements
+    const dropzone = document.getElementById('dropzone');
+    const imageInput = document.getElementById('image-input');
+    const imagePreviewContainer = document.getElementById('image-preview-container');
+    const imagePreview = document.getElementById('image-preview');
+    let selectedImageFile = null;
 
     // Modal Dropdown Element
     const modalModelSelect = document.getElementById('modalModelSelect');
@@ -56,13 +63,53 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Event Listeners
     themeBtn.addEventListener('click', toggleTheme);
-    reviewInput.addEventListener('input', () => { charCount.textContent = reviewInput.value.length; });
+    textInput.addEventListener('input', () => { charCount.textContent = textInput.value.length; });
     analyzeBtn.addEventListener('click', runAnalysis);
     modelInfoBtn.addEventListener('click', () => handleModelInfo(false));
     closeModalBtn.addEventListener('click', () => toggleModal(false));
     modalOverlay.addEventListener('click', () => toggleModal(false));
     clearHistoryBtn.addEventListener('click', clearHistory);
     modelSelect.addEventListener('change', () => localStorage.setItem("selectedModel", modelSelect.value));
+
+    // OCR Event Listeners
+    dropzone.addEventListener('click', () => imageInput.click());
+    dropzone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropzone.classList.add('border-primary', 'bg-surface-container-high');
+    });
+    dropzone.addEventListener('dragleave', (e) => {
+        e.preventDefault();
+        dropzone.classList.remove('border-primary', 'bg-surface-container-high');
+    });
+    dropzone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropzone.classList.remove('border-primary', 'bg-surface-container-high');
+        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+            handleImageUpload(e.dataTransfer.files[0]);
+        }
+    });
+    imageInput.addEventListener('change', (e) => {
+        if (e.target.files && e.target.files[0]) {
+            handleImageUpload(e.target.files[0]);
+        }
+    });
+
+    function handleImageUpload(file) {
+        if (!file.type.startsWith('image/')) {
+            alert('Please upload a valid image file.');
+            return;
+        }
+        selectedImageFile = file;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            imagePreview.src = e.target.result;
+            imagePreviewContainer.classList.remove('hidden');
+            // Clear text input since we are using image
+            textInput.value = '';
+            charCount.textContent = '0';
+        };
+        reader.readAsDataURL(file);
+    }
 
     // Load initial data
     initChart(0);
@@ -119,7 +166,7 @@ document.addEventListener("DOMContentLoaded", () => {
             // Inject an architectural context paragraph based on the model choice
             const modelDesc = modelChoice === 'fast' 
                 ? "The <strong>Fast Heuristics Pipeline</strong> uses a Scikit-Learn SGD Classifier coupled with a TF-IDF Vectorizer. It is highly optimized for rapid inference, acting as the baseline MLOps model. The frontend communicates with the FastAPI backend via REST, receiving linear feature weights for glass-box explainability."
-                : "The <strong>Deep Transformer Pipeline</strong> leverages a Hugging Face DistilBERT architecture fine-tuned on movie reviews. Inference is served via a decoupled FastAPI endpoint. For explainability, it utilizes a surrogate mapping to the linear model's token weights, showcasing complex model integration strategies.";
+                : "The <strong>Deep Transformer Pipeline</strong> leverages a Hugging Face DistilBERT architecture fine-tuned on clinical transcriptions. Inference is served via a decoupled FastAPI endpoint. For explainability, it utilizes a surrogate mapping to the linear model's token weights, showcasing complex model integration strategies.";
                 
             html += `
                 <div class="mb-6 p-4 bg-surface-container-low rounded-xl border border-outline-variant/50 text-sm text-on-surface-variant leading-relaxed">
@@ -209,9 +256,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Predictor API Call
     async function runAnalysis() {
-        const input = reviewInput.value.trim();
-        if (!input) {
-            alert("Please enter a review to analyze.");
+        const input = textInput.value.trim();
+        
+        if (!input && !selectedImageFile) {
+            alert("Please enter clinical text or upload an image to classify.");
             return;
         }
 
@@ -221,16 +269,45 @@ document.addEventListener("DOMContentLoaded", () => {
         resultsArea.classList.add('hidden');
 
         try {
-            const response = await fetch("/predict", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ review: input, model_choice: modelSelect.value })
-            });
+            let response;
+            if (selectedImageFile) {
+                // OCR Image Flow
+                const formData = new FormData();
+                formData.append("file", selectedImageFile);
+                
+                response = await fetch("/predict-image", {
+                    method: "POST",
+                    body: formData
+                });
+            } else {
+                // Text Flow
+                response = await fetch("/predict", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ text: input, model_choice: modelSelect.value })
+                });
+            }
 
             if (!response.ok) throw new Error(`Server error: ${response.statusText}`);
 
             const data = await response.json();
-            latestResult = { ...data, review: input };
+            
+            // If OCR was used, populate the text box so the user sees what was extracted
+            if (selectedImageFile && data.extracted_text) {
+                textInput.value = data.extracted_text;
+                charCount.textContent = data.extracted_text.length;
+            }
+
+            const activeText = selectedImageFile ? data.extracted_text : input;
+            // Fake an explanation if predict-image doesn't return one
+            const explanation = data.explanation || `Patient likely belongs to the ${data.prediction} department.`;
+            
+            latestResult = { 
+                ...data, 
+                text: activeText,
+                explanation: explanation,
+                model_used: data.model_used || "fast (ocr)"
+            };
             displayResults(latestResult);
             addToHistory(latestResult);
 
@@ -238,10 +315,15 @@ document.addEventListener("DOMContentLoaded", () => {
             alert(`Analysis failed: ${error.message}`);
         } finally {
             analyzeBtn.disabled = false;
-            btnText.textContent = "ANALYZE SENTIMENT";
+            btnText.textContent = "CLASSIFY SPECIALTY";
             btnSpinner.classList.add('hidden');
             resultsArea.classList.remove('hidden');
             resultsArea.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            
+            // Reset image selection after processing so next click doesn't re-upload
+            selectedImageFile = null;
+            imageInput.value = '';
+            imagePreviewContainer.classList.add('hidden');
         }
     }
 
@@ -250,30 +332,23 @@ document.addEventListener("DOMContentLoaded", () => {
         const score = Math.round(data.confidence * 100);
         scoreVal.textContent = `${score}%`;
         
-        const isPositive = data.prediction === 'positive';
-        const primaryColor = isPositive ? '#f59e0b' : '#ef4444'; // Amber or Red
+        const primaryColor = '#3b82f6'; // Healthcare blue
         
         initChart(score, primaryColor, true);
 
-        if (isPositive) {
-            verdictText.textContent = data.verdict;
-            verdictIcon.textContent = "thumb_up";
-            verdictTag.className = "text-4xl font-black flex items-center gap-3 text-primary";
-        } else {
-            verdictText.textContent = data.verdict;
-            verdictIcon.textContent = "thumb_down";
-            verdictTag.className = "text-4xl font-black flex items-center gap-3 text-error";
-        }
+        verdictText.textContent = data.explanation;
+        verdictIcon.textContent = "local_hospital";
+        verdictTag.className = "text-4xl font-black flex items-center gap-3 text-primary";
 
         if (!data.word_importances || Object.keys(data.word_importances).length === 0) {
             breakdownContainer.style.display = 'none';
         } else {
             breakdownContainer.style.display = 'block';
-            renderHighlightedReview(data.review, data.word_importances);
+            renderHighlightedText(data.text, data.word_importances);
         }
     }
 
-    function renderHighlightedReview(originalText, wordImportances) {
+    function renderHighlightedText(originalText, wordImportances) {
         const maxImportance = Math.max(...Object.values(wordImportances).map(Math.abs), 1);
         const highlightedHTML = originalText.split(/(\s+)/).map(part => {
             if (part.trim() === '') return part;
@@ -299,12 +374,12 @@ document.addEventListener("DOMContentLoaded", () => {
         let history = getHistory();
         history.unshift(result);
         history = history.slice(0, 5); // Keep last 5
-        localStorage.setItem('sentimentHistory', JSON.stringify(history));
+        localStorage.setItem('classificationHistory', JSON.stringify(history));
         renderHistory();
     }
 
     function getHistory() {
-        return JSON.parse(localStorage.getItem("sentimentHistory") || "[]");
+        return JSON.parse(localStorage.getItem("classificationHistory") || "[]");
     }
 
     function renderHistory() {
@@ -321,23 +396,21 @@ document.addEventListener("DOMContentLoaded", () => {
         clearHistoryBtn.classList.remove('hidden');
 
         history.forEach(item => {
-            const isPos = item.prediction === 'positive';
-            
             const div = document.createElement('div');
             div.className = "bg-surface dark:bg-surface-container p-4 rounded-xl flex justify-between items-center border border-outline-variant dark:border-outline-variant/10 shadow-sm dark:shadow-none animate-in slide-in-from-left duration-500";
             div.innerHTML = `
                 <div class="flex flex-col gap-1 max-w-[70%]">
-                    <p class="text-sm text-on-surface truncate font-medium">"${item.review}"</p>
+                    <p class="text-sm text-on-surface truncate font-medium">"${item.text}"</p>
                     <span class="text-[10px] text-outline font-medium">Score: ${(item.confidence * 100).toFixed(1)}% | ${item.model_used.toUpperCase()}</span>
                 </div>
-                <span class="px-3 py-1 ${isPos ? 'bg-[#f59e0b]/10 text-[#f59e0b] border-[#f59e0b]/20' : 'bg-[#ef4444]/10 text-[#ef4444] border-[#ef4444]/20'} rounded-full text-xs font-bold border">${isPos ? 'POSITIVE' : 'NEGATIVE'}</span>
+                <span class="px-3 py-1 bg-[#3b82f6]/10 text-[#3b82f6] border-[#3b82f6]/20 rounded-full text-xs font-bold border">${item.prediction}</span>
             `;
             historyList.appendChild(div);
         });
     }
 
     function clearHistory() {
-        localStorage.removeItem('sentimentHistory');
+        localStorage.removeItem('classificationHistory');
         renderHistory();
     }
 });

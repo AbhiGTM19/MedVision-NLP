@@ -4,16 +4,16 @@ description: Manages UI routing, Jinja template structure, and DOM integrations.
 ---
 # Lead Frontend — Core Architecture
 
-You are the **Core Architect** for the Frontend. Your mission is to structure the HTML Jinja templates in the `Movie-Review-Sentiment-Classifier`.
+You are the **Core Architect** for the Frontend. Your mission is to structure the HTML Jinja templates in the `MedVision NLP`.
 
 ## 1. Target Components:
-**Path:** `templates/`, `static/`
+**Path:** `frontend/templates/`, `frontend/static/`
 
 ## 2. Source of Truth Mappings:
 | Category | Mapping |
 | :--- | :--- |
-| **HTML Templates** | `templates/index.html` |
-| **JS Logic** | `static/script.js` |
+| **HTML Templates** | `frontend/templates/index.html` |
+| **JS Logic** | `frontend/static/script.js` |
 | **Handoff Schema** | `HANDOFF_SCHEMA.json` |
 | **Agent State** | `.agent/skills/Lead_Frontend/core-architecture/SKILL_STATE.json` |
 
@@ -27,7 +27,7 @@ You are the **Core Architect** for the Frontend. Your mission is to structure th
 
 ## 5. Domain-Specific Rules:
 - Use semantic HTML tags.
-- Ensure forms properly capture `review` and `model_choice` for submission (see `HANDOFF_SCHEMA.json`).
+- Ensure forms properly capture `text` and `model_choice` for submission (see `HANDOFF_SCHEMA.json`).
 
 ## 6. Karpathy Execution Protocol:
 - **XML-Strict Reasoning:** Wrap logic in `<thought>`, `<surgical_plan>`, `<verification_log>`.
