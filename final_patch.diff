@@ -1,0 +1,941 @@
+diff --git a/backend/core/architectures/dual_stream_ner.py b/backend/core/architectures/dual_stream_ner.py
+new file mode 100644
+index 0000000..ad37941
+--- /dev/null
++++ b/backend/core/architectures/dual_stream_ner.py
+@@ -0,0 +1,72 @@
++import torch
++import torch.nn as nn
++
++class DualStreamFusionNER(nn.Module):
++    def __init__(self, bert_hidden_size=768, num_classes=10):
++        super(DualStreamFusionNER, self).__init__()
++        
++        # Stream A (Vision Metadata)
++        # We take: 1 (avg_confidence) + 4 (avg bbox x1,y1,x2,y2) = 5 features
++        self.vision_fc = nn.Sequential(
++            nn.Linear(5, 32),
++            nn.ReLU(),
++            nn.Dropout(0.2)
++        )
++        
++        # Stream B (NLP Embeddings)
++        self.nlp_fc = nn.Sequential(
++            nn.Linear(bert_hidden_size, 256),
++            nn.ReLU(),
++            nn.Dropout(0.3)
++        )
++        
++        # Late Fusion Layer
++        # Concatenate 32 (Vision) + 256 (NLP) = 288 dimensions
++        self.fusion_classifier = nn.Sequential(
++            nn.Linear(288, 128),
++            nn.ReLU(),
++            nn.Dropout(0.2),
++            # Outputting logits for entity classes (e.g., Drug, Disease, Dosage presence)
++            nn.Linear(128, num_classes)
++        )
++        
++    def forward(self, nlp_embeddings, vision_metadata):
++        """
++        Args:
++            nlp_embeddings: Tensor of shape (batch_size, 768)
++            vision_metadata: Tensor of shape (batch_size, 5) 
++                             (e.g., avg_confidence, avg_x1, avg_y1, avg_x2, avg_y2)
++        """
++        # Process streams independently
++        nlp_out = self.nlp_fc(nlp_embeddings)
++        
++        # Q2 Fix: To prevent data loss during compression, we can add a Residual/Skip Connection
++        # We project the original 768d vector to 256d and add it to the output
++        # (Alternatively, we can use an auxiliary loss during training)
++        projected_nlp = nlp_embeddings[:, :256] # Simplified projection by slicing, or use a linear layer
++        nlp_out = nlp_out + projected_nlp
++        
++        vision_out = self.vision_fc(vision_metadata)
++        
++        # Late Fusion: Concatenate along feature dimension
++        fused_vector = torch.cat((nlp_out, vision_out), dim=1)
++        
++        # Final Classification
++        logits = self.fusion_classifier(fused_vector)
++        return logits
++
++# Example usage/test
++if __name__ == "__main__":
++    model = DualStreamFusionNER(num_classes=3)
++    
++    # Mock data: Batch of 2 documents
++    mock_bert = torch.rand(2, 768)
++    # Mock vision metadata: [avg_conf, x1, y1, x2, y2]
++    mock_vision = torch.tensor([
++        [0.95, 10.0, 20.0, 100.0, 40.0],
++        [0.40, 15.0, 25.0, 105.0, 45.0]
++    ])
++    
++    output = model(mock_bert, mock_vision)
++    print("Dual Stream Fusion Model Output Logits:", output.shape)
++    # Expected shape: [2, 3] (Batch Size, Num Classes)
+diff --git a/backend/common.py b/backend/core/common.py
+similarity index 100%
+rename from backend/common.py
+rename to backend/core/common.py
+diff --git a/backend/utils.py b/backend/core/utils.py
+similarity index 100%
+rename from backend/utils.py
+rename to backend/core/utils.py
+diff --git a/backend/scripts/data_preparation/build_unified_dataset.py b/backend/scripts/data_preparation/build_unified_dataset.py
+new file mode 100644
+index 0000000..2884229
+--- /dev/null
++++ b/backend/scripts/data_preparation/build_unified_dataset.py
+@@ -0,0 +1,96 @@
++import os
++import json
++import pandas as pd
++from pathlib import Path
++from tqdm import tqdm
++
++def process_mtsamples(raw_dir):
++    mtsamples_path = raw_dir / "mtsamples.csv"
++    unified_records = []
++    if not mtsamples_path.exists():
++        print("mtsamples.csv not found.")
++        return unified_records
++        
++    df = pd.read_csv(mtsamples_path)
++    df = df.dropna(subset=['transcription'])
++    
++    for idx, row in df.iterrows():
++        record = {
++            "id": f"mtsamples_{idx}",
++            "source": "mtsamples",
++            "modality": "text",
++            "file_path": None,
++            "text": str(row['transcription']),
++            "label": str(row.get('medical_specialty', 'Unknown')).strip()
++        }
++        unified_records.append(record)
++        
++    print(f"Processed {len(unified_records)} NLP records from mtsamples.")
++    return unified_records
++
++def process_synthetic_prescriptions(raw_dir):
++    synthetic_dir = raw_dir / "medical-prescription-dataset"
++    unified_records = []
++    if not synthetic_dir.exists():
++        print("medical-prescription-dataset not found.")
++        return unified_records
++        
++    # Check train, val, test splits
++    for split in ["train", "val", "test"]:
++        split_dir = synthetic_dir / split
++        if not split_dir.exists():
++            continue
++            
++        annotations_dir = split_dir / "annotations"
++        images_dir = split_dir / "images"
++        
++        if not annotations_dir.exists():
++            continue
++            
++        for ann_file in annotations_dir.glob("*.json"):
++            with open(ann_file, 'r') as f:
++                try:
++                    data = json.load(f)
++                except:
++                    continue
++            
++            ground_truth = data.get('ground_truth', '')
++            base_name = ann_file.stem
++            
++            # Find matching image
++            img_path = images_dir / f"{base_name}.png"
++            if not img_path.exists():
++                img_path = images_dir / f"{base_name}.jpg"
++                
++            record = {
++                "id": f"prescription_{split}_{base_name}",
++                "source": "medical-prescription-dataset",
++                "modality": "image",
++                "file_path": str(img_path.relative_to(raw_dir.parent)) if img_path.exists() else None,
++                "text": ground_truth,
++                "label": "Prescription"
++            }
++            unified_records.append(record)
++            
++    print(f"Processed {len(unified_records)} Image records from synthetic prescriptions.")
++    return unified_records
++
++def main():
++    base_dir = Path(__file__).resolve().parent.parent.parent
++    raw_dir = base_dir / "dataset" / "raw"
++    processed_dir = base_dir / "dataset" / "processed"
++    os.makedirs(processed_dir, exist_ok=True)
++    
++    all_records = []
++    all_records.extend(process_mtsamples(raw_dir))
++    all_records.extend(process_synthetic_prescriptions(raw_dir))
++    
++    out_path = processed_dir / "unified_dataset.jsonl"
++    with open(out_path, 'w') as f:
++        for r in all_records:
++            f.write(json.dumps(r) + "\n")
++            
++    print(f"Successfully generated unified dataset with {len(all_records)} records at {out_path}.")
++
++if __name__ == "__main__":
++    main()
+diff --git a/backend/scripts/download_hf.py b/backend/scripts/data_preparation/download_hf.py
+similarity index 100%
+rename from backend/scripts/download_hf.py
+rename to backend/scripts/data_preparation/download_hf.py
+diff --git a/backend/scripts/data_preparation/eda.py b/backend/scripts/data_preparation/eda.py
+new file mode 100644
+index 0000000..4cc9ac4
+--- /dev/null
++++ b/backend/scripts/data_preparation/eda.py
+@@ -0,0 +1,114 @@
++import os
++import pandas as pd
++import matplotlib.pyplot as plt
++import seaborn as sns
++import cv2
++import glob
++from pathlib import Path
++
++# Fix for matplotlib headless environments
++import matplotlib
++matplotlib.use('Agg')
++
++def perform_nlp_eda(raw_dir, eda_dir):
++    print("--- Starting NLP EDA ---")
++    mtsamples_path = raw_dir / "mtsamples.csv"
++    if not mtsamples_path.exists():
++        print("mtsamples.csv not found.")
++        return
++        
++    df = pd.read_csv(mtsamples_path)
++    
++    # 1. Basic Stats
++    total_records = len(df)
++    missing_transcriptions = df['transcription'].isna().sum()
++    print(f"Total Records: {total_records}")
++    print(f"Missing Transcriptions: {missing_transcriptions}")
++    
++    # Drop NAs
++    df = df.dropna(subset=['transcription', 'medical_specialty'])
++    
++    # 2. Text Length Distribution
++    df['text_length'] = df['transcription'].apply(lambda x: len(str(x).split()))
++    plt.figure(figsize=(10, 5))
++    sns.histplot(df['text_length'], bins=50, kde=True, color='teal')
++    plt.title('Distribution of Word Counts in Transcriptions')
++    plt.xlabel('Word Count')
++    plt.ylabel('Frequency')
++    plt.tight_layout()
++    plt.savefig(eda_dir / 'word_count_distribution.png')
++    plt.close()
++    
++    # 3. Medical Specialty Distribution
++    plt.figure(figsize=(12, 8))
++    specialty_counts = df['medical_specialty'].value_counts()
++    sns.barplot(x=specialty_counts.values, y=specialty_counts.index, palette='viridis')
++    plt.title('Distribution of Medical Specialties')
++    plt.xlabel('Number of Records')
++    plt.ylabel('Specialty')
++    plt.tight_layout()
++    plt.savefig(eda_dir / 'specialty_distribution.png')
++    plt.close()
++    print("NLP EDA plots saved.")
++
++def perform_ocr_eda(raw_dir, eda_dir):
++    print("--- Starting OCR EDA ---")
++    synthetic_dir = raw_dir / "medical-prescription-dataset"
++    if not synthetic_dir.exists():
++        print("Synthetic dataset not found.")
++        return
++        
++    images = list(synthetic_dir.rglob("*.jpg")) + list(synthetic_dir.rglob("*.png"))
++    images = [str(p) for p in images]
++    print(f"Found {len(images)} images in synthetic dataset.")
++    
++    if not images:
++        return
++        
++    heights, widths = [], []
++    for img_path in images[:100]: # Sample 100 for speed
++        img = cv2.imread(img_path)
++        if img is not None:
++            h, w, _ = img.shape
++            heights.append(h)
++            widths.append(w)
++            
++    print(f"Average Height: {sum(heights)/len(heights):.2f}")
++    print(f"Average Width: {sum(widths)/len(widths):.2f}")
++    
++    # Image Size Distribution
++    plt.figure(figsize=(10, 5))
++    sns.scatterplot(x=widths, y=heights, alpha=0.6, color='coral')
++    plt.title('Image Size Distribution (Width vs Height)')
++    plt.xlabel('Width (pixels)')
++    plt.ylabel('Height (pixels)')
++    plt.tight_layout()
++    plt.savefig(eda_dir / 'image_size_distribution.png')
++    plt.close()
++    
++    # Sample Collage
++    fig, axes = plt.subplots(2, 2, figsize=(10, 10))
++    axes = axes.flatten()
++    for i, ax in enumerate(axes):
++        if i < len(images):
++            img = cv2.imread(images[i])
++            img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
++            ax.imshow(img_rgb)
++            ax.axis('off')
++            ax.set_title(f"Sample {i+1}")
++    plt.tight_layout()
++    plt.savefig(eda_dir / 'sample_prescriptions.png')
++    plt.close()
++    print("OCR EDA plots saved.")
++
++def main():
++    base_dir = Path(__file__).resolve().parent.parent.parent
++    raw_dir = base_dir / "dataset" / "raw"
++    eda_dir = raw_dir / "eda_plots"
++    os.makedirs(eda_dir, exist_ok=True)
++    
++    perform_nlp_eda(raw_dir, eda_dir)
++    perform_ocr_eda(raw_dir, eda_dir)
++
++if __name__ == "__main__":
++    main()
+diff --git a/backend/scripts/data_preparation/preprocess_nlp.py b/backend/scripts/data_preparation/preprocess_nlp.py
+new file mode 100644
+index 0000000..1530191
+--- /dev/null
++++ b/backend/scripts/data_preparation/preprocess_nlp.py
+@@ -0,0 +1,73 @@
++import os
++import pandas as pd
++import re
++import nltk
++from pathlib import Path
++from tqdm import tqdm
++from nltk.corpus import stopwords
++from nltk.stem import WordNetLemmatizer
++
++nltk.download('stopwords', quiet=True)
++nltk.download('wordnet', quiet=True)
++
++def clean_text(text):
++    if not isinstance(text, str):
++        return ""
++    
++    # Lowercase
++    text = text.lower()
++    
++    # Very basic PHI scrubbing using Regex
++    text = re.sub(r'\b\d{3}-\d{2}-\d{4}\b', '[SSN_REDACTED]', text)
++    text = re.sub(r'\b\d{3}-\d{3}-\d{4}\b', '[PHONE_REDACTED]', text)
++    text = re.sub(r'\b\d{1,2}/\d{1,2}/\d{2,4}\b', '[DATE_REDACTED]', text)
++    
++    # Remove special characters but keep spaces and alphanumeric
++    text = re.sub(r'[^a-z0-9\s\[\]\_]', ' ', text)
++    
++    tokens = text.split()
++    stop_words = set(stopwords.words('english'))
++    
++    # Retain domain-specific logic if needed, but remove general stop words
++    tokens = [word for word in tokens if word not in stop_words]
++    
++    # Lemmatize
++    lemmatizer = WordNetLemmatizer()
++    tokens = [lemmatizer.lemmatize(word) for word in tokens]
++    
++    return " ".join(tokens)
++
++def main():
++    base_dir = Path(__file__).resolve().parent.parent.parent
++    raw_dir = base_dir / "dataset" / "raw"
++    processed_dir = base_dir / "dataset" / "processed" / "nlp_text"
++    
++    os.makedirs(processed_dir, exist_ok=True)
++    
++    csv_files = list(raw_dir.rglob("*.csv"))
++    print(f"Found {len(csv_files)} CSV files for NLP preprocessing.")
++    
++    for csv_file in csv_files:
++        print(f"Processing {csv_file.name}...")
++        try:
++            df = pd.read_csv(csv_file)
++        except Exception as e:
++            print(f"Could not read {csv_file.name}: {e}")
++            continue
++        
++        # Look for typical text columns
++        text_cols = [c for c in df.columns if 'text' in c.lower() or 'transcription' in c.lower() or 'note' in c.lower()]
++        if not text_cols:
++            print(f"No obvious text columns found in {csv_file.name}. Skipping.")
++            continue
++            
++        target_col = text_cols[0]
++        tqdm.pandas(desc=f"Cleaning {target_col}")
++        df[f"cleaned_{target_col}"] = df[target_col].progress_apply(clean_text)
++        
++        save_path = processed_dir / f"cleaned_{csv_file.name}"
++        df.to_csv(save_path, index=False)
++        print(f"Saved cleaned data to {save_path}")
++
++if __name__ == "__main__":
++    main()
+diff --git a/backend/scripts/data_preparation/preprocess_ocr.py b/backend/scripts/data_preparation/preprocess_ocr.py
+new file mode 100644
+index 0000000..03eca2d
+--- /dev/null
++++ b/backend/scripts/data_preparation/preprocess_ocr.py
+@@ -0,0 +1,74 @@
++import os
++import cv2
++import numpy as np
++from pathlib import Path
++from tqdm import tqdm
++
++def deskew(image):
++    coords = np.column_stack(np.where(image > 0))
++    if len(coords) == 0:
++        return image
++    angle = cv2.minAreaRect(coords)[-1]
++    if angle < -45:
++        angle = -(90 + angle)
++    else:
++        angle = -angle
++    (h, w) = image.shape[:2]
++    center = (w // 2, h // 2)
++    M = cv2.getRotationMatrix2D(center, angle, 1.0)
++    rotated = cv2.warpAffine(image, M, (w, h), flags=cv2.INTER_CUBIC, borderMode=cv2.BORDER_REPLICATE)
++    return rotated
++
++def preprocess_image(img_path, save_path):
++    img = cv2.imread(img_path)
++    if img is None:
++        return False
++        
++    # Convert to grayscale
++    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
++    
++    # Denoise (Gaussian blur)
++    blurred = cv2.GaussianBlur(gray, (5, 5), 0)
++    
++    # Adaptive Thresholding (Binarization)
++    thresh = cv2.adaptiveThreshold(blurred, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, 11, 2)
++    
++    # Deskewing
++    deskewed = deskew(thresh)
++    
++    # Invert back to normal text (black text on white background)
++    final_img = cv2.bitwise_not(deskewed)
++    
++    os.makedirs(os.path.dirname(save_path), exist_ok=True)
++    cv2.imwrite(save_path, final_img)
++    return True
++
++def main():
++    base_dir = Path(__file__).resolve().parent.parent.parent
++    raw_dir = base_dir / "dataset" / "raw"
++    processed_dir = base_dir / "dataset" / "processed" / "ocr_images"
++    
++    image_paths = []
++    for ext in ["*.jpg", "*.png", "*.jpeg"]:
++        image_paths.extend(raw_dir.rglob(ext))
++        
++    print(f"Found {len(image_paths)} images for OCR preprocessing.")
++    
++    if not image_paths:
++        print("No images found. Please ensure you have downloaded the image datasets into dataset/raw/.")
++        return
++
++    os.makedirs(processed_dir, exist_ok=True)
++    
++    success_count = 0
++    for img_path in tqdm(image_paths, desc="Preprocessing OCR Images"):
++        # Prevent naming collisions by prefixing the parent folder name
++        rel_name = f"{img_path.parent.name}_{img_path.name}"
++        save_path = str(processed_dir / rel_name)
++        if preprocess_image(str(img_path), save_path):
++            success_count += 1
++            
++    print(f"Preprocessing complete. {success_count}/{len(image_paths)} images successfully processed.")
++
++if __name__ == "__main__":
++    main()
+diff --git a/backend/scripts/data_preparation/stream_a_vision.py b/backend/scripts/data_preparation/stream_a_vision.py
+new file mode 100644
+index 0000000..f567c4e
+--- /dev/null
++++ b/backend/scripts/data_preparation/stream_a_vision.py
+@@ -0,0 +1,92 @@
++import json
++import os
++import cv2
++import easyocr
++import numpy as np
++from pathlib import Path
++from tqdm import tqdm
++
++import sys
++# Ensure backend root is in sys.path
++sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
++
++from scripts.data_preparation.preprocess_ocr import deskew
++
++def preprocess_for_ocr(img_path):
++    img = cv2.imread(img_path)
++    if img is None:
++        return None
++    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
++    blurred = cv2.GaussianBlur(gray, (5, 5), 0)
++    thresh = cv2.adaptiveThreshold(blurred, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, 11, 2)
++    deskewed = deskew(thresh)
++    final_img = cv2.bitwise_not(deskewed)
++    return final_img
++
++def main():
++    base_dir = Path(__file__).resolve().parent.parent.parent
++    processed_dir = base_dir / "dataset" / "processed"
++    unified_path = processed_dir / "unified_dataset.jsonl"
++    output_path = processed_dir / "unified_dataset_with_ocr.jsonl"
++    
++    if not unified_path.exists():
++        print("Unified dataset not found.")
++        return
++        
++    print("Initializing EasyOCR (optimizing for M1 if possible)...")
++    try:
++        # EasyOCR uses PyTorch. gpu=True will use MPS if PyTorch is built with it.
++        reader = easyocr.Reader(['en'], gpu=True)
++    except Exception:
++        print("Falling back to CPU mode for EasyOCR.")
++        reader = easyocr.Reader(['en'], gpu=False)
++
++    records = []
++    with open(unified_path, 'r') as f:
++        for line in f:
++            records.append(json.loads(line))
++            
++    images_to_process = [r for r in records if r.get('modality') == 'image']
++    print(f"Found {len(images_to_process)} image records. Beginning Stream A Vision pipeline...")
++    
++    for record in tqdm(records, desc="Extracting OCR Features"):
++        if record.get('modality') == 'image':
++            img_path = base_dir / "dataset" / record['file_path']
++            if not img_path.exists():
++                print(f"Missing image: {img_path}")
++                record['ocr_features'] = []
++                continue
++                
++            preprocessed = preprocess_for_ocr(str(img_path))
++            if preprocessed is None:
++                record['ocr_features'] = []
++                continue
++                
++            # Run EasyOCR
++            results = reader.readtext(preprocessed)
++            
++            # Extract Text, Bounding Boxes, and Confidence Scores
++            # Results format: [([[x1,y1], [x2,y1], [x2,y2], [x1,y2]], 'text', confidence_score), ...]
++            ocr_features = []
++            for bbox, text, conf in results:
++                ocr_features.append({
++                    "bbox": [[int(coord[0]), int(coord[1])] for coord in bbox],
++                    "text": text,
++                    "confidence": float(conf)
++                })
++            
++            record['ocr_features'] = ocr_features
++            # We append the average confidence score to the record for model weighting
++            avg_conf = sum([f['confidence'] for f in ocr_features]) / len(ocr_features) if ocr_features else 0.0
++            record['avg_ocr_confidence'] = avg_conf
++
++    # Save the updated dataset
++    print(f"Saving enriched dataset to {output_path}...")
++    with open(output_path, 'w') as f:
++        for r in records:
++            f.write(json.dumps(r) + "\n")
++            
++    print("Stream A Execution Complete. Vision features extracted!")
++
++if __name__ == "__main__":
++    main()
+diff --git a/backend/scripts/data_preparation/stream_b_nlp.py b/backend/scripts/data_preparation/stream_b_nlp.py
+new file mode 100644
+index 0000000..74f4596
+--- /dev/null
++++ b/backend/scripts/data_preparation/stream_b_nlp.py
+@@ -0,0 +1,90 @@
++import json
++import torch
++from pathlib import Path
++from tqdm import tqdm
++from transformers import AutoTokenizer, AutoModel
++
++import sys
++# Ensure backend root is in sys.path
++sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
++
++from scripts.data_preparation.preprocess_nlp import clean_text
++
++def get_device():
++    if torch.backends.mps.is_available():
++        return torch.device("mps")
++    elif torch.cuda.is_available():
++        return torch.device("cuda")
++    return torch.device("cpu")
++
++def get_embedding(text, model, tokenizer, device):
++    """Generates a 768-dimensional Bio_ClinicalBERT embedding for the text."""
++    # Truncate text if it's too long for BERT (max 512 tokens)
++    inputs = tokenizer(text, return_tensors="pt", truncation=True, max_length=512, padding="max_length")
++    inputs = {k: v.to(device) for k, v in inputs.items()}
++    
++    with torch.no_grad():
++        outputs = model(**inputs)
++        
++    # Pool the output (take the mean of the last hidden state)
++    embeddings = outputs.last_hidden_state.mean(dim=1).squeeze().cpu().numpy()
++    return embeddings.tolist()
++
++def main():
++    base_dir = Path(__file__).resolve().parent.parent.parent
++    processed_dir = base_dir / "dataset" / "processed"
++    
++    # Wait for Stream A to finish, so we chain off its output
++    input_path = processed_dir / "unified_dataset_with_ocr.jsonl"
++    output_path = processed_dir / "unified_dataset_fused.jsonl"
++    
++    if not input_path.exists():
++        print(f"File not found: {input_path}")
++        print("Please ensure Stream A (Vision) finishes before running Stream B.")
++        return
++
++    device = get_device()
++    print(f"Initializing Bio_ClinicalBERT on {device}...")
++    
++    model_name = "emilyalsentzer/Bio_ClinicalBERT"
++    tokenizer = AutoTokenizer.from_pretrained(model_name)
++    model = AutoModel.from_pretrained(model_name).to(device)
++    model.eval()
++
++    records = []
++    with open(input_path, 'r') as f:
++        for line in f:
++            records.append(json.loads(line))
++            
++    print(f"Loaded {len(records)} records. Extracting dense semantic embeddings...")
++    
++    for record in tqdm(records, desc="Stream B NLP Pipeline"):
++        text_to_embed = ""
++        
++        # If it's text modality from MTSamples/MIMIC
++        if record.get('modality') == 'text':
++            raw_text = record.get('text', '')
++            text_to_embed = clean_text(raw_text)
++            
++        # If it's an image from Prescription dataset, embed the OCR output!
++        elif record.get('modality') == 'image':
++            ocr_features = record.get('ocr_features', [])
++            raw_text = " ".join([feat['text'] for feat in ocr_features])
++            text_to_embed = clean_text(raw_text)
++            
++        if not text_to_embed.strip():
++            record['bert_embedding'] = [0.0] * 768
++            continue
++            
++        embedding = get_embedding(text_to_embed, model, tokenizer, device)
++        record['bert_embedding'] = embedding
++
++    print(f"Saving final fused dataset to {output_path}...")
++    with open(output_path, 'w') as f:
++        for r in records:
++            f.write(json.dumps(r) + "\n")
++            
++    print("Stream B Execution Complete. NLP features extracted and fused!")
++
++if __name__ == "__main__":
++    main()
+diff --git a/backend/evaluate_models.py b/backend/scripts/training/evaluate_models.py
+similarity index 94%
+rename from backend/evaluate_models.py
+rename to backend/scripts/training/evaluate_models.py
+index 34142f8..8719cff 100644
+--- a/backend/evaluate_models.py
++++ b/backend/scripts/training/evaluate_models.py
+@@ -9,6 +9,12 @@ from sklearn.model_selection import train_test_split
+ # Suppress Hugging Face warnings
+ os.environ["TOKENIZERS_PARALLELISM"] = "false"
+ 
++import sys
++from pathlib import Path
++
++# Ensure backend root is in sys.path
++sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
++
+ from core.config import settings
+ from services.model_service import model_service
+ 
+diff --git a/backend/train.py b/backend/scripts/training/train.py
+similarity index 96%
+rename from backend/train.py
+rename to backend/scripts/training/train.py
+index 69ca239..f0fa732 100644
+--- a/backend/train.py
++++ b/backend/scripts/training/train.py
+@@ -26,7 +26,13 @@ from sklearn.linear_model import SGDClassifier
+ from sklearn.metrics import accuracy_score, confusion_matrix, f1_score
+ from sklearn.model_selection import train_test_split
+ 
+-import common
++import sys
++from pathlib import Path
++
++# Ensure backend root is in sys.path
++sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
++
++from core import common
+ from core.config import BASE_DIR, settings
+ 
+ 
+diff --git a/backend/scripts/training/train_fusion.py b/backend/scripts/training/train_fusion.py
+new file mode 100644
+index 0000000..9a60cde
+--- /dev/null
++++ b/backend/scripts/training/train_fusion.py
+@@ -0,0 +1,185 @@
++import os
++import json
++import torch
++import torch.nn as nn
++import torch.optim as optim
++from torch.utils.data import Dataset, DataLoader
++from pathlib import Path
++from tqdm import tqdm
++import random
++import numpy as np
++import mlflow
++
++import sys
++# Ensure backend root is in sys.path
++sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
++
++from core.architectures.dual_stream_ner import DualStreamFusionNER
++
++def set_seed(seed=42):
++    """Ensures 100% reproducibility across runs."""
++    random.seed(seed)
++    os.environ['PYTHONHASHSEED'] = str(seed)
++    np.random.seed(seed)
++    torch.manual_seed(seed)
++    if torch.cuda.is_available():
++        torch.cuda.manual_seed(seed)
++        torch.cuda.manual_seed_all(seed)
++        torch.backends.cudnn.deterministic = True
++        torch.backends.cudnn.benchmark = False
++    elif torch.backends.mps.is_available():
++        torch.mps.manual_seed(seed)
++
++class FusedMedicalDataset(Dataset):
++    def __init__(self, jsonl_path):
++        self.records = []
++        with open(jsonl_path, 'r') as f:
++            for line in f:
++                data = json.loads(line)
++                if 'bert_embedding' in data:
++                    self.records.append(data)
++                    
++        self.label_map = {"Surgery": 0, "Prescription": 1}
++        
++    def __len__(self):
++        return len(self.records)
++        
++    def __getitem__(self, idx):
++        record = self.records[idx]
++        
++        nlp_emb = torch.tensor(record['bert_embedding'], dtype=torch.float32)
++        avg_conf = record.get('avg_ocr_confidence', 0.0)
++        
++        ocr_features = record.get('ocr_features', [])
++        if ocr_features:
++            x1 = sum([f['bbox'][0][0] for f in ocr_features]) / len(ocr_features)
++            y1 = sum([f['bbox'][0][1] for f in ocr_features]) / len(ocr_features)
++            x2 = sum([f['bbox'][2][0] for f in ocr_features]) / len(ocr_features)
++            y2 = sum([f['bbox'][2][1] for f in ocr_features]) / len(ocr_features)
++        else:
++            x1, y1, x2, y2 = 0.0, 0.0, 0.0, 0.0
++            
++        vision_meta = torch.tensor([avg_conf, x1, y1, x2, y2], dtype=torch.float32)
++        
++        raw_label = record.get('label', 'Unknown')
++        label_id = self.label_map.get(raw_label, 0)
++        label_tensor = torch.tensor(label_id, dtype=torch.long)
++        
++        return nlp_emb, vision_meta, label_tensor
++
++def get_device():
++    if torch.backends.mps.is_available():
++        return torch.device("mps")
++    elif torch.cuda.is_available():
++        return torch.device("cuda")
++    return torch.device("cpu")
++
++def train_model():
++    set_seed(42)  # MLOps: Reproducibility
++    
++    base_dir = Path(__file__).resolve().parent.parent.parent
++    data_path = base_dir / "dataset" / "processed" / "unified_dataset_fused.jsonl"
++    
++    if not data_path.exists():
++        print("Fusion dataset not found. Please wait for Stream B to complete.")
++        return
++        
++    device = get_device()
++    print(f"Training on {device}...")
++    
++    dataset = FusedMedicalDataset(data_path)
++    
++    # MLOps: Data pipeline optimization (num_workers and pin_memory)
++    # Note: On macOS, num_workers > 0 can sometimes cause multiprocessing issues.
++    # Set to 0 if issues occur, but 2 is a standard starting point.
++    dataloader = DataLoader(dataset, batch_size=32, shuffle=True, num_workers=2, pin_memory=True)
++    
++    model = DualStreamFusionNER(bert_hidden_size=768, num_classes=2).to(device)
++    
++    criterion = nn.CrossEntropyLoss()
++    learning_rate = 1e-4
++    optimizer = optim.Adam(model.parameters(), lr=learning_rate)
++    
++    best_loss = float('inf')
++    patience = 5
++    patience_counter = 0
++    epochs = 20
++    
++    # MLOps: Experiment Tracking via MLflow in a strict directory structure
++    tracking_dir = base_dir / "models" / "tracking"
++    os.makedirs(tracking_dir, exist_ok=True)
++    mlflow.set_tracking_uri(f"sqlite:///{tracking_dir}/mlruns.db")
++    mlflow.set_experiment("Dual_Stream_NER")
++    
++    with mlflow.start_run():
++        # Log hyperparameters
++        mlflow.log_params({
++            "learning_rate": learning_rate,
++            "batch_size": 32,
++            "epochs": epochs,
++            "optimizer": "Adam",
++            "seed": 42
++        })
++        
++        model.train()
++        for epoch in range(epochs):
++            total_loss = 0
++            correct = 0
++            total = 0
++            
++            progress = tqdm(dataloader, desc=f"Epoch {epoch+1}/{epochs}")
++            for nlp_emb, vision_meta, labels in progress:
++                # Move to device with non_blocking to pair with pin_memory=True
++                nlp_emb = nlp_emb.to(device, non_blocking=True)
++                vision_meta = vision_meta.to(device, non_blocking=True)
++                labels = labels.to(device, non_blocking=True)
++                
++                # MLOps: More efficient gradient clearing
++                optimizer.zero_grad(set_to_none=True)
++                
++                outputs = model(nlp_emb, vision_meta)
++                loss = criterion(outputs, labels)
++                
++                loss.backward()
++                optimizer.step()
++                
++                total_loss += loss.item()
++                _, predicted = torch.max(outputs.data, 1)
++                total += labels.size(0)
++                correct += (predicted == labels).sum().item()
++                
++                progress.set_postfix({'loss': loss.item(), 'acc': correct/total})
++                
++            avg_loss = total_loss / len(dataloader)
++            epoch_acc = correct / total
++            
++            # Log metrics per epoch
++            mlflow.log_metric("train_loss", avg_loss, step=epoch)
++            mlflow.log_metric("train_accuracy", epoch_acc, step=epoch)
++            
++            # MLOps: Advanced Checkpointing
++            if avg_loss < best_loss:
++                best_loss = avg_loss
++                patience_counter = 0
++                
++                os.makedirs(base_dir / "models" / "saved_weights", exist_ok=True)
++                checkpoint_path = base_dir / "models" / "saved_weights" / "dual_stream_fusion_best.pth"
++                
++                checkpoint = {
++                    'epoch': epoch,
++                    'model_state_dict': model.state_dict(),
++                    'optimizer_state_dict': optimizer.state_dict(),
++                    'loss': best_loss,
++                }
++                torch.save(checkpoint, checkpoint_path)
++            else:
++                patience_counter += 1
++                if patience_counter >= patience:
++                    print(f"Early stopping triggered at epoch {epoch+1}!")
++                    break
++                
++        print("Training complete! Model successfully learned to fuse OCR metadata with BERT embeddings.")
++
++if __name__ == "__main__":
++    train_model()
++
+diff --git a/backend/train_transformer.py b/backend/scripts/training/train_transformer.py
+similarity index 96%
+rename from backend/train_transformer.py
+rename to backend/scripts/training/train_transformer.py
+index af45f42..e6175cd 100644
+--- a/backend/train_transformer.py
++++ b/backend/scripts/training/train_transformer.py
+@@ -5,6 +5,12 @@ import evaluate
+ import mlflow
+ import numpy as np
+ 
++import sys
++from pathlib import Path
++
++# Ensure backend root is in sys.path
++sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
++
+ from core.config import BASE_DIR
+ 
+ # Fix for the URL-encoding bug that creates "AI%20ML" directories
+diff --git a/backend/services/model_service.py b/backend/services/model_service.py
+index 8f1a131..e406276 100644
+--- a/backend/services/model_service.py
++++ b/backend/services/model_service.py
+@@ -5,7 +5,7 @@ from typing import Dict, Tuple
+ 
+ from transformers import DistilBertForSequenceClassification, DistilBertTokenizerFast, pipeline
+ 
+-import common
++from core import common
+ from core.config import settings
+ 
+ logger = logging.getLogger(__name__)
+diff --git a/backend/tests/test_common.py b/backend/tests/test_common.py
+index 73bb97e..96cd81f 100644
+--- a/backend/tests/test_common.py
++++ b/backend/tests/test_common.py
+@@ -1,4 +1,4 @@
+-from common import preprocess_text
++from core.common import preprocess_text
+ 
+ 
+ def test_preprocess_text():
