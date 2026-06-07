@@ -26,7 +26,13 @@ from sklearn.linear_model import SGDClassifier
 from sklearn.metrics import accuracy_score, confusion_matrix, f1_score
 from sklearn.model_selection import train_test_split
 
-import common
+import sys
+from pathlib import Path
+
+# Ensure backend root is in sys.path
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
+
+from core import common
 from core.config import BASE_DIR, settings
 
 

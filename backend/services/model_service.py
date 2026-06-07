@@ -5,7 +5,7 @@ from typing import Dict, Tuple
 
 from transformers import DistilBertForSequenceClassification, DistilBertTokenizerFast, pipeline
 
-import common
+from core import common
 from core.config import settings
 
 logger = logging.getLogger(__name__)
