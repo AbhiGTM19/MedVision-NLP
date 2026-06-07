@@ -12,6 +12,13 @@ import matplotlib.pyplot as plt
 import mlflow
 import mlflow.sklearn
 import optuna
+
+from core.config import BASE_DIR
+
+# Fix for the URL-encoding bug that creates "AI%20ML" directories
+os.makedirs(BASE_DIR / "mlruns", exist_ok=True)
+mlflow.set_tracking_uri(f"sqlite:///{BASE_DIR}/mlruns/mlflow.db")
+
 import pandas as pd
 import seaborn as sns
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -20,20 +27,16 @@ from sklearn.metrics import accuracy_score, confusion_matrix, f1_score
 from sklearn.model_selection import train_test_split
 
 import common
-from core.config import settings
+from core.config import BASE_DIR, settings
 
 
-def load_data(pos_path, neg_path):
-    """Loads positive and negative review data from specified paths."""
-    pos_files = [os.path.join(pos_path, f) for f in os.listdir(pos_path) if f.endswith('.txt')]
-    pos_reviews = [open(f, 'r', encoding='utf-8').read() for f in pos_files]
-    neg_files = [os.path.join(neg_path, f) for f in os.listdir(neg_path) if f.endswith('.txt')]
-    neg_reviews = [open(f, 'r', encoding='utf-8').read() for f in neg_files]
-
-    df = pd.DataFrame({
-        'review': pos_reviews + neg_reviews,
-        'sentiment': [1] * len(pos_reviews) + [0] * len(neg_reviews)
-    })
+def load_data(data_path):
+    """Loads clinical notes data from csv."""
+    df = pd.read_csv(data_path)
+    df = df.dropna(subset=["transcription", "medical_specialty"])
+    # Filter to top-10 specialties to keep training feasible and balanced
+    top_specialties = df["medical_specialty"].value_counts().head(10).index.tolist()
+    df = df[df["medical_specialty"].isin(top_specialties)].reset_index(drop=True)
     return df
 
 def objective(trial, X_train, X_test, y_train, y_test):
@@ -59,14 +62,12 @@ def train_model():
     start = time.time()
     
     print("1. Loading and preprocessing data...")
-    pos_path = settings.POS_DATA_PATH
-    neg_path = settings.NEG_DATA_PATH
-    df = load_data(pos_path, neg_path)
-    df = df.assign(processed_review=df['review'].apply(common.preprocess_text))
+    df = load_data(settings.DATA_PATH)
+    df = df.assign(processed_text=df['transcription'].apply(common.preprocess_text))
 
     print("2. Splitting data...")
     X_train_text, X_test_text, y_train, y_test = train_test_split(
-        df['processed_review'], df['sentiment'], test_size=0.2, random_state=42
+        df['processed_text'], df['medical_specialty'], test_size=0.2, random_state=42
     )
 
     print("3. TF-IDF Vectorizing...")
@@ -92,15 +93,16 @@ def train_model():
     y_pred = best_model.predict(X_test)
 
     accuracy = accuracy_score(y_test, y_pred)
-    f1 = f1_score(y_test, y_pred)
+    f1 = f1_score(y_test, y_pred, average='weighted')
 
-    mlflow.set_experiment("Movie_Review_Classifier_Optuna_SGD")
+    mlflow.set_experiment("MedVision_NLP_Optuna_SGD")
     with mlflow.start_run():
         mlflow.log_params(study.best_params)
         mlflow.log_metric("accuracy", accuracy)
         mlflow.log_metric("f1_score", f1)
 
-        with open("metrics.txt", "w") as f:
+        metrics_path = BASE_DIR / "metrics.txt"
+        with open(metrics_path, "w") as f:
             f.write(f"Accuracy: {accuracy:.4f}\n")
             f.write(f"F1 Score: {f1:.4f}\n")
 
@@ -112,24 +114,26 @@ def train_model():
         mlflow.log_artifacts("models")
 
         cm = confusion_matrix(y_test, y_pred)
-        plt.figure(figsize=(6, 4))
-        sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", xticklabels=["neg", "pos"], yticklabels=["neg", "pos"])
+        plt.figure(figsize=(8, 6))
+        sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", xticklabels=best_model.classes_, yticklabels=best_model.classes_)
         plt.xlabel("Predicted")
         plt.ylabel("Actual")
         plt.title("Confusion Matrix")
         plt.tight_layout()
-        plt.savefig("confusion_matrix.png")
-        mlflow.log_artifact("confusion_matrix.png")
+        cm_path = BASE_DIR / "confusion_matrix.png"
+        plt.savefig(cm_path)
+        mlflow.log_artifact(str(cm_path))
 
         coef = best_model.coef_[0]
         feature_names = vectorizer.get_feature_names_out()
         top_indices = coef.argsort()[-10:][::-1]
         top_features = [(feature_names[i], round(coef[i], 4)) for i in top_indices]
-        with open("top_features.csv", "w") as f:
+        features_path = BASE_DIR / "top_features.csv"
+        with open(features_path, "w") as f:
             f.write("feature,weight\n")
             for word, weight in top_features:
                 f.write(f"{word},{weight}\n")
-        mlflow.log_artifact("top_features.csv")
+        mlflow.log_artifact(str(features_path))
 
         mlflow.sklearn.log_model(best_model, "sgd_classifier_model")
 

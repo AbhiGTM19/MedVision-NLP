@@ -1,5 +1,5 @@
 {
-  "handoff_id": "INIT_SYNC_SENTIMENT",
+  "handoff_id": "INIT_SYNC_HEALTHCARE",
   "source_role": "Integration QA Specialist",
   "target_roles": ["Lead ML/Backend Engineer", "Lead Frontend Engineer"],
   "payload": {
@@ -10,15 +10,15 @@
     },
     "input_schema": {
       "PredictionRequest": {
-        "review": "string (required, min_length=1)",
+        "text": "string (required, min_length=1, max_length=5000)",
         "model_choice": "string (default='fast', options: 'fast' | 'accurate')"
       }
     },
     "output_schema": {
       "PredictionResponse": {
-        "prediction": "string ('positive' | 'negative')",
+        "prediction": "string (medical specialty label)",
         "confidence": "float",
-        "verdict": "string ('Recommended' | 'Not Recommended')",
+        "explanation": "string (department routing rationale)",
         "word_importances": "Dict[string, float]",
         "model_used": "string",
         "error": "Optional[string]"
@@ -27,18 +27,18 @@
     "models": {
       "fast": {
         "type": "SGDClassifier (Scikit-Learn)",
-        "model_path": "models/movies_review_classifier.pkl",
-        "vectorizer_path": "models/tfidf_vectorizer.pkl"
+        "model_path": "backend/models/clinical_text_classifier.pkl",
+        "vectorizer_path": "backend/models/tfidf_vectorizer.pkl"
       },
       "accurate": {
         "type": "DistilBERT (Transformers)",
-        "model_path": "models/distilbert/",
-        "hf_repo_id": "abhshkgtm19/Movie-Review-Sentiment-Models"
+        "model_path": "backend/models/distilbert/",
+        "hf_repo_id": "abhshkgtm19/MedVision-NLP-Models"
       }
     }
   },
   "required_actions": {
-    "frontend": "Ensure forms submit JSON body with 'review' (not 'review_text') and 'model_choice' fields to POST /predict",
+    "frontend": "Ensure forms submit JSON body with 'text' and 'model_choice' fields to POST /predict",
     "ml": "Run project_sync_audit.py before next deployment to verify Pydantic schemas match"
   }
 }

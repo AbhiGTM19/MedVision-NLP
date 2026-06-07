@@ -120,7 +120,7 @@ def validate_all():
 
     # ── Phase 5: Ghost Reference Detection ──
     print("\n─── Phase 5: Ghost Reference Detection ───")
-    ghost_terms = ["Generic Manager", "boundary_sync.py", "audit_script.py", "review_text", "sentiment_score", "sklearn_logreg", "Lifespan Handled"]
+    ghost_terms = ["Generic Manager", "boundary_sync.py", "audit_script.py", "review_text", "sentiment_score", "sklearn_logreg", "Lifespan Handled", "movie", "imdb", "aclImdb", "medtext", "MedText", "Sentiment Scope"]
     all_md_files = glob.glob(os.path.join(agent_dir, "**", "*.md"), recursive=True)
     ghost_found = False
     for md_file in all_md_files:
@@ -136,28 +136,28 @@ def validate_all():
 
     # ── Phase 6: Cross-Reference Consistency ──
     print("\n─── Phase 6: Cross-Reference Consistency ───")
-    # Check HANDOFF_SCHEMA.json matches schemas/predict.py
-    if os.path.exists(handoff_path) and os.path.exists(os.path.join(root_dir, "schemas", "predict.py")):
+    # Check HANDOFF_SCHEMA.json matches backend/schemas/predict.py
+    if os.path.exists(handoff_path) and os.path.exists(os.path.join(root_dir, "backend", "schemas", "predict.py")):
         with open(handoff_path, 'r') as f:
             handoff = json.load(f)
-        with open(os.path.join(root_dir, "schemas", "predict.py"), 'r') as f:
+        with open(os.path.join(root_dir, "backend", "schemas", "predict.py"), 'r') as f:
             schema_content = f.read()
         
         # Check input field names exist in the Pydantic schema
         input_fields = handoff.get("payload", {}).get("input_schema", {}).get("PredictionRequest", {})
         for field in input_fields:
             if field not in schema_content:
-                print(f"  FAIL: HANDOFF_SCHEMA field '{field}' not found in schemas/predict.py")
+                print(f"  FAIL: HANDOFF_SCHEMA field '{field}' not found in backend/schemas/predict.py")
                 errors += 1
         
         output_fields = handoff.get("payload", {}).get("output_schema", {}).get("PredictionResponse", {})
         for field in output_fields:
             if field not in schema_content:
-                print(f"  FAIL: HANDOFF_SCHEMA field '{field}' not found in schemas/predict.py")
+                print(f"  FAIL: HANDOFF_SCHEMA field '{field}' not found in backend/schemas/predict.py")
                 errors += 1
         
         if errors == 0:
-            print("  PASS: HANDOFF_SCHEMA.json ↔ schemas/predict.py alignment verified.")
+            print("  PASS: HANDOFF_SCHEMA.json ↔ backend/schemas/predict.py alignment verified.")
     
     # ── Summary ──
     print("\n" + "═" * 50)
