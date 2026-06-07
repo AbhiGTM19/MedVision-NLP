@@ -1,4 +1,4 @@
-from common import preprocess_text
+from core.common import preprocess_text
 
 
 def test_preprocess_text():
