@@ -1,0 +1,10 @@
+stages:
+  train:
+    cmd: python train.py
+    deps:
+      - train.py
+      - common.py
+      - dataset/clinical_notes.csv
+    outs:
+      - models/clinical_text_classifier.pkl
+      - models/tfidf_vectorizer.pkl

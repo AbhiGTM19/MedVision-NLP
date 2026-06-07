@@ -18,11 +18,11 @@ def check_env():
         "Dockerfile",
         ".dockerignore",
         "HANDOFF_SCHEMA.json",
-        "main.py",
-        "schemas/predict.py",
-        "api/routes.py",
-        "services/model_service.py",
-        "core/config.py",
+        "backend/main.py",
+        "backend/schemas/predict.py",
+        "backend/api/routes.py",
+        "backend/services/model_service.py",
+        "backend/core/config.py",
     ]
 
     for rel_path in required_files:

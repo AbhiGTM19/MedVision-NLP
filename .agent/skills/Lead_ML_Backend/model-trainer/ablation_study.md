@@ -1,6 +1,6 @@
-# Comprehensive Ablation Study: Movie Review Sentiment Classifier
+# Comprehensive Ablation Study: MedVision NLP Clinical Notes Classifier
 
-**Context:** This document summarizes the ablation study conducted for the Sentiment Prediction model. The study is divided into establishing the baseline and exploring advanced transformer architectures.
+**Context:** This document summarizes the ablation study conducted for the Clinical Text Classification model. The study is divided into establishing the baseline and exploring advanced transformer architectures.
 
 ## Part I: Primary Modality Ablation
 This phase establishes the baseline predictive power using classical NLP vs. modern deep learning.
@@ -8,10 +8,10 @@ This phase establishes the baseline predictive power using classical NLP vs. mod
 | Phase | Model | Description | Test Accuracy |
 | :---: | :--- | :--- | :--- |
 | **Baseline** | `sklearn_sgd` | TF-IDF Vectorization + SGDClassifier baseline. | TBD |
-| **Transformer** | `distilbert_base` | Fine-tuned DistilBERT via `train_transformer.py`. | TBD |
+| **Transformer** | `distilbert_base` | Fine-tuned DistilBERT on MTSamples via `backend/train_transformer.py`. | TBD |
 
 ## Part II: Extended Architectural Ablation
-Focuses on hyperparameter optimization and handling text length bottlenecks (e.g., reviews > 512 tokens).
+Focuses on hyperparameter optimization and handling text length bottlenecks (e.g., transcriptions > 512 tokens).
 
 ### The Architectures Evaluated
 #### A. Truncation Strategies

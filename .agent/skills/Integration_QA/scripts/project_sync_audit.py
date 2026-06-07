@@ -2,8 +2,8 @@
 """
 Project Sync Audit — Validates schema ↔ frontend ↔ HANDOFF_SCHEMA alignment.
 
-Extracts Pydantic field names from schemas/predict.py and verifies they appear
-in HANDOFF_SCHEMA.json and are correctly referenced in static/script.js.
+Extracts Pydantic field names from backend/schemas/predict.py and verifies they appear
+in HANDOFF_SCHEMA.json and are correctly referenced in frontend/static/script.js.
 """
 import ast
 import json
@@ -39,9 +39,9 @@ def sync_boundaries(root_dir):
     print("--- 🔄 Project Sync Audit ---")
     errors = 0
 
-    schemas_dir = os.path.join(root_dir, "schemas")
+    schemas_dir = os.path.join(root_dir, "backend", "schemas")
     handoff_path = os.path.join(root_dir, "HANDOFF_SCHEMA.json")
-    frontend_js = os.path.join(root_dir, "static", "script.js")
+    frontend_js = os.path.join(root_dir, "frontend", "static", "script.js")
 
     # 1. Extract Pydantic models
     schema_file = os.path.join(schemas_dir, "predict.py")
@@ -89,12 +89,12 @@ def sync_boundaries(root_dir):
         req_fields = models.get("PredictionRequest", [])
         for field in req_fields:
             if field not in js_content:
-                print(f"🚩 DRIFT: PredictionRequest.{field} not found in static/script.js")
+                print(f"🚩 DRIFT: PredictionRequest.{field} not found in frontend/static/script.js")
                 errors += 1
             else:
                 print(f"  ✅ Frontend references '{field}'")
     else:
-        print("⚠️  static/script.js not found. Skipping frontend check.")
+        print("⚠️  frontend/static/script.js not found. Skipping frontend check.")
 
     if errors == 0:
         print("✅ PASS: No schema drift detected.")
