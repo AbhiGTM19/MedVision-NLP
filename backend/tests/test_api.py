@@ -2,6 +2,7 @@ from fastapi.testclient import TestClient
 
 from main import app
 from services.model_service import model_service
+from schemas.predict import EntitySchema
 
 client = TestClient(app)
 
@@ -11,29 +12,29 @@ def test_health_check():
     data = response.json()
     assert "status" in data
     assert "models" in data
-    assert "nltk_data" in data
+    assert "dual_stream_fusion" in data["models"]
 
-def test_predict_fast_mocked(monkeypatch):
-    # Mock the predict_fast function so we don't need models loaded
-    def mock_predict_fast(text):
-        return "Cardiology", 0.99, {"heart": 0.5}
+def test_predict_text_mocked(monkeypatch):
+    # Mock the extract_from_text function so we don't need models loaded
+    def mock_extract(text):
+        return [
+            EntitySchema(word="Aspirin", tag="B-MEDICATIONS", confidence=0.99)
+        ]
     
-    monkeypatch.setattr(model_service, "predict_fast", mock_predict_fast)
-    monkeypatch.setattr(model_service, "is_fast_ready", lambda: True)
+    monkeypatch.setattr(model_service, "extract_from_text", mock_extract)
 
-    response = client.post("/predict", json={"text": "This is great!", "model_choice": "fast"})
+    response = client.post("/predict", json={"text": "Patient taking Aspirin."})
     assert response.status_code == 200
-    assert response.json()["prediction"] == "Cardiology"
-    assert response.json()["model_used"] == "fast"
-
-def test_predict_invalid_model():
-    response = client.post("/predict", json={"text": "Testing", "model_choice": "nonexistent"})
-    assert response.status_code == 400
+    data = response.json()
+    assert "entities" in data
+    assert len(data["entities"]) == 1
+    assert data["entities"][0]["word"] == "Aspirin"
+    assert data["entities"][0]["tag"] == "B-MEDICATIONS"
 
 def test_predict_empty_text():
-    response = client.post("/predict", json={"text": "", "model_choice": "fast"})
+    response = client.post("/predict", json={"text": ""})
     assert response.status_code == 422  # Unprocessable Entity due to min_length=1
 
 def test_predict_massive_text():
-    response = client.post("/predict", json={"text": "A" * 5001, "model_choice": "fast"})
+    response = client.post("/predict", json={"text": "A" * 5001})
     assert response.status_code == 422  # Unprocessable Entity due to max_length=5000
