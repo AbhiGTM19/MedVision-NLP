@@ -86,8 +86,7 @@ source .venv/bin/activate
 pip install --upgrade pip
 pip install -r requirements.txt
 
-# Download required NLTK data
-python -m nltk.downloader punkt punkt_tab stopwords
+
 ```
 
 ### 4. Train the Model
@@ -172,7 +171,7 @@ The application will be available at `http://localhost:7860`.
 ### `/health`
 
 -   **Method**: `GET`
--   **Response**: Returns the operational status of the inference engines and NLTK data.
+-   **Response**: Returns the operational status of the inference engine.
 
 ---
 

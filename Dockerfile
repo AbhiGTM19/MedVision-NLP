@@ -12,9 +12,6 @@ COPY requirements.txt .
 RUN pip install --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
-# Download NLTK data
-RUN python -m nltk.downloader punkt punkt_tab stopwords
-
 # --- Stage 2: Final Image ---
 # This stage creates the final, lean production image
 FROM python:3.14-slim
@@ -25,13 +22,11 @@ RUN useradd -m -u 1000 appuser
 # Set the working directory
 WORKDIR /home/appuser/app
 
-# Copy installed packages, executables, and NLTK data from the builder stage
+# Copy installed packages and executables from the builder stage
 COPY --from=builder /usr/local/lib/python3.14/site-packages/ /usr/local/lib/python3.14/site-packages/
 COPY --from=builder /usr/local/bin/ /usr/local/bin/
-COPY --from=builder /root/nltk_data/ /home/appuser/nltk_data/
 
-# Set the NLTK_DATA environment variable and set ENV to prod
-ENV NLTK_DATA=/home/appuser/nltk_data
+# Set ENV to prod
 ENV ENV=prod
 
 # Copy the application code and set ownership
