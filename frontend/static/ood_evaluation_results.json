@@ -1,0 +1,28 @@
+{
+    "total_images": 129,
+    "failed_ocr": 1,
+    "entity_counts": {
+        "B-PATIENT_AGE": 1018,
+        "I-CLINIC_ADDRESS": 91,
+        "B-CLINIC_ADDRESS": 43,
+        "B-DATE": 5,
+        "I-MEDICATIONS": 249,
+        "B-SIGNATURE": 8,
+        "B-MEDICATIONS": 1,
+        "B-PATIENT_NAME": 1,
+        "I-PATIENT_NAME": 2,
+        "B-CLINIC_NAME": 1
+    },
+    "average_confidences": {
+        "B-PATIENT_AGE": 0.9023441740536736,
+        "I-CLINIC_ADDRESS": 0.5469751696992706,
+        "B-CLINIC_ADDRESS": 0.7541952788136727,
+        "B-DATE": 0.5467812836170196,
+        "I-MEDICATIONS": 0.5974358767869482,
+        "B-SIGNATURE": 0.33914845809340477,
+        "B-MEDICATIONS": 0.8807035684585571,
+        "B-PATIENT_NAME": 0.8843917846679688,
+        "I-PATIENT_NAME": 0.5006476491689682,
+        "B-CLINIC_NAME": 0.41435953974723816
+    }
+}
