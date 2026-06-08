@@ -3,9 +3,9 @@ import io
 import numpy as np
 from PIL import Image
 from fastapi import APIRouter, File, HTTPException, UploadFile
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, FileResponse
 
-from core.config import settings
+from core.config import settings, BASE_DIR
 from schemas.predict import PredictionRequest, PredictionResponse
 from services.model_service import model_service
 
@@ -23,13 +23,12 @@ def health_check() -> dict:
         "models": models_status
     }
 
-@router.get("/monitoring", response_class=HTMLResponse)
+@router.get("/monitoring", response_class=FileResponse)
 def get_monitoring_report():
-    report_path = settings.BASE_DIR.parent / "frontend" / "static" / "monitoring_report.html"
+    report_path = BASE_DIR.parent / "frontend" / "static" / "monitoring_report.html"
     if not os.path.exists(report_path):
         raise HTTPException(status_code=404, detail="Monitoring report not found.")
-    with open(report_path, "r", encoding="utf-8") as f:
-        return f.read()
+    return FileResponse(report_path)
 
 @router.post("/predict", response_model=PredictionResponse)
 def predict(request: PredictionRequest):

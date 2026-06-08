@@ -3,5 +3,7 @@
   "status": "active",
   "confidence_score": 10,
   "last_audit_passed": true,
-  "open_tasks": []
+  "open_tasks": [
+    "Docker dependencies locked for OpenCV and aiofiles."
+  ]
 }
