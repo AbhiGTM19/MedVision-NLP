@@ -86,11 +86,23 @@ def main():
     all_records.extend(process_synthetic_prescriptions(raw_dir))
     
     out_path = processed_dir / "unified_dataset.jsonl"
+    
+    seen_texts = set()
+    deduped_records = []
+    
+    for r in all_records:
+        text_hash = r.get("text", "").strip()
+        if text_hash not in seen_texts:
+            seen_texts.add(text_hash)
+            deduped_records.append(r)
+            
+    print(f"Removed {len(all_records) - len(deduped_records)} duplicate records.")
+    
     with open(out_path, 'w') as f:
-        for r in all_records:
+        for r in deduped_records:
             f.write(json.dumps(r) + "\n")
             
-    print(f"Successfully generated unified dataset with {len(all_records)} records at {out_path}.")
+    print(f"Successfully generated unified dataset with {len(deduped_records)} unique records at {out_path}.")
 
 if __name__ == "__main__":
     main()
