@@ -1,16 +1,15 @@
-from typing import Dict, Optional
-
+from typing import List, Optional
 from pydantic import BaseModel, Field
 
-
 class PredictionRequest(BaseModel):
-    text: str = Field(..., min_length=1, max_length=5000, description="The clinical notes text")
-    model_choice: str = Field(default="fast", description="The model to use: 'fast' or 'accurate'")
+    text: str = Field(..., min_length=1, max_length=5000, description="The clinical notes text to process")
+
+class EntitySchema(BaseModel):
+    word: str
+    tag: str
+    confidence: Optional[float] = None
 
 class PredictionResponse(BaseModel):
-    prediction: str
-    confidence: float
-    explanation: str
-    word_importances: Dict[str, float] = {}
-    model_used: str
+    entities: List[EntitySchema]
+    extracted_text: Optional[str] = None
     error: Optional[str] = None
