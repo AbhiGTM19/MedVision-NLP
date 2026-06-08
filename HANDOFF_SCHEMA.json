@@ -1,44 +1,46 @@
 {
-  "handoff_id": "INIT_SYNC_HEALTHCARE",
+  "handoff_id": "SYNC_HEALTHCARE_NER",
   "source_role": "Integration QA Specialist",
   "target_roles": ["Lead ML/Backend Engineer", "Lead Frontend Engineer"],
   "payload": {
     "api_endpoints": {
       "predict": "/predict",
+      "predict_image": "/predict-image",
       "health": "/health",
-      "model_info": "/model-info"
+      "metrics": "/metrics",
+      "monitoring": "/monitoring"
     },
     "input_schema": {
       "PredictionRequest": {
-        "text": "string (required, min_length=1, max_length=5000)",
-        "model_choice": "string (default='fast', options: 'fast' | 'accurate')"
+        "text": "string (required, min_length=1, max_length=5000)"
+      },
+      "ImageUpload": {
+        "file": "UploadFile (FormData, required image file)"
       }
     },
     "output_schema": {
       "PredictionResponse": {
-        "prediction": "string (medical specialty label)",
-        "confidence": "float",
-        "explanation": "string (department routing rationale)",
-        "word_importances": "Dict[string, float]",
-        "model_used": "string",
-        "error": "Optional[string]"
+        "entities": [
+          {
+            "word": "string (e.g. 'Aspirin')",
+            "tag": "string (e.g. 'MEDICATION')",
+            "confidence": "float",
+            "start": "int (optional)",
+            "end": "int (optional)"
+          }
+        ]
       }
     },
     "models": {
-      "fast": {
-        "type": "SGDClassifier (Scikit-Learn)",
-        "model_path": "backend/models/clinical_text_classifier.pkl",
-        "vectorizer_path": "backend/models/tfidf_vectorizer.pkl"
-      },
-      "accurate": {
-        "type": "DistilBERT (Transformers)",
-        "model_path": "backend/models/distilbert/",
-        "hf_repo_id": "abhshkgtm19/MedVision-NLP-Models"
+      "DualStreamFusionNER": {
+        "type": "Bio_ClinicalBERT + EasyOCR",
+        "model_path": "backend/models/saved_weights/dual_stream_ner_best.pth",
+        "hf_repo_id": "abhshkgtm19/Healthcare-NLP-Models"
       }
     }
   },
   "required_actions": {
-    "frontend": "Ensure forms submit JSON body with 'text' and 'model_choice' fields to POST /predict",
-    "ml": "Run project_sync_audit.py before next deployment to verify Pydantic schemas match"
+    "frontend": "Ensure text submissions use JSON body for /predict and FormData for /predict-image. Parse 'entities' array for XAI DOM highlighting.",
+    "ml": "Maintain spatial OCR bounding boxes and ensure token offsets map correctly in evaluate_fusion.py."
   }
 }

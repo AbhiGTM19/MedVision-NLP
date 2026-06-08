@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>MedVision NLP - Metrics</title>
+    <!-- Dynamic SVG Favicon -->
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📊</text></svg>">
+
+    <!-- Tailwind & Fonts -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&family=Public+Sans:wght@400;600&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" type="text/css" href="/static/styles.css">
+</head>
+
+<body class="bg-background text-on-surface font-body overflow-x-hidden selection:bg-primary/30">
+
+    <!-- TopAppBar Shell -->
+    <header class="fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-md border-b border-outline-variant/30">
+        <nav class="flex justify-between items-center px-4 sm:px-6 py-4 max-w-7xl mx-auto">
+            <a href="/" class="flex items-center gap-2 cursor-pointer active:scale-95 group shrink-0">
+                <span
+                    class="material-symbols-outlined text-primary text-2xl sm:text-3xl transition-transform group-hover:rotate-12"
+                    data-icon="analytics">analytics</span>
+                <span class="text-xl sm:text-2xl font-black text-primary tracking-tighter">MedVision NLP</span>
+            </a>
+            <div class="hidden md:flex gap-8 items-center font-label text-sm uppercase tracking-widest">
+                <a class="text-on-surface-variant hover:text-primary transition-colors" href="/">Predictor</a>
+                <a class="text-primary font-bold transition-colors" href="/metrics">Metrics</a>
+                <a class="text-on-surface-variant hover:text-primary transition-colors" href="/monitoring">Monitoring</a>
+                <a class="text-on-surface-variant hover:text-primary transition-colors flex items-center gap-1"
+                    href="/docs" target="_blank">API Docs <span
+                        class="material-symbols-outlined text-[16px]">open_in_new</span></a>
+            </div>
+            <div class="flex items-center gap-4">
+                <button class="p-2 hover:bg-surface-container/50 rounded-full transition-all active:scale-95"
+                    id="theme-btn">
+                    <span class="material-symbols-outlined" data-icon="dark_mode" id="theme-icon">dark_mode</span>
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <main class="pt-32 pb-24 max-w-7xl mx-auto px-4 sm:px-6">
+        
+        <div class="mb-12 border-b border-outline-variant/30 pb-8">
+            <h1 class="text-4xl font-black mb-4">Evaluation Metrics</h1>
+            <p class="text-on-surface-variant max-w-3xl leading-relaxed">
+                Our DualStreamFusionNER engine is continuously evaluated against Out-Of-Distribution (OOD) real-world clinical datasets. 
+                Below are the rigorous performance metrics derived from token-level Named Entity Recognition and EasyOCR bounding box analysis.
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+            <!-- F1 Scores -->
+            <div class="glass p-6 rounded-2xl border border-outline-variant/50 shadow-md">
+                <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary">bar_chart</span>
+                    Macro F1 Scores
+                </h3>
+                <img src="/static/f1_scores.png" alt="F1 Scores" class="w-full rounded-lg border border-outline-variant/30">
+                <p class="text-sm text-on-surface-variant mt-4">
+                    Demonstrates the F1-Score across all major clinical entities (Medications, Dosages, Frequencies, Conditions).
+                </p>
+            </div>
+
+            <!-- Precision Recall -->
+            <div class="glass p-6 rounded-2xl border border-outline-variant/50 shadow-md">
+                <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-secondary">show_chart</span>
+                    Precision-Recall Tradeoff
+                </h3>
+                <img src="/static/precision_recall.png" alt="Precision Recall Curves" class="w-full rounded-lg border border-outline-variant/30">
+                <p class="text-sm text-on-surface-variant mt-4">
+                    Illustrates the robust thresholding capabilities of the ClinicalBERT embeddings across classification confidence levels.
+                </p>
+            </div>
+        </div>
+
+        <div class="border-t border-outline-variant/30 pt-12 mb-8">
+            <h2 class="text-3xl font-bold mb-4">Out-Of-Distribution (OOD) Analysis</h2>
+            <p class="text-on-surface-variant max-w-3xl leading-relaxed">
+                To guarantee zero data-leakage, the model was tested against completely unseen Kaggle prescriptions.
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <!-- Entity Counts -->
+            <div class="glass p-6 rounded-2xl border border-outline-variant/50 shadow-md">
+                <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-tertiary">category</span>
+                    Entity Extraction Yield
+                </h3>
+                <img src="/static/ood_entity_counts.png" alt="OOD Entity Counts" class="w-full rounded-lg border border-outline-variant/30">
+                <p class="text-sm text-on-surface-variant mt-4">
+                    The total number of absolute tokens successfully recognized and classified from the unseen OOD dataset.
+                </p>
+            </div>
+
+            <!-- Confidence Scores -->
+            <div class="glass p-6 rounded-2xl border border-outline-variant/50 shadow-md">
+                <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-error">monitoring</span>
+                    Confidence Distribution
+                </h3>
+                <img src="/static/ood_confidence_scores.png" alt="OOD Confidence Scores" class="w-full rounded-lg border border-outline-variant/30">
+                <p class="text-sm text-on-surface-variant mt-4">
+                    A kernel density estimation of the model's Softmax confidence per predicted tag on the OOD dataset.
+                </p>
+            </div>
+        </div>
+
+    </main>
+
+    <script src="/static/script.js?v=4"></script>
+</body>
+
+</html>

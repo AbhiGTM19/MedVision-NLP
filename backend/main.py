@@ -28,6 +28,10 @@ app.include_router(api_router)
 def home(request: Request) -> HTMLResponse:
     return templates.TemplateResponse(request=request, name="index.html")
 
+@app.get("/metrics", response_class=HTMLResponse)
+def metrics(request: Request) -> HTMLResponse:
+    return templates.TemplateResponse(request=request, name="metrics.html")
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("main:app", host="0.0.0.0", port=5000, reload=True)

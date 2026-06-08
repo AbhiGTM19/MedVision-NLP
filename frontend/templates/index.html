@@ -59,10 +59,9 @@
                 <span class="text-xl sm:text-2xl font-black text-primary tracking-tighter">MedVision NLP</span>
             </div>
             <div class="hidden md:flex gap-8 items-center font-label text-sm uppercase tracking-widest">
-                <a class="text-on-surface-variant hover:text-primary transition-colors" href="#about">About</a>
-                <a class="text-on-surface-variant hover:text-primary transition-colors" href="#features">Features</a>
-                <a class="text-on-surface-variant hover:text-primary transition-colors" href="#predictor">Predictor</a>
-                <a class="text-on-surface-variant hover:text-primary transition-colors" href="#history">History</a>
+                <a class="text-primary font-bold transition-colors" href="/">Predictor</a>
+                <a class="text-on-surface-variant hover:text-primary transition-colors" href="/metrics">Metrics</a>
+                <a class="text-on-surface-variant hover:text-primary transition-colors" href="/monitoring">Monitoring</a>
                 <a class="text-on-surface-variant hover:text-primary transition-colors flex items-center gap-1"
                     href="/docs" target="_blank">API Docs <span
                         class="material-symbols-outlined text-[16px]">open_in_new</span></a>
@@ -95,13 +94,13 @@
 
             <h1
                 class="font-headline text-4xl sm:text-5xl md:text-7xl font-black tracking-tight mb-6 max-w-4xl text-on-surface relative z-10">
-                Clinical Intelligence for <span
+                Named Entity Recognition for <span
                     class="text-transparent bg-clip-text bg-gradient-to-r from-primary via-secondary to-primary">Medical
-                    Transcriptions</span>
+                    Prescriptions</span>
             </h1>
             <p class="text-on-surface-variant text-lg md:text-xl max-w-2xl mb-10 font-light relative z-10">
-                An end-to-end Machine Learning pipeline for classifying clinical notes into medical specialties.
-                Powered by Deep Learning, MLOps, and production-grade APIs.
+                An end-to-end Computer Vision & NLP pipeline for extracting clinical entities from raw text and images.
+                Powered by Bio_ClinicalBERT, EasyOCR, and production-grade APIs.
             </p>
             <div class="flex flex-col sm:flex-row gap-4">
                 <a class="px-8 py-4 bg-primary text-on-primary rounded-xl font-bold hover:bg-primary/90 transition-colors flex justify-center items-center gap-2 shadow-lg dark:shadow-xl shadow-primary/20 dark:shadow-white/5"
@@ -127,12 +126,10 @@
                     </div>
                     <div
                         class="relative z-10 w-12 h-12 rounded-xl bg-primary-container flex items-center justify-center text-on-primary-container">
-                        <span class="material-symbols-outlined" data-icon="bolt">bolt</span>
+                        <span class="material-symbols-outlined" data-icon="document_scanner">document_scanner</span>
                     </div>
-                    <h3 class="relative z-10 text-xl font-bold">Dual Models</h3>
-                    <p class="relative z-10 text-on-surface-variant text-sm leading-relaxed">Choose between a
-                        lightweight Scikit-Learn SGD Classifier for speed, or a fine-tuned Hugging Face DistilBERT
-                        Transformer for maximum accuracy.</p>
+                    <h3 class="relative z-10 text-xl font-bold">Optical Character Recognition</h3>
+                    <p class="relative z-10 text-on-surface-variant text-sm leading-relaxed">Pipelines raw medical prescription images through EasyOCR to extract localized bounding boxes and text.</p>
                 </div>
                 <!-- Card 2 -->
                 <div
@@ -142,12 +139,10 @@
                     </div>
                     <div
                         class="relative z-10 w-12 h-12 rounded-xl bg-secondary-container flex items-center justify-center text-on-secondary-container">
-                        <span class="material-symbols-outlined" data-icon="visibility">visibility</span>
+                        <span class="material-symbols-outlined" data-icon="psychology">psychology</span>
                     </div>
-                    <h3 class="relative z-10 text-xl font-bold">Explainable AI</h3>
-                    <p class="relative z-10 text-on-surface-variant text-sm leading-relaxed">Our system acts as a
-                        transparent glass-box. It leverages the linear TF-IDF vector weights to highlight exactly which
-                        words influenced the final prediction.</p>
+                    <h3 class="relative z-10 text-xl font-bold">Bio Clinical BERT</h3>
+                    <p class="relative z-10 text-on-surface-variant text-sm leading-relaxed">Utilizes advanced Hugging Face transformers pre-trained on MIMIC-III to classify clinical text into exact Named Entity tokens.</p>
                 </div>
                 <!-- Card 3 -->
                 <div
@@ -158,80 +153,10 @@
                     <div
                         class="relative z-10 w-12 h-12 rounded-xl bg-tertiary-container flex items-center justify-center text-on-tertiary-container">
                         <span class="material-symbols-outlined"
-                            data-icon="precision_manufacturing">precision_manufacturing</span>
+                            data-icon="visibility">visibility</span>
                     </div>
-                    <h3 class="relative z-10 text-xl font-bold">Precision UI</h3>
-                    <p class="relative z-10 text-on-surface-variant text-sm leading-relaxed">Wrapped in a responsive
-                        frontend. The decoupled architecture uses FastAPI to serve model inferences to a dynamic,
-                        client-side UI.</p>
-                </div>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-                <!-- Card 4: Fast Model -->
-                <div
-                    class="glass relative overflow-hidden bg-gradient-to-br from-surface to-surface-container-low dark:from-surface-container dark:to-surface-container-high p-8 rounded-2xl border border-outline-variant/50 dark:border-outline-variant/10 flex flex-col gap-4 group hover:border-primary/50 transition-colors shadow-sm dark:shadow-none">
-                    <div
-                        class="absolute inset-0 bg-gradient-to-br from-primary to-transparent opacity-0 group-hover:opacity-10 transition-opacity duration-500">
-                    </div>
-                    <div
-                        class="relative z-10 w-12 h-12 rounded-xl bg-primary-container flex items-center justify-center text-on-primary-container">
-                        <span class="material-symbols-outlined" data-icon="speed">speed</span>
-                    </div>
-                    <div class="relative z-10 flex items-center gap-2">
-                        <h3 class="text-xl font-bold">Fast Model</h3>
-                        <span
-                            class="bg-primary/10 text-primary px-2 py-0.5 rounded text-[10px] font-bold border border-primary/20">SGD</span>
-                    </div>
-                    <p class="relative z-10 text-on-surface-variant text-sm leading-relaxed">Prioritizes inference speed
-                        using Scikit-Learn's SGD Classifier with TF-IDF vectorization.</p>
-
-                    <div class="relative z-10 flex flex-col gap-2 mt-2 pt-4 border-t border-outline-variant/30 text-sm">
-                        <div class="flex justify-between items-center">
-                            <span class="text-on-surface-variant">Accuracy</span>
-                            <span class="font-bold">85.3%</span>
-                        </div>
-                        <div class="flex justify-between items-center">
-                            <span class="text-on-surface-variant">F1-Score</span>
-                            <span class="font-bold">85.6%</span>
-                        </div>
-                        <div class="flex justify-between items-center">
-                            <span class="text-on-surface-variant">Avg Latency</span>
-                            <span class="font-bold text-primary">4.7 ms</span>
-                        </div>
-                    </div>
-                </div>
-                <!-- Card 5: Deep Model -->
-                <div
-                    class="glass relative overflow-hidden bg-gradient-to-br from-surface to-surface-container-low dark:from-surface-container dark:to-surface-container-high p-8 rounded-2xl border border-outline-variant/50 dark:border-outline-variant/10 flex flex-col gap-4 group hover:border-secondary/50 transition-colors shadow-sm dark:shadow-none">
-                    <div
-                        class="absolute inset-0 bg-gradient-to-br from-secondary to-transparent opacity-0 group-hover:opacity-10 transition-opacity duration-500">
-                    </div>
-                    <div
-                        class="relative z-10 w-12 h-12 rounded-xl bg-secondary-container flex items-center justify-center text-on-secondary-container">
-                        <span class="material-symbols-outlined" data-icon="psychology">psychology</span>
-                    </div>
-                    <div class="relative z-10 flex items-center gap-2">
-                        <h3 class="text-xl font-bold">Deep Transformer</h3>
-                        <span
-                            class="bg-secondary/10 text-secondary px-2 py-0.5 rounded text-[10px] font-bold border border-secondary/20">DistilBERT</span>
-                    </div>
-                    <p class="relative z-10 text-on-surface-variant text-sm leading-relaxed">Maximizes semantic
-                        understanding and accuracy using a fine-tuned Hugging Face transformer model.</p>
-
-                    <div class="relative z-10 flex flex-col gap-2 mt-2 pt-4 border-t border-outline-variant/30 text-sm">
-                        <div class="flex justify-between items-center">
-                            <span class="text-on-surface-variant">Accuracy</span>
-                            <span class="font-bold">91.8%</span>
-                        </div>
-                        <div class="flex justify-between items-center">
-                            <span class="text-on-surface-variant">F1-Score</span>
-                            <span class="font-bold">91.8%</span>
-                        </div>
-                        <div class="flex justify-between items-center">
-                            <span class="text-on-surface-variant">Avg Latency</span>
-                            <span class="font-bold text-secondary">81.1 ms</span>
-                        </div>
-                    </div>
+                    <h3 class="relative z-10 text-xl font-bold">Explainable AI</h3>
+                    <p class="relative z-10 text-on-surface-variant text-sm leading-relaxed">Dynamic frontend parsing natively annotates raw text and synthesizes a human-readable explanation of the detected medical anomalies.</p>
                 </div>
             </div>
         </section>
@@ -250,18 +175,19 @@
                                 classDef default fill:transparent,stroke:#888888,stroke-width:1px;
                                 classDef highlight fill:#f59e0b20,stroke:#f59e0b,stroke-width:2px;
 
-                                UI(Vanilla JS Client) -->|REST Request| API[FastAPI Gateway]
-                                API --> Router{Inference Router}
+                                UI(Vanilla JS Client) -->|REST /predict or /predict-image| API[FastAPI Gateway]
+                                API --> Engine{DualStreamFusionNER}
 
-                                Router -->|model=fast| Fast[SGD Classifier]:::highlight
-                                Fast --> TFIDF(TF-IDF Weights)
+                                Engine -->|Image Bytes| OCR[EasyOCR]:::highlight
+                                Engine -->|Raw Text| Transformer[Bio_ClinicalBERT]:::highlight
 
-                                Router -->|model=accurate| Deep[DistilBERT]:::highlight
-                                Deep --> HuggingFace(Transformers Pipeline)
+                                OCR --> Vision(Spatial Vision Metadata)
+                                Transformer --> Text(NER Token Embeddings)
 
-                                TFIDF --> Response{Aggregator}
-                                HuggingFace --> Response
-                                Response -->|Prediction JSON| UI
+                                Vision --> Fusion{Fusion Layer}
+                                Text --> Fusion
+                                Fusion --> Response(Entity Extraction List JSON)
+                                Response -->|XAI Annotated Payload| UI
                             </div>
                         </div>
                     </div>
@@ -272,15 +198,14 @@
                     <p class="text-on-surface-variant text-base font-light leading-relaxed">
                         This application demonstrates a production-grade <strong>Machine Learning Engineering</strong>
                         lifecycle. It implements a decoupled <strong>N-Tier Architecture</strong> powered by a
-                        lightning-fast <strong>FastAPI</strong> backend and ASGI server.
-                        To handle massive Transformer weights efficiently, the system completely decouples the source
-                        code from the model artifacts, dynamically streaming <strong>fine-tuned DistilBERT</strong>
-                        weights directly from a dedicated <strong>Hugging Face Model Registry</strong> at runtime.
+                        lightning-fast <strong>FastAPI</strong> backend.
+                        The architecture relies on <strong>DualStreamFusionNER</strong>, which extracts spatial vision properties via <strong>EasyOCR</strong> 
+                        and merges them with token embeddings from a fine-tuned <strong>Bio_ClinicalBERT</strong> 
+                        Transformer via the Hugging Face Pipeline.
                         <br><br>
-                        The deployment pipeline is fully automated via <strong>GitHub Actions CI/CD</strong> (Pytest,
-                        Ruff) and containerized using secure, multi-stage <strong>Docker</strong> builds. The entire
-                        experience is wrapped in a bespoke <strong>Vanilla JS & TailwindCSS</strong> frontend that
-                        highlights transparent <strong>Explainable AI</strong> insights.
+                        The deployment pipeline is fully automated and containerized using secure, multi-stage <strong>Docker</strong> builds 
+                        hosted on Hugging Face Spaces. The entire experience is wrapped in a bespoke <strong>Vanilla JS & TailwindCSS</strong> frontend that
+                        highlights transparent <strong>Explainable AI (XAI)</strong> insights by dynamically annotating medical text.
                     </p>
 
                     <div class="flex flex-wrap gap-2 mt-4 mb-2">
@@ -334,17 +259,8 @@
             <div class="glass p-5 sm:p-8 md:p-12 rounded-3xl border border-outline-variant/50 shadow-xl bg-surface">
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
                     <div>
-                        <h2 class="text-3xl font-bold mb-2">MedVision NLP Classifier</h2>
-                        <p class="text-on-surface-variant">Paste clinical notes below for specialty prediction.</p>
-                    </div>
-                    <div class="flex flex-col gap-1 w-full md:w-48">
-                        <label class="text-xs font-label uppercase text-outline">Engine</label>
-                        <select
-                            class="bg-surface border-outline-variant text-on-surface rounded-lg focus:ring-primary focus:border-primary shadow-sm"
-                            id="model-select">
-                            <option value="fast">Fast Heuristics</option>
-                            <option value="accurate" selected>Deep Transformer</option>
-                        </select>
+                        <h2 class="text-3xl font-bold mb-2">MedVision NER Classifier</h2>
+                        <p class="text-on-surface-variant">Paste clinical notes or images below to extract anomalies.</p>
                     </div>
                 </div>
                 <div class="relative mb-8">
@@ -379,38 +295,45 @@
                 <!-- Results - Hidden by default -->
                 <div class="hidden mt-12 pt-12 border-t border-outline-variant animate-in fade-in slide-in-from-bottom-4 duration-700"
                     id="results-area">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
-                        <div
-                            class="flex flex-col items-center justify-center bg-surface-container-low rounded-2xl p-8 border border-outline-variant/50">
-                            <h3 class="text-sm font-label uppercase tracking-widest text-outline mb-4">Confidence Score
-                            </h3>
-                            <div class="relative w-full max-w-[240px]">
-                                <canvas id="gaugeChart"></canvas>
-                                <div class="absolute inset-0 flex flex-col items-center justify-end pb-4">
-                                    <span class="text-4xl font-black text-primary" id="score-val">0%</span>
-                                </div>
+                    <div class="flex flex-col gap-8">
+                        
+                        <!-- XAI Annotated Text -->
+                        <div class="w-full bg-surface-container-low rounded-2xl p-8 border border-outline-variant/50 shadow-inner">
+                            <h3 class="text-sm font-label uppercase tracking-widest text-outline mb-4">Annotated XAI Text</h3>
+                            <div id="annotated-text" class="text-lg leading-loose text-on-surface font-light">
+                                <!-- JS inserts highlighted spans here -->
                             </div>
                         </div>
-                        <div class="flex flex-col justify-center gap-6">
-                            <div>
-                                <h3 class="text-sm font-label uppercase tracking-widest text-outline mb-2">Predicted Specialty
-                                </h3>
-                                <div class="text-4xl font-black flex items-center gap-3" id="verdict-tag">
-                                    <span class="material-symbols-outlined text-5xl" id="verdict-icon"
-                                        style="font-variation-settings: 'FILL' 1;">thumb_up</span>
-                                    <span id="verdict-text">-</span>
-                                </div>
-                            </div>
-                            <div id="breakdown-container">
 
-                                <h3 class="text-sm font-label uppercase tracking-widest text-outline mb-2">Analysis
-                                    Breakdown</h3>
-                                <div class="text-on-surface-variant leading-relaxed p-4 bg-surface-container-low rounded-lg italic border border-outline-variant/50"
+                        <!-- Data Table & Explanation -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div class="flex flex-col gap-4">
+                                <h3 class="text-sm font-label uppercase tracking-widest text-outline mb-2">Extracted Entities</h3>
+                                <div class="overflow-x-auto border border-outline-variant/50 rounded-xl">
+                                    <table class="w-full text-sm text-left">
+                                        <thead class="text-xs text-on-surface uppercase bg-surface-container">
+                                            <tr>
+                                                <th scope="col" class="px-6 py-3">Token</th>
+                                                <th scope="col" class="px-6 py-3">Tag</th>
+                                                <th scope="col" class="px-6 py-3">Confidence</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="entity-table-body" class="divide-y divide-outline-variant/30">
+                                            <!-- JS inserts rows here -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            
+                            <div id="breakdown-container" class="flex flex-col gap-4">
+                                <h3 class="text-sm font-label uppercase tracking-widest text-outline mb-2">Diagnostic Summary</h3>
+                                <div class="text-on-surface-variant leading-relaxed p-6 bg-surface-container-high rounded-xl italic border-l-4 border-primary shadow-sm"
                                     id="breakdown-text">
-                                    <!-- Explainable AI Text injected here -->
+                                    <!-- Explainable AI Summary injected here -->
                                 </div>
                             </div>
                         </div>
+
                     </div>
                 </div>
             </div>

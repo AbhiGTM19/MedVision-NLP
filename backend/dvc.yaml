@@ -1,10 +1,8 @@
 stages:
-  train:
-    cmd: python train.py
+  evaluate:
+    cmd: python scripts/evaluation/evaluate_fusion.py
     deps:
-      - train.py
-      - common.py
-      - dataset/clinical_notes.csv
+      - scripts/evaluation/evaluate_fusion.py
+      - core/config.py
     outs:
-      - models/clinical_text_classifier.pkl
-      - models/tfidf_vectorizer.pkl
+      - models/tracking/mlruns.db

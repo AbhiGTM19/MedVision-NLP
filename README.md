@@ -14,7 +14,7 @@ app_port: 7860
 [![MLOps](https://img.shields.io/badge/MLOps-MLflow-000?style=for-the-badge&logo=m&logoColor=F0523A)](https://mlflow.org/)
 [![Data](https://img.shields.io/badge/Dataset-MTSamples-2196F3?style=for-the-badge&logo=huggingface)](https://huggingface.co/datasets/tchebonenko/MedicalTranscriptions)
 
-A full-stack web application that classifies clinical notes and medical transcriptions into medical specialties using a production-grade ML pipeline. This project demonstrates end-to-end MLOps, from data preprocessing and hyperparameter tuning to containerized deployment.
+A full-stack web application that performs Clinical Token-Level Named Entity Recognition (NER) on raw medical texts and prescription images. This project demonstrates end-to-end MLOps, from dataset preparation and model inference to Explainable AI (XAI) UI rendering and containerized deployment.
 
 ---
 
@@ -23,34 +23,31 @@ A full-stack web application that classifies clinical notes and medical transcri
 This project serves as a comprehensive portfolio piece demonstrating modern, production-ready software and machine learning engineering practices in the **Healthcare NLP** domain.
 
 ### 🧠 Machine Learning & MLOps
--   **Deep Learning (NLP)**: Fine-tuned a **DistilBERT Transformer** on the MTSamples medical transcription dataset for multi-class specialty classification.
--   **Heuristics & Baselines**: Implemented **Scikit-Learn SGD Classifiers** with TF-IDF vectorization for ultra-low latency fallback inference.
--   **Explainable AI (XAI)**: Created a transparent glass-box mechanism to map token weights back to natural language, highlighting exactly *why* a model made its prediction.
--   **Experiment Tracking**: Managed hyperparameters and model lifecycle metrics using **MLflow** and optimized training with **Optuna**.
--   **Data Monitoring**: Integrated **Evidently AI** for model performance and data drift monitoring dashboards.
--   **Dynamic Model Loading**: Completely decoupled ML weights from the source code. Models are dynamically fetched at runtime via the **Hugging Face Hub API**.
+-   **DualStreamFusionNER**: A dual-modality pipeline combining **Bio_ClinicalBERT** (for semantic clinical text token classification) and **EasyOCR** (for spatial extraction of text from prescription images).
+-   **Explainable AI (XAI)**: Features transparent predictions by extracting token-level bounding boxes and dynamically highlighting the parsed `PROBLEM`, `TREATMENT`, `TEST`, and `MEDICATION` tags directly in the user interface.
+-   **Experiment Tracking**: Managed hyperparameters and model lifecycle metrics using **MLflow** tracked in a local SQLite database (`mlruns.db`).
+-   **Data Monitoring**: Integrated **Evidently AI** for monitoring medical note length drift, confidence score distributions, and dataset statistics.
 
 ### ⚙️ Software Engineering (Backend)
 -   **Modern API Framework**: Built a highly performant, asynchronous API gateway using **FastAPI** and **Uvicorn** (ASGI).
--   **N-Tier Architecture**: Strictly decoupled the application layer into Controllers (Routes), Services (Business Logic), and Core configurations, adhering to SOLID principles.
--   **Type Safety**: Enforced strict data validation and serialization using **Pydantic** models.
--   **Monorepo Structure**: Clean separation of `backend/` and `frontend/` with DVC pipeline integration.
+-   **Singleton Services**: Models are eagerly loaded at startup via centralized singletons (`ModelService` and `OCRService`) to ensure high-throughput zero-latency requests.
+-   **Type Safety**: Enforced strict data validation and serialization using **Pydantic** schema boundaries.
 
 ### 🎨 Frontend Engineering
--   **Vanilla JS & TailwindCSS**: Built a responsive, zero-dependency Single Page Application (SPA).
--   **Modern UI/UX**: Implemented a healthcare-themed design using Glassmorphism, CSS View Transitions, and reveal-on-scroll animations.
--   **Client-Side Rendering**: Dynamically renders complex Explainable AI data and Mermaid.js architecture diagrams.
+-   **Vanilla JS & TailwindCSS**: Built a highly responsive Single Page Application (SPA).
+-   **Modern UI/UX**: Implemented a healthcare-themed design using elegant Glassmorphism aesthetics, dynamic DOM manipulation for XAI entity tag injection, and CSS micro-animations.
+-   **Dual Input Routing**: The frontend seamlessly switches between processing raw clinical text (`/predict`) and multipart `FormData` image uploads (`/predict-image`).
 
 ### 🛡️ Deep Auditing & Security
--   **Strict Boundary Validation**: Implemented rigid AST-parsing sync checks to prevent schema drift between backend Pydantic models and frontend payloads.
+-   **Strict Boundary Validation**: Maintained precise `HANDOFF_SCHEMA.json` rules verified by custom continuous integration auditing scripts (`validate_all.py`).
 -   **OWASP Compliance**: Enforced strict request limits (`max_length=5000`) and rigorous input sanitization.
--   **Type Safety**: 100% strict Python type hinting enforced across the entire backend.
+-   **Type Safety**: 100% strict Python type hinting enforced across the backend.
 
 ### 🚀 DevOps & CI/CD
--   **Containerization**: Built highly optimized, multi-stage **Docker** images with secure, non-root user execution.
--   **Continuous Integration**: Automated testing and linting pipelines via **GitHub Actions** with CML reporting.
--   **DVC Pipeline**: Reproducible training via **Data Version Control** (`dvc repro`).
--   **Testing**: Test-Driven Development (TDD) using **Pytest** to ensure robust API contracts.
+-   **Containerization**: Built highly optimized **Docker** images ensuring all OpenCV dependencies (`libgl1-mesa-glx`) and PyTorch CPU-only wheels are correctly resolved for efficient cloud deployments (e.g. Hugging Face Spaces).
+-   **Continuous Integration**: Automated testing and linting pipelines via **GitHub Actions**.
+-   **DVC Pipeline**: Reproducible training and evaluation tracking via **Data Version Control** (`dvc repro`).
+-   **Testing**: Test-Driven Development (TDD) using **Pytest** with comprehensive mocking of ML services to ensure robust API contracts without demanding heavy ML weights.
 
 ---
 
@@ -84,32 +81,29 @@ source .venv/bin/activate
 
 ```bash
 pip install --upgrade pip
-pip install -r requirements.txt
-
-
+pip install -r backend/requirements.txt
 ```
 
-### 4. Train the Model
+### 4. Training & Evaluation (Optional)
 
-This script runs within the `backend/` directory. It processes the clinical notes CSV, performs Optuna hyperparameter tuning, and generates model artifacts in `backend/models/`.
+Model training is conducted natively inside Jupyter Notebooks. Navigate to `backend/notebooks/kaggle_training.ipynb` to view or rerun the fine-tuning of the Bio_ClinicalBERT model on the MTSamples dataset.
 
-```bash
-cd backend && python train.py
-```
-
-Or use the DVC pipeline:
+To run the full evaluation pipeline reproducibly using Data Version Control:
 
 ```bash
+cd backend
 dvc repro
 ```
 
 ### 5. Run the Application
 
 ```bash
-cd backend && uvicorn main:app --reload
+cd backend
+uvicorn main:app --reload
 ```
 
-The application will be available at `http://127.0.0.1:8000`.
+The application will be available at `http://127.0.0.1:8000`. 
+Metrics and Monitoring dashboards can be accessed at `/metrics` and `/monitoring` respectively.
 
 ---
 
@@ -118,10 +112,6 @@ The application will be available at `http://127.0.0.1:8000`.
 ### 1. Build the Docker Image
 
 ```bash
-# For M1/M2 Macs (Recommended for deployment)
-docker build --platform linux/amd64 -t <your-dockerhub-username>/medvision-nlp .
-
-# For other systems
 docker build -t <your-dockerhub-username>/medvision-nlp .
 ```
 
@@ -140,44 +130,48 @@ The application will be available at `http://localhost:7860`.
 ### `/predict`
 
 -   **Method**: `POST`
+-   **Description**: Evaluates raw clinical text via Bio_ClinicalBERT.
 -   **Body**: 
     ```json
     { 
-      "text": "Patient presents with chest pain radiating to left arm. ECG shows ST elevation.",
-      "model_choice": "fast" 
+      "text": "Patient was prescribed 50mg of Aspirin for mild chest pain."
     }
     ```
 -   **Response**:
     ```json
     {
-      "prediction": "Cardiovascular / Pulmonary",
-      "confidence": 0.92,
-      "explanation": "Routed to Cardiovascular / Pulmonary based on clinical indicators.",
-      "word_importances": {
-        "chest": 1.25,
-        "ecg": 0.85
-      },
-      "model_used": "fast",
-      "error": null
+      "entities": [
+        {
+          "word": "Aspirin",
+          "tag": "B-MEDICATIONS",
+          "confidence": 0.985
+        },
+        {
+          "word": "chest pain",
+          "tag": "B-PROBLEM",
+          "confidence": 0.921
+        }
+      ]
     }
     ```
 
-### `/model-info`
+### `/predict-image`
 
--   **Method**: `GET`
--   **Query Parameters**: `?model=fast` (default) or `?model=accurate`
--   **Response**: Returns the model's hyperparameters and configuration.
+-   **Method**: `POST`
+-   **Description**: Evaluates prescription images using EasyOCR spatial extraction followed by Bio_ClinicalBERT token classification.
+-   **Body**: `multipart/form-data` with a single `file` field containing the image.
+-   **Response**: Same as `/predict`, returning a JSON array of parsed entities.
 
 ### `/health`
 
 -   **Method**: `GET`
--   **Response**: Returns the operational status of the inference engine.
+-   **Response**: Returns the operational status of the dual inference engines.
 
 ---
 
 ## 📊 Dataset
 
-This project uses the **MTSamples Medical Transcription** dataset, a widely used benchmark for medical specialty classification containing ~5,000 transcribed medical reports across 40+ specialties.
+This project uses the **MTSamples Medical Transcription** dataset, a widely used benchmark for medical specialty and NER classification containing ~5,000 transcribed medical reports across 40+ specialties.
 
 -   **Source**: [Hugging Face - tchebonenko/MedicalTranscriptions](https://huggingface.co/datasets/tchebonenko/MedicalTranscriptions)
 -   **Original**: [mtsamples.com](https://mtsamples.com/)
