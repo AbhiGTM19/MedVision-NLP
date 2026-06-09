@@ -1,59 +1,70 @@
-# Dataset Acquisition & Feature Engineering Plan
+# Structured Phased Workflow: TrOCR & Bio_ClinicalBERT Architecture
 
-This document outlines the proposed strategy for upgrading the MedVision NLP ecosystem. The goal is to gather 5 robust datasets covering both the OCR (Optical Character Recognition) and NLP (Natural Language Processing) domains, perform comprehensive preprocessing, and engineer specialized features.
+Based on the analysis of the evaluation metrics and your architectural feedback, we have identified critical failures in the current pipeline: massive `1.0` F1 score overfitting, hallucination on OOD data, and an inability of EasyOCR to parse cursive handwriting. 
 
-## Proposed Datasets
+To resolve this, we will transition to a **Dual-Model Architecture**: **TrOCR** (for vision-based handwriting transcription) and **Bio_ClinicalBERT** (for medical entity extraction). 
 
-To build a robust pipeline that can handle both raw document images and raw clinical text, I propose utilizing the following 5 datasets:
+We will execute this pivot using a strict phased Git workflow, creating separate branches for each phase using the `hotfix/{phase_name}` convention to isolate our rectifications.
 
-1. **MTSamples (Clinical Text)**
-   - *Domain*: NLP (Medical Transcriptions)
-   - *Use Case*: Predicting medical specialty based on transcription text. This serves as our baseline classification dataset.
-2. **MIMIC-IV Clinical Notes Demo**
-   - *Domain*: NLP (Intensive Care Unit Records)
-   - *Use Case*: Complex, real-world clinical notes for fine-tuning robust models.
-3. **Medical Prescription Handwritten Words (`avi-kai/Medical_Prescription_Handwritten_Words` on HF)**
-   - *Domain*: OCR Image Data
-   - *Use Case*: Thousands of cropped handwritten medical prescription words. Crucial for fine-tuning the EasyOCR pipeline to recognize doctors' handwriting.
-4. **Synthetic Medical Prescriptions (`chinmays18/medical-prescription-dataset` on HF)**
-   - *Domain*: OCR Image Data (Synthetic)
-   - *Use Case*: Full-page synthetic prescriptions with structured annotations to train document layout extraction (e.g., extracting medicine names, dosages, and instructions).
-5. **Medical Records Parsing Validation Set (`ekacare/medical_records_parsing_validation_set` on HF)**
-   - *Domain*: OCR + NLP (Multimodal)
-   - *Use Case*: A high-quality, privacy-focused dataset of lab reports and prescriptions from real healthcare settings, curated specifically for evaluating AI-driven information extraction.
+---
 
-> [!WARNING]
-> **Data Privacy & Access Constraints**
-> MIMIC-III requires a formal data use agreement and human subjects training (PhysioNet). If we cannot procure this, we can substitute it with the **i2b2/n2c2 Clinical NLP Challenge** datasets or additional Kaggle open-source clinical notes.
+## 📈 Phase 1: Discrepancy-Free Dataset Preparation & Exploratory Data Analysis
+**Branch:** `hotfix/dataset_preparation`
 
-## Proposed Pipeline
+**Goal:** Conduct a rigorous data study of all raw datasets to understand the distributions of images vs. text, resolve missingness, map schemas (e.g., `subject_id`), and output unified, discrepancy-free data.
 
-### 1. OCR Preprocessing (Computer Vision)
-For the raw images (Prescriptions, Lab Reports):
-- **Binarization & Grayscale**: Converting colored scans into high-contrast grayscale to improve text contrast.
-- **Denoising**: Applying Gaussian blur or median filtering to remove scanner noise/artifacts.
-- **Deskewing & Alignment**: Correcting the rotational angle of scanned documents.
-- **Bounding Box Localization**: Cropping relevant regions of interest (ROI) before feeding them into EasyOCR.
+**Tasks:**
+1. **Exploratory Data Study (EDA)**: 
+   - **Image vs. Text Breakdown**: We will categorize the datasets. `Handwritten_Medical_Prescriptions_Collection`, `Medical_Prescription_Handwritten_Words`, and `medical_records_parsing_validation_set` (Parquets) are image-based. `mtsamples.csv` and `mimic-iv` are text/structured data.
+   - **Parquet Analysis**: Unpack and analyze the schemas of the `.parquet` files in the validation set (which contain embedded `image` bytes, `sample_prompt`, and `rubrics`).
+   - **Schema Mapping**: For relational datasets (like `mimic-iv`), establish a common mapping key (e.g., `subject_id`) to link patients to their prescriptions and diagnoses.
+   - **Data Cleaning**: Implement handling for missing values (NaNs), duplicates, and schema inconsistencies across the diverse sources.
+2. **Refactor `build_unified_dataset.py`**:
+   - Create a dedicated parsing pipeline for the Image datasets to generate a comprehensive **TrOCR Dataset** (Image path/bytes -> Text Transcription).
+   - Create dedicated parsing functions for the Text/Structured datasets to generate a robust **Bio_ClinicalBERT Dataset** (Clinical Text -> NER labels).
+3. **Data Splitting & Output**: Output discrepancy-free, deduplicated, and clean datasets for both models into the `dataset/processed/` directory.
 
-### 2. NLP Preprocessing (Text)
-For the extracted text and raw clinical notes:
-- **PHI Scrubbing / De-identification**: Removing any residual personally identifiable information using regex patterns or libraries like `presidio`.
-- **Medical Stopword Removal**: Filtering standard English stopwords + common medical stop words (e.g., 'patient', 'presents', 'history').
-- **Lemmatization/Stemming**: Standardizing clinical vocabulary (e.g., 'diagnosed', 'diagnosis' -> 'diagnos').
-- **Tokenization**: Breaking down text into unigrams and bigrams.
+---
 
-### 3. Feature Engineering
-- **TF-IDF Enhancements**: Expanding our current TF-IDF vectorizer to include bigrams and trigrams for capturing complex medical phrases (e.g., "myocardial infarction").
-- **Clinical BERT Embeddings**: Using specialized Hugging Face models (e.g., `emilyalsentzer/Bio_ClinicalBERT`) to extract dense vector embeddings from the notes.
-- **Heuristic Features**: Engineering meta-features such as text length, document density, and presence of specific medical prefixes/suffixes.
+## 🧠 Phase 2: Modelling
+**Branch:** `hotfix/modelling`
 
-> [!NOTE]
-> **Finalized Decisions:**
-> 1. We will use the [MIMIC-IV Clinical Database Demo](https://www.kaggle.com/datasets/montassarba/mimic-iv-clinical-database-demo-2-2) from Kaggle as a proxy for the restricted dataset.
-> 2. **OCR Strategy:** We will begin with **EasyOCR** (which uses a standard CNN-RNN architecture) as our baseline. As we implement, I will introduce and walk you through **Transformers (like Donut)**, which look at the *entire document image* at once without needing bounding boxes, teaching you the differences between traditional and modern OCR.
-> 3. **Storage:** All datasets will be stored locally in `backend/dataset/raw/` and versioned via DVC.
+**Goal:** Train and validate the new dual-model architecture.
 
-## Verification Plan
-1. Validate dataset downloads and file integrity within `backend/dataset/raw/`.
-2. Run unit tests on the OCR preprocessing functions with sample images to ensure text clarity improves.
-3. Validate NLP tokenization outputs to ensure PHI and noise are properly scrubbed.
+**Tasks:**
+1. **TrOCR Fine-Tuning**: Create/update the TrOCR training script to ingest the handwritten dataset and fine-tune `microsoft/trocr-base-handwritten`.
+2. **Bio_ClinicalBERT Fine-Tuning**: Update `kaggle_training.ipynb` to ingest the newly diversified text dataset. Implement aggressive regularization (weight decay, dropout) and early stopping to prevent the `1.0` overfitting seen previously.
+3. **Model Evaluation**: Generate updated precision/recall and F1 metrics to verify that the overfitting and OOD hallucinations have been resolved.
+
+---
+
+## 🔌 Phase 3: API & Frontend Integration
+**Branch:** `hotfix/api_and_integration`
+
+**Goal:** Connect the backend models to the frontend UI and containerize the application.
+
+**Tasks:**
+1. **Dependency Overhaul**: Remove `easyocr` and implement `transformers` TrOCR logic inside `backend/services/model_service.py`.
+2. **API Endpoint Wiring**: Refactor `/predict-image` in `routes.py` to route the image bytes to TrOCR, take the extracted string, and pass it to Bio_ClinicalBERT.
+3. **Frontend Sync**: Ensure the JSON payload returned aligns perfectly with the UI's XAI bounding-box DOM rendering.
+4. **Containerization**: Update the `Dockerfile` to optimize for the TrOCR + BERT dual architecture (ensuring efficient PyTorch CPU wheel resolution).
+
+---
+
+## 🛡️ Phase 4: Exhaustive Audit Pass & Testing
+**Branch:** `hotfix/audit_and_testing`
+
+**Goal:** Ensure we do not repeat our previous mistakes.
+
+**Tasks:**
+1. **Automated Testing**: Run rigorous Pytest suites against the new dual-model endpoints using mocked services.
+2. **Ecosystem Synchronization**: Update `HANDOFF_SCHEMA.json` and all `.agent/skills/` documents (e.g., removing EasyOCR rules and documenting TrOCR).
+3. **Karpathy Validation**: Run `.agent/scripts/validate_all.py` to ensure zero ghost references or schema drift.
+
+---
+
+## User Review Required
+
+The plan has been updated to explicitly prioritize the rigorous data study (EDA), Parquet analysis, missingness handling, and common mapping schemas (`subject_id`) you requested in Phase 1. 
+
+If this accurately reflects your data engineering strategy, please approve so we can transition into execution mode and check out the `hotfix/dataset_preparation` branch!
