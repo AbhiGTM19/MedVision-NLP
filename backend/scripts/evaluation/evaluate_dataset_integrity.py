@@ -75,11 +75,16 @@ class DatasetEvaluator:
         if 'file_path' not in df.columns:
             return True
         
+        # Resolve paths using explicit directory construction rather than bare relative
+        # path joining, which breaks if base_dir doesn't match the expected prefix.
+        processed_img_dir = self.base_dir / "dataset" / "processed" / "images"
         missing_files = 0
         for path in df['file_path'].dropna():
-            full_path = self.base_dir / path
+            full_path = processed_img_dir / Path(path).name
             if not full_path.exists():
                 missing_files += 1
+                if missing_files <= 5:
+                    logger.warning(f"  Missing: {full_path}")
                 
         status = "PASS" if missing_files == 0 else f"FAIL ({missing_files} broken paths)"
         logger.info(f"  - Image path verification: {status}")
