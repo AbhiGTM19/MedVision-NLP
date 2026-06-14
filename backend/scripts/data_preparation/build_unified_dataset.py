@@ -5,6 +5,7 @@ import logging
 import argparse
 import pandas as pd
 from typing import List, Dict, Any
+from collections import Counter
 from pathlib import Path
 from tqdm import tqdm
 from transformers import AutoTokenizer
@@ -24,7 +25,8 @@ def normalize_text(text: Any) -> str:
     text = str(text).lower()
     text = re.sub(r'</?s_ocr>', '', text)
     text = re.sub(r'</?s>', '', text)
-    text = re.sub(r'[\:,;]\s*,', ',', text)
+    # Only collapse ": ," OCR artifacts (preserves standalone colons and semicolons)
+    text = re.sub(r':\s*,', ',', text)
     text = re.sub(r'\s+', ' ', text)
     text = text.encode("ascii", errors="ignore").decode()
     return text.strip()
@@ -138,7 +140,7 @@ def process_synthetic_prescriptions(raw_dir: Path, processed_img_dir: Path) -> L
                     img_path = images_dir / f"{base_name}.jpg"
                     
                 if img_path.exists():
-                    final_img_path = normalize_image(str(img_path), str(processed_img_dir))
+                    final_img_path = normalize_image(str(img_path), str(processed_img_dir), source_prefix="synth")
                     if final_img_path:
                         rel_path = str(Path(final_img_path).relative_to(raw_dir.parent.parent))
                         unified_records.append({
@@ -180,8 +182,13 @@ def process_raw_handwritten(raw_dir: Path, processed_img_dir: Path) -> List[Dict
             text = label_map.get(img.name, "")
             if not text:
                 text = img.stem # Fallback: use the filename itself as the ground truth label
+
+            # Guard: skip numeric-only filenames — they have no medical-word ground truth
+            if text.isdigit():
+                logger.warning(f"Skipping numeric-only label for image: {img.name}")
+                continue
                 
-            final_img_path = normalize_image(str(img), str(processed_img_dir))
+            final_img_path = normalize_image(str(img), str(processed_img_dir), source_prefix="hw")
             if final_img_path:
                 rel_path = str(Path(final_img_path).relative_to(raw_dir.parent.parent))
                 unified_records.append({
@@ -196,6 +203,38 @@ def process_raw_handwritten(raw_dir: Path, processed_img_dir: Path) -> List[Dict
             
     logger.info(f"Generated {len(unified_records)} image records from Handwritten Words.")
     return unified_records
+
+# Minimum number of samples required per class. Classes below this threshold are
+# merged into an "Other" bucket to prevent training instability from near-empty classes.
+MIN_CLASS_SAMPLES = 20
+
+
+def merge_rare_classes(records: List[Dict[str, Any]], min_samples: int = MIN_CLASS_SAMPLES) -> List[Dict[str, Any]]:
+    """Merges classes with fewer than min_samples into 'Other' to prevent training instability.
+
+    Ultra-rare classes (e.g., n=1) cause exploding class weights and noisy evaluation
+    metrics. Consolidating them into a single bucket stabilises gradient updates and
+    produces a more reliable macro-F1 signal for Optuna hyperparameter search.
+    """
+    label_counts = Counter(r['label'] for r in records)
+    rare_labels = {label for label, count in label_counts.items() if count < min_samples}
+
+    if not rare_labels:
+        logger.info("No rare classes found below threshold — skipping merge.")
+        return records
+
+    merged_count = 0
+    for r in records:
+        if r['label'] in rare_labels:
+            r['label'] = 'Other'
+            merged_count += 1
+
+    logger.info(
+        f"Merged {len(rare_labels)} rare classes ({merged_count} records) into 'Other' bucket. "
+        f"Threshold: <{min_samples} samples."
+    )
+    return records
+
 
 def main():
     parser = argparse.ArgumentParser(description="MedVision Unified Dataset Builder")
@@ -215,10 +254,15 @@ def main():
     
     logger.info("Initializing Dataset Build Pipeline...")
     
+    # NOTE: medical_records_parsing_validation_set (288 parquet rows) is intentionally excluded
+    # from training. It contains embedded images + parsing rubrics designed for document-level
+    # evaluation, not text classification. Used as a held-out validation set for the parsing pipeline.
+    
     # Text Modality (Bio_ClinicalBERT)
     text_records = []
     text_records.extend(process_mtsamples(raw_dir, tokenizer))
     text_records.extend(process_mimic_iv(raw_dir))
+    text_records = merge_rare_classes(text_records)
     
     bio_bert_path = processed_dir / "bio_clinicalbert_dataset.jsonl"
     with open(bio_bert_path, 'w') as f:

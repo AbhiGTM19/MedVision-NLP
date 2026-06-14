@@ -14,7 +14,7 @@ def analyze_datasets():
     # 1. Handwritten Medical Prescriptions Collection
     hw_collection = raw_dir / "Handwritten_Medical_Prescriptions_Collection"
     hw_col_images = list(hw_collection.glob("*.jpg")) + list(hw_collection.glob("*.png"))
-    print(f"Handwritten_Medical_Prescriptions_Collection: {len(hw_col_images)} images found.")
+    print(f"Handwritten_Medical_Prescriptions_Collection: {len(hw_col_images)} images found. [EXCLUDED FROM TRAINING — no labels, used for inference testing only]")
     
     # 2. Medical Prescription Handwritten Words
     hw_words = raw_dir / "Medical_Prescription_Handwritten_Words"

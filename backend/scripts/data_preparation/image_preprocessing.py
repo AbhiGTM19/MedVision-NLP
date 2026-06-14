@@ -2,9 +2,16 @@ import os
 from PIL import Image, ImageOps
 from pathlib import Path
 
-def normalize_image(input_path, output_dir, target_size=(384, 384)):
+def normalize_image(input_path, output_dir, target_size=(384, 384), source_prefix=None):
     """
     Standardizes image dimensions and contrast without destroying data.
+
+    Args:
+        input_path: Path to the raw input image.
+        output_dir: Directory to save the processed image.
+        target_size: Target (width, height) for the output image.
+        source_prefix: Optional prefix to namespace output filenames by source,
+                       preventing cross-source filename collisions (e.g., "synth", "hw").
     """
     try:
         os.makedirs(output_dir, exist_ok=True)
@@ -23,9 +30,12 @@ def normalize_image(input_path, output_dir, target_size=(384, 384)):
         # Basic Contrast Normalization
         img = ImageOps.autocontrast(img, cutoff=1)
         
-        # Save processed image
+        # Save processed image (namespaced by source to prevent cross-source collisions)
         base_name = Path(input_path).name
-        output_path = Path(output_dir) / base_name
+        if source_prefix:
+            output_path = Path(output_dir) / f"{source_prefix}_{base_name}"
+        else:
+            output_path = Path(output_dir) / base_name
         
         # Overwrite if exists (prevents disk bloat on multiple pipeline runs)
         img.save(output_path, quality=95)
