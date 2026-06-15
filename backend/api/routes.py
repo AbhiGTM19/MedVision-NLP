@@ -1,7 +1,4 @@
 import os
-import io
-import numpy as np
-from PIL import Image
 from fastapi import APIRouter, File, HTTPException, UploadFile
 from fastapi.responses import HTMLResponse, FileResponse
 
@@ -14,7 +11,7 @@ router = APIRouter()
 @router.get("/health")
 def health_check() -> dict:
     models_status = {
-        "dual_stream_fusion": model_service.is_ready()
+        "models_loaded": model_service.is_ready()
     }
     overall_status = "ok" if all(models_status.values()) else "degraded"
     
@@ -33,35 +30,41 @@ def get_monitoring_report():
 @router.post("/predict", response_model=PredictionResponse)
 def predict(request: PredictionRequest):
     """
-    Predicts medical entities from raw clinical text.
+    Predicts medical specialty from raw clinical text and provides XAI word attributions.
     """
     try:
-        entities = model_service.extract_from_text(request.text)
-        return PredictionResponse(entities=entities)
+        specialty, confidence, word_attributions = model_service.extract_from_text(request.text)
+        return PredictionResponse(
+            specialty=specialty,
+            confidence=confidence,
+            word_attributions=word_attributions,
+            extracted_text=request.text
+        )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/predict-image", response_model=PredictionResponse)
 async def predict_image(file: UploadFile = File(...)):
     """
-    Accepts an image, runs OCR via EasyOCR, calculates spatial vision metadata, 
-    and returns token-level NER predictions.
+    Accepts an image, runs OCR via TrOCR, passes text to Bio_ClinicalBERT for 
+    sequence classification, and provides XAI word attributions.
     """
     try:
         # Read image bytes
         image_bytes = await file.read()
         
-        # Convert to numpy array
-        image = Image.open(io.BytesIO(image_bytes))
-        image_np = np.array(image)
-        
-        # Extract text and entities
-        extracted_text, entities = model_service.extract_from_image(image_np)
+        # Extract text and specialty
+        extracted_text, specialty, confidence, word_attributions = model_service.extract_from_image(image_bytes)
         
         if not extracted_text or not extracted_text.strip():
             raise HTTPException(status_code=400, detail="No readable text found in the image.")
             
-        return PredictionResponse(entities=entities, extracted_text=extracted_text)
+        return PredictionResponse(
+            specialty=specialty,
+            confidence=confidence,
+            word_attributions=word_attributions,
+            extracted_text=extracted_text
+        )
     except HTTPException as he:
         raise he
     except Exception as e:

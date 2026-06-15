@@ -8,7 +8,7 @@ from tqdm import tqdm
 import torch.nn.functional as F
 
 from transformers import AutoTokenizer, AutoModelForSequenceClassification, AutoConfig
-from transformers import TrOCRProcessor, VisionEncoderDecoderModel
+import pytesseract
 
 print("=== MedVision End-to-End Pipeline Evaluation ===")
 
@@ -16,7 +16,6 @@ print("=== MedVision End-to-End Pipeline Evaluation ===")
 BASE_DIR = "/Users/abhi/Downloads/AI ML/MedVision-NLP"
 MODELS_DIR = os.path.join(BASE_DIR, "backend/models")
 BERT_DIR = os.path.join(MODELS_DIR, "bio_clinicalBERT")
-TROCR_DIR = os.path.join(MODELS_DIR, "TrOCR_model")
 
 # Datasets
 TEST_SAMPLES_DIR = os.path.join(BASE_DIR, "backend/dataset/test_samples/Handwritten_Medical_Prescriptions_Collection")
@@ -39,24 +38,16 @@ bert_model.load_state_dict(torch.load(bert_pth_path, map_location=device, weight
 bert_model.to(device)
 bert_model.eval()
 
-# --- 2. Load TrOCR ---
-print("Loading TrOCR...")
-processor = TrOCRProcessor.from_pretrained(TROCR_DIR)
-# Use from_pretrained for safetensors to avoid weight wrapper mismatches
-trocr_model = VisionEncoderDecoderModel.from_pretrained(TROCR_DIR)
-trocr_model.to(device)
-trocr_model.eval()
+bert_model.eval()
 
 # --- Utility Functions ---
 def predict_pipeline(image: Image.Image) -> tuple[str, str, float]:
-    """Runs TrOCR to get text, then BERT to get specialty classification."""
+    """Runs Tesseract to get text, then BERT to get specialty classification."""
     image = image.convert("RGB")
-    pixel_values = processor(image, return_tensors="pt").pixel_values.to(device)
     
     with torch.no_grad():
-        # 1. TrOCR Generation
-        generated_ids = trocr_model.generate(pixel_values, max_length=128, num_beams=1)
-        extracted_text = processor.batch_decode(generated_ids, skip_special_tokens=True)[0]
+        # 1. Tesseract Generation
+        extracted_text = pytesseract.image_to_string(image).strip()
         
         # 2. BERT Classification
         # If TrOCR failed to extract anything, we pass empty string

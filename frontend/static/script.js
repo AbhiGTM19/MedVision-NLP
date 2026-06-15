@@ -102,7 +102,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const input = textInput.value.trim();
         
         if (!input && !selectedImageFile) {
-            alert("Please enter clinical text or upload an image to extract anomalies.");
+            alert("Please enter clinical text or upload an image to classify.");
             return;
         }
 
@@ -114,7 +114,6 @@ document.addEventListener("DOMContentLoaded", () => {
         try {
             let response;
             if (selectedImageFile) {
-                // OCR Image Flow
                 const formData = new FormData();
                 formData.append("file", selectedImageFile);
                 
@@ -123,7 +122,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     body: formData
                 });
             } else {
-                // Text Flow
                 response = await fetch("/predict", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -135,7 +133,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const data = await response.json();
             
-            // If OCR was used, populate the text box so the user sees what was extracted
             if (selectedImageFile && data.extracted_text) {
                 textInput.value = data.extracted_text;
                 charCount.textContent = data.extracted_text.length;
@@ -144,7 +141,9 @@ document.addEventListener("DOMContentLoaded", () => {
             const activeText = selectedImageFile ? data.extracted_text : input;
             
             latestResult = { 
-                entities: data.entities, 
+                specialty: data.specialty,
+                confidence: data.confidence,
+                attributions: data.word_attributions, 
                 text: activeText,
                 timestamp: new Date().toISOString()
             };
@@ -167,74 +166,61 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // Colors for specific Medical NER Tags
-    const tagColors = {
-        'PROBLEM': 'bg-red-500/20 text-red-700 dark:text-red-400 border border-red-500/30',
-        'TREATMENT': 'bg-blue-500/20 text-blue-700 dark:text-blue-400 border border-blue-500/30',
-        'TEST': 'bg-green-500/20 text-green-700 dark:text-green-400 border border-green-500/30',
-        'MEDICATION': 'bg-purple-500/20 text-purple-700 dark:text-purple-400 border border-purple-500/30',
-        'DEFAULT': 'bg-yellow-500/20 text-yellow-700 dark:text-yellow-400 border border-yellow-500/30'
-    };
-
-    function getTagStyle(tag) {
-        for (const [key, val] of Object.entries(tagColors)) {
-            if (tag.toUpperCase().includes(key)) return val;
-        }
-        return tagColors.DEFAULT;
+    function interpolateColor(score) {
+        // Map score to a background color opacity. 
+        // We highlight positive attributions in a blue/green hue.
+        // Negative attributions could be red, but for XAI usually we just show magnitude.
+        if (score <= 0.05) return '';
+        
+        // Max opacity at 0.5 score
+        let opacity = Math.min(score * 2, 0.8).toFixed(2);
+        return `background-color: rgba(59, 130, 246, ${opacity}); color: ${opacity > 0.4 ? 'white' : 'inherit'};`;
     }
 
     function displayResults(data) {
-        // Clear old results
         entityTableBody.innerHTML = '';
         annotatedText.innerHTML = '';
         breakdownText.innerHTML = '';
 
-        if (!data.entities || data.entities.length === 0) {
-            annotatedText.innerHTML = `<span class="italic text-outline">No specific clinical entities detected in the text.</span>`;
-            breakdownText.innerHTML = "The model did not recognize any strong clinical entities (e.g., conditions, treatments, or medications) within the provided context.";
-            return;
+        // 1. Data Table
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-surface-container transition-colors";
+        
+        const confPercent = (data.confidence * 100).toFixed(1) + '%';
+
+        tr.innerHTML = `
+            <td class="px-6 py-4 font-mono font-bold">Overarching Diagnosis</td>
+            <td class="px-6 py-4">
+                <span class="px-2 py-1 rounded text-xs font-bold bg-primary/20 text-primary border border-primary/30">${data.specialty}</span>
+            </td>
+            <td class="px-6 py-4 font-mono text-outline">${confPercent}</td>
+        `;
+        entityTableBody.appendChild(tr);
+
+        // 2. XAI Annotated Text (Feature Attribution)
+        let annotatedHtml = '';
+        const attrDict = {};
+        
+        if (data.attributions) {
+            data.attributions.forEach(attr => {
+                // Normalize to lowercase for matching
+                attrDict[attr.word.toLowerCase()] = Math.max(attrDict[attr.word.toLowerCase()] || 0, attr.score);
+            });
         }
 
-        // 1. Data Table
-        let breakdownTags = new Set();
-        data.entities.forEach(entity => {
-            breakdownTags.add(entity.tag.replace(/^[BI]-/, '')); // Remove B-/I- prefixes for summary
-            
-            const tr = document.createElement('tr');
-            tr.className = "hover:bg-surface-container transition-colors";
-            
-            const confPercent = (entity.confidence * 100).toFixed(1) + '%';
-            const tagClass = getTagStyle(entity.tag);
-
-            tr.innerHTML = `
-                <td class="px-6 py-4 font-mono font-bold">${entity.word}</td>
-                <td class="px-6 py-4">
-                    <span class="px-2 py-1 rounded text-xs font-bold ${tagClass}">${entity.tag}</span>
-                </td>
-                <td class="px-6 py-4 font-mono text-outline">${confPercent}</td>
-            `;
-            entityTableBody.appendChild(tr);
-        });
-
-        // 2. XAI Annotated Text
-        let activeText = data.text;
-        let annotatedHtml = '';
-        
-        // Very basic string replace for demonstration of XAI token highlighting.
-        // In a perfect world, we use start/end offsets, but basic token matching works for the MVP.
-        let words = activeText.split(/(\\s+)/);
+        let words = data.text.split(/(\\s+)/);
         words.forEach(word => {
             if (word.trim() === '') {
                 annotatedHtml += word;
                 return;
             }
-            // Check if this word belongs to an entity
-            const cleanWord = word.replace(/[^a-zA-Z0-9]/g, '');
-            const matchingEntity = data.entities.find(e => e.word.toLowerCase() === cleanWord.toLowerCase() || e.word.includes(cleanWord));
             
-            if (matchingEntity) {
-                const tagClass = getTagStyle(matchingEntity.tag);
-                annotatedHtml += `<span class="px-1 mx-0.5 rounded cursor-help font-semibold ${tagClass}" title="${matchingEntity.tag} (${(matchingEntity.confidence*100).toFixed(1)}%)">${word}</span>`;
+            const cleanWord = word.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+            const score = attrDict[cleanWord] || 0;
+            
+            if (score > 0.05) {
+                const style = interpolateColor(score);
+                annotatedHtml += `<span class="px-1 mx-0.5 rounded cursor-help font-semibold transition-colors" style="${style}" title="Attribution: ${score.toFixed(3)}">${word}</span>`;
             } else {
                 annotatedHtml += word;
             }
@@ -243,11 +229,10 @@ document.addEventListener("DOMContentLoaded", () => {
         annotatedText.innerHTML = annotatedHtml;
 
         // 3. Explainable AI Summary
-        const uniqueTags = Array.from(breakdownTags);
-        let summary = `This transcription contains key clinical markers relating to: <strong>${uniqueTags.join(', ')}</strong>.<br><br>`;
-        summary += `The <em>Bio_ClinicalBERT</em> engine successfully extracted ${data.entities.length} distinct entity tokens. `;
+        let summary = `The <em>Bio_ClinicalBERT</em> engine classified this text as <strong>${data.specialty}</strong> with ${confPercent} confidence.<br><br>`;
+        summary += `The highlighted text above uses <strong>PyTorch Captum (Integrated Gradients)</strong> to visualize Feature Attribution. Darker highlights indicate words that had the strongest influence on the model's classification. `;
         if (data.text.length > 0 && selectedImageFile) {
-            summary += `The spatial data was extracted accurately from the image via <em>EasyOCR</em> before being fused into the language model pipeline.`;
+            summary += `The text was seamlessly transcribed via <em>TrOCR</em>.`;
         }
         breakdownText.innerHTML = summary;
     }
@@ -282,14 +267,12 @@ document.addEventListener("DOMContentLoaded", () => {
             const div = document.createElement('div');
             div.className = "bg-surface dark:bg-surface-container p-4 rounded-xl flex justify-between items-center border border-outline-variant dark:border-outline-variant/10 shadow-sm dark:shadow-none animate-in slide-in-from-left duration-500";
             
-            const entityCount = item.entities ? item.entities.length : 0;
-            
             div.innerHTML = `
                 <div class="flex flex-col gap-1 max-w-[70%]">
                     <p class="text-sm text-on-surface truncate font-medium">"${item.text.substring(0, 60)}..."</p>
                     <span class="text-[10px] text-outline font-medium">${new Date(item.timestamp).toLocaleTimeString()}</span>
                 </div>
-                <span class="px-3 py-1 bg-primary/10 text-primary border-primary/20 rounded-full text-xs font-bold border">${entityCount} Entities</span>
+                <span class="px-3 py-1 bg-primary/10 text-primary border-primary/20 rounded-full text-xs font-bold border">${item.specialty}</span>
             `;
             historyList.appendChild(div);
         });
