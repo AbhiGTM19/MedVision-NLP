@@ -4,12 +4,13 @@ from pydantic import BaseModel, Field
 class PredictionRequest(BaseModel):
     text: str = Field(..., min_length=1, max_length=5000, description="The clinical notes text to process")
 
-class EntitySchema(BaseModel):
+class WordAttribution(BaseModel):
     word: str
-    tag: str
-    confidence: Optional[float] = None
+    score: float
 
 class PredictionResponse(BaseModel):
-    entities: List[EntitySchema]
+    specialty: str
+    confidence: float
+    word_attributions: List[WordAttribution] = []
     extracted_text: Optional[str] = None
     error: Optional[str] = None

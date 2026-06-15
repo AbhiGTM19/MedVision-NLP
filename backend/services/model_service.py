@@ -1,13 +1,16 @@
+import os
 import torch
-import cv2
-import easyocr
+import torch.nn.functional as F
 import numpy as np
+from PIL import Image
 from pathlib import Path
-from transformers import AutoTokenizer
+import io
 
-from core.architectures.dual_stream_ner import DualStreamFusionNER
-from scripts.data_preparation.preprocess_ocr import deskew
-from schemas.predict import EntitySchema
+from transformers import AutoTokenizer, AutoModelForSequenceClassification, AutoConfig
+import pytesseract
+from captum.attr import LayerIntegratedGradients
+
+from schemas.predict import WordAttribution
 
 def get_device():
     if torch.backends.mps.is_available():
@@ -19,124 +22,131 @@ def get_device():
 class ModelService:
     def __init__(self):
         self.device = get_device()
-        self.tokenizer = AutoTokenizer.from_pretrained("emilyalsentzer/Bio_ClinicalBERT")
-        self.unique_tags = ['O', 'B-PATIENT_AGE', 'B-SIGNATURE', 'I-PATIENT_NAME', 'I-CLINIC_NAME', 
-                            'B-CLINIC_NAME', 'B-DATE', 'I-MEDICATIONS', 'B-PATIENT_NAME', 
-                            'B-CLINIC_ADDRESS', 'B-MEDICATIONS', 'I-CLINIC_ADDRESS', 'I-SIGNATURE']
-        self.id2tag = {i: tag for i, tag in enumerate(self.unique_tags)}
+        self.base_dir = Path(__file__).resolve().parent.parent
+        self.models_dir = self.base_dir / "models"
+        self.bert_dir = self.models_dir / "bio_clinicalBERT"
+        self.trocr_dir = self.models_dir / "TrOCR_model"
         
-        self.model = None
-        self.reader = None
-        self._load_model()
-        self._load_ocr()
+        self.bert_model = None
+        self.bert_tokenizer = None
+        self.bert_config = None
+        self.lig = None
+        
+        self._load_models()
 
-    def _load_model(self):
-        base_dir = Path(__file__).resolve().parent.parent
-        weights_path = base_dir / 'models' / 'saved_weights' / 'dual_stream_ner_best.pth'
-        
-        if not weights_path.exists():
-            print(f"Warning: Model weights missing at {weights_path}")
-            return
+    def _load_models(self):
+        # 1. Load Bio_ClinicalBERT
+        try:
+            self.bert_config = AutoConfig.from_pretrained(self.bert_dir)
+            self.bert_tokenizer = AutoTokenizer.from_pretrained("emilyalsentzer/Bio_ClinicalBERT")
+            self.bert_model = AutoModelForSequenceClassification.from_config(self.bert_config)
+            bert_pth_path = self.bert_dir / "bio_clinicalBERT_model.pth"
             
-        self.model = DualStreamFusionNER(bert_hidden_size=768, num_classes=len(self.unique_tags))
-        checkpoint = torch.load(weights_path, map_location=self.device)
-        state_dict = checkpoint.get('model_state_dict', checkpoint)
-        new_state_dict = {k[7:] if k.startswith('module.') else k: v for k, v in state_dict.items()}
-        self.model.load_state_dict(new_state_dict)
-        self.model.to(self.device)
-        self.model.eval()
+            if bert_pth_path.exists():
+                self.bert_model.load_state_dict(torch.load(bert_pth_path, map_location=self.device, weights_only=True))
+            else:
+                self.bert_model = AutoModelForSequenceClassification.from_pretrained(self.bert_dir)
+                
+            self.bert_model.to(self.device)
+            self.bert_model.eval()
+            
+            # Setup Captum XAI for BERT embeddings
+            self.lig = LayerIntegratedGradients(self._bert_forward, self.bert_model.bert.embeddings.word_embeddings)
+            print("Bio_ClinicalBERT loaded successfully.")
+        except Exception as e:
+            print(f"Failed to load Bio_ClinicalBERT: {e}")
 
-    def _load_ocr(self):
-        self.reader = easyocr.Reader(['en'], gpu=(self.device.type != 'cpu'))
-        
     def is_ready(self):
-        return self.model is not None and self.reader is not None
+        return self.bert_model is not None
 
-    def _preprocess_image(self, image_np):
-        gray = cv2.cvtColor(image_np, cv2.COLOR_BGR2GRAY)
-        blurred = cv2.GaussianBlur(gray, (5, 5), 0)
-        thresh = cv2.adaptiveThreshold(blurred, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, 11, 2)
-        deskewed = deskew(thresh)
-        return cv2.bitwise_not(deskewed)
+    def _bert_forward(self, input_ids):
+        # Captum expects a function that takes inputs and returns the target output
+        attention_mask = (input_ids != self.bert_tokenizer.pad_token_id).long()
+        return self.bert_model(input_ids, attention_mask=attention_mask).logits
 
-    def extract_from_text(self, text: str) -> list[EntitySchema]:
-        vision_meta = [0.0, 0.0, 0.0, 0.0, 0.0]
-        return self._run_inference(text, vision_meta)
-
-    def extract_from_image(self, image_np: np.ndarray) -> tuple[str, list[EntitySchema]]:
-        preprocessed = self._preprocess_image(image_np)
-        results = self.reader.readtext(preprocessed)
-        
-        if not results:
-            return "", []
-            
-        ocr_features = []
-        for bbox, text, conf in results:
-            ocr_features.append({
-                "bbox": [[int(coord[0]), int(coord[1])] for coord in bbox],
-                "confidence": float(conf)
-            })
-            
-        full_text = " ".join([res[1] for res in results])
-        
-        avg_conf = sum([f['confidence'] for f in ocr_features]) / len(ocr_features)
-        x1 = sum([f['bbox'][0][0] for f in ocr_features]) / len(ocr_features)
-        y1 = sum([f['bbox'][0][1] for f in ocr_features]) / len(ocr_features)
-        x2 = sum([f['bbox'][2][0] for f in ocr_features]) / len(ocr_features)
-        y2 = sum([f['bbox'][2][1] for f in ocr_features]) / len(ocr_features)
-        
-        vision_meta = [avg_conf, x1, y1, x2, y2]
-        entities = self._run_inference(full_text, vision_meta)
-        
-        return full_text, entities
-
-    def _run_inference(self, text: str, vision_meta: list) -> list[EntitySchema]:
+    def extract_from_text(self, text: str) -> tuple[str, float, list[WordAttribution]]:
         if not self.is_ready():
-            raise RuntimeError("Model is not loaded.")
+            raise RuntimeError("Models are not fully loaded.")
             
-        tokens = text.split()
-        if not tokens:
-            return []
-            
-        encoding = self.tokenizer(
-            tokens,
-            is_split_into_words=True,
-            return_offsets_mapping=False,
-            padding='max_length',
-            truncation=True,
-            max_length=512
-        )
-        
-        input_ids = torch.tensor([encoding['input_ids']], dtype=torch.long).to(self.device)
-        attention_mask = torch.tensor([encoding['attention_mask']], dtype=torch.long).to(self.device)
-        v_meta = torch.tensor([vision_meta], dtype=torch.float32).to(self.device)
+        if not text.strip():
+            return "Unknown", 0.0, []
+
+        # 1. Prediction
+        inputs = self.bert_tokenizer(text, return_tensors="pt", padding="max_length", max_length=512, truncation=True).to(self.device)
+        input_ids = inputs["input_ids"]
         
         with torch.no_grad():
-            logits = self.model(input_ids, attention_mask, v_meta)
-            probs = torch.softmax(logits, dim=2)
-            max_probs, predictions = torch.max(probs, dim=2)
+            outputs = self.bert_model(**inputs)
+            probs = F.softmax(outputs.logits, dim=-1)
+            confidence, predicted_class_id = torch.max(probs, dim=-1)
             
-            predictions = predictions[0].cpu().numpy()
-            max_probs = max_probs[0].cpu().numpy()
+            confidence = confidence.item()
+            predicted_class_id = predicted_class_id.item()
+            predicted_specialty = self.bert_config.id2label[predicted_class_id]
+
+        # 2. XAI / Feature Attribution (Captum)
+        word_attributions = []
+        try:
+            # Generate attributions for the predicted class
+            # Strip padded tokens for faster computation
+            seq_len = (input_ids != self.bert_tokenizer.pad_token_id).sum().item()
+            short_input_ids = input_ids[:, :seq_len]
             
-        word_ids = encoding.word_ids()
+            attributions, delta = self.lig.attribute(inputs=short_input_ids, 
+                                                     target=predicted_class_id, 
+                                                     return_convergence_delta=True)
+            
+            # Summarize the attributions across the embedding dimension
+            attributions_sum = attributions.sum(dim=-1).squeeze(0)
+            
+            # Normalize
+            norm = torch.norm(attributions_sum)
+            if norm > 0:
+                attributions_sum = attributions_sum / norm
+            
+            tokens = self.bert_tokenizer.convert_ids_to_tokens(short_input_ids[0])
+            
+            current_word = ""
+            current_attr = 0.0
+            
+            for token, attr in zip(tokens, attributions_sum.cpu().tolist()):
+                if token in [self.bert_tokenizer.cls_token, self.bert_tokenizer.sep_token]:
+                    continue
+                    
+                if token.startswith("##"):
+                    current_word += token[2:]
+                    current_attr += attr
+                else:
+                    if current_word:
+                        word_attributions.append(WordAttribution(word=current_word, score=current_attr))
+                    current_word = token
+                    current_attr = attr
+                    
+            if current_word:
+                word_attributions.append(WordAttribution(word=current_word, score=current_attr))
+                
+        except Exception as e:
+            print(f"XAI calculation failed: {e}")
+            
+        return predicted_specialty, confidence, word_attributions
+
+    def extract_from_image(self, image_bytes: bytes) -> tuple[str, str, float, list[WordAttribution]]:
+        if not self.is_ready():
+            raise RuntimeError("Models are not fully loaded.")
+            
+        # 1. Image loading
+        image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
         
-        extracted = []
-        previous_word_idx = None
-        for i, word_idx in enumerate(word_ids):
-            if word_idx is None or word_idx == previous_word_idx:
-                continue
-                
-            tag_id = predictions[i]
-            tag = self.id2tag[tag_id]
-            conf = float(max_probs[i])
+        # 2. Tesseract OCR extraction
+        extracted_text = pytesseract.image_to_string(image).strip()
+        
+        if not extracted_text:
+            extracted_text = "No text could be extracted."
             
-            if tag != 'O':
-                extracted.append(EntitySchema(word=tokens[word_idx], tag=tag, confidence=conf))
-                
-            previous_word_idx = word_idx
-            
-        return extracted
+        # 3. Text classification and XAI
+        specialty, conf, attributions = self.extract_from_text(extracted_text)
+        
+        return extracted_text, specialty, conf, attributions
 
 # Singleton instance
 model_service = ModelService()

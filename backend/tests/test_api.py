@@ -2,8 +2,7 @@ from fastapi.testclient import TestClient
 
 from main import app
 from services.model_service import model_service
-from services.ocr_service import ocr_service
-from schemas.predict import EntitySchema
+from schemas.predict import WordAttribution
 
 client = TestClient(app)
 
@@ -13,7 +12,7 @@ def test_health_check():
     data = response.json()
     assert "status" in data
     assert "models" in data
-    assert "dual_stream_fusion" in data["models"]
+    assert "models_loaded" in data["models"]
 
 def test_metrics_route():
     response = client.get("/metrics")
@@ -23,28 +22,27 @@ def test_metrics_route():
 def test_predict_text_mocked(monkeypatch):
     # Mock the extract_from_text function so we don't need models loaded
     def mock_extract(text):
-        return [
-            EntitySchema(word="Aspirin", tag="B-MEDICATIONS", confidence=0.99)
-        ]
+        return "Neurology", 0.99, [WordAttribution(word="Aspirin", score=0.85)]
     
     monkeypatch.setattr(model_service, "extract_from_text", mock_extract)
 
     response = client.post("/predict", json={"text": "Patient taking Aspirin."})
     assert response.status_code == 200
     data = response.json()
-    assert "entities" in data
-    assert len(data["entities"]) == 1
-    assert data["entities"][0]["word"] == "Aspirin"
-    assert data["entities"][0]["tag"] == "B-MEDICATIONS"
+    assert "specialty" in data
+    assert data["specialty"] == "Neurology"
+    assert "confidence" in data
+    assert data["confidence"] == 0.99
+    assert "word_attributions" in data
+    assert len(data["word_attributions"]) == 1
+    assert data["word_attributions"][0]["word"] == "Aspirin"
 
 def test_predict_image_mocked(monkeypatch):
-    # Mock OCR processing
-    def mock_ocr(file):
-        return [
-            EntitySchema(word="Tylenol", tag="B-MEDICATIONS", confidence=0.95)
-        ]
+    # Mock the extract_from_image function
+    def mock_extract_image(image_bytes):
+        return "Transcribed text here.", "Cardiology", 0.95, [WordAttribution(word="Tylenol", score=0.90)]
 
-    monkeypatch.setattr(ocr_service, "process_prescription", mock_ocr)
+    monkeypatch.setattr(model_service, "extract_from_image", mock_extract_image)
 
     # Use a dummy file payload
     files = {"file": ("test.png", b"dummy_image_bytes", "image/png")}
@@ -52,10 +50,15 @@ def test_predict_image_mocked(monkeypatch):
     
     assert response.status_code == 200
     data = response.json()
-    assert "entities" in data
-    assert len(data["entities"]) == 1
-    assert data["entities"][0]["word"] == "Tylenol"
-    assert data["entities"][0]["tag"] == "B-MEDICATIONS"
+    assert "specialty" in data
+    assert data["specialty"] == "Cardiology"
+    assert "confidence" in data
+    assert data["confidence"] == 0.95
+    assert "extracted_text" in data
+    assert data["extracted_text"] == "Transcribed text here."
+    assert "word_attributions" in data
+    assert len(data["word_attributions"]) == 1
+    assert data["word_attributions"][0]["word"] == "Tylenol"
 
 def test_predict_empty_text():
     response = client.post("/predict", json={"text": ""})
