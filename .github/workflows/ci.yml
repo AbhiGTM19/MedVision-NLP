@@ -21,13 +21,13 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -r requirements.txt
+        pip install -r backend/requirements.txt
         pip install pytest httpx ruff
         
     - name: Lint with Ruff
       run: |
-        ruff check .
+        ruff check backend/
         
     - name: Run Tests with Pytest
       run: |
-        PYTHONPATH=. pytest
+        PYTHONPATH=backend pytest backend/tests/
