@@ -46,7 +46,7 @@ def predict(request: PredictionRequest):
 @router.post("/predict-image", response_model=PredictionResponse)
 async def predict_image(file: UploadFile = File(...)):
     """
-    Accepts an image, runs OCR via TrOCR, passes text to Bio_ClinicalBERT for 
+    Accepts an image, runs OCR via Tesseract OCR, passes text to Bio_ClinicalBERT for 
     sequence classification, and provides XAI word attributions.
     """
     try:

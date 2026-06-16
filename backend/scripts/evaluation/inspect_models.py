@@ -50,7 +50,7 @@ def predict_pipeline(image: Image.Image) -> tuple[str, str, float]:
         extracted_text = pytesseract.image_to_string(image).strip()
         
         # 2. BERT Classification
-        # If TrOCR failed to extract anything, we pass empty string
+        # If Tesseract failed to extract anything, we pass an empty string
         if not extracted_text.strip():
             return "", "Unknown", 0.0
             
@@ -70,21 +70,28 @@ def predict_pipeline(image: Image.Image) -> tuple[str, str, float]:
 results = []
 
 # Process Image Folder
-image_files = glob.glob(os.path.join(TEST_SAMPLES_DIR, "*.jpg"))[:5] # Limit to 5 for fast evaluation
-print(f"\nProcessing {len(image_files)} images from test_samples...")
-for img_path in tqdm(image_files, desc="Processing Images"):
-    source_name = os.path.basename(img_path)
+test_images = [
+    "2.jpg",
+    "10.jpg"
+]
+
+print(f"\nProcessing {len(test_images)} images from test_samples...")
+for img_name in test_images:
+    img_path = os.path.join(TEST_SAMPLES_DIR, img_name)
+    if not os.path.exists(img_path):
+        print(f"File not found: {img_path}")
+        continue
     try:
         image = Image.open(img_path)
         text, specialty, conf = predict_pipeline(image)
         results.append({
-            "source": f"test_samples/{source_name}",
+            "source": f"test_samples/{img_name}",
             "extracted_text": text,
             "predicted_specialty": specialty,
             "confidence": conf
         })
     except Exception as e:
-        print(f"Failed to process {source_name}: {e}")
+        print(f"Failed to process {img_name}: {e}")
 
 # Process Parquet Files
 parquet_files = glob.glob(os.path.join(PARQUET_DIR, "*.parquet"))
