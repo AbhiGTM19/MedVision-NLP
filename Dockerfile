@@ -29,6 +29,7 @@ COPY --from=builder /usr/local/bin/ /usr/local/bin/
 
 # Set ENV to prod
 ENV ENV=prod
+ENV PYTHONPATH=/home/appuser/app/backend
 
 # Copy the backend and frontend code and set ownership
 COPY --chown=1000:1000 backend/ backend/
