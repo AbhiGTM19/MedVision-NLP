@@ -22,6 +22,7 @@ jobs:
           # Set up git config
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git config --global user.name "github-actions[bot]"
+          git config lfs.allowincompletepush true
           
           # Force push all files to the HF Space
           git push -f https://abhshkgtm19:$HF_TOKEN@huggingface.co/spaces/abhshkgtm19/MedVision main:main
