@@ -18,7 +18,6 @@ class DatasetEvaluator:
     
     def __init__(self, base_dir: Path):
         self.MAX_BERT_CHARS = 3000
-        self.MAX_TROCR_CHARS = 500
         self.base_dir = base_dir
         
     def check_missingness(self, df: pd.DataFrame) -> bool:
@@ -39,7 +38,7 @@ class DatasetEvaluator:
         logger.info(f"\n[✓] Text Outliers & Token Length Audit ({model_type}):")
         df['text_len'] = df['text'].astype(str).apply(len)
         
-        max_limit = self.MAX_BERT_CHARS if model_type == 'bert' else self.MAX_TROCR_CHARS
+        max_limit = self.MAX_BERT_CHARS
         
         violations = df[df['text_len'] > max_limit]
         empty = df[df['text_len'] == 0]
@@ -70,25 +69,7 @@ class DatasetEvaluator:
             logger.info(f"  - Missing expected columns: {missing} FAIL")
             return False
 
-    def check_image_paths(self, df: pd.DataFrame) -> bool:
-        logger.info("\n[✓] Image Path Integrity Audit (TrOCR):")
-        if 'file_path' not in df.columns:
-            return True
-        
-        # Resolve paths using explicit directory construction rather than bare relative
-        # path joining, which breaks if base_dir doesn't match the expected prefix.
-        processed_img_dir = self.base_dir / "dataset" / "processed" / "images"
-        missing_files = 0
-        for path in df['file_path'].dropna():
-            full_path = processed_img_dir / Path(path).name
-            if not full_path.exists():
-                missing_files += 1
-                if missing_files <= 5:
-                    logger.warning(f"  Missing: {full_path}")
-                
-        status = "PASS" if missing_files == 0 else f"FAIL ({missing_files} broken paths)"
-        logger.info(f"  - Image path verification: {status}")
-        return missing_files == 0
+
 
     def check_class_balance(self, df: pd.DataFrame) -> bool:
         logger.info("\n[✓] Class Distribution Audit (BERT):")
@@ -121,17 +102,15 @@ class DatasetEvaluator:
         
         expected_cols = ['id', 'source', 'modality', 'text']
         if model_type == 'bert': expected_cols.append('label')
-        if model_type == 'trocr': expected_cols.append('file_path')
             
         p1 = self.check_schema(df, expected_cols)
         p2 = self.check_missingness(df)
         p3 = self.check_outliers(df, model_type)
         
-        p4 = p5 = True
+        p4 = True
         if model_type == 'bert': p4 = self.check_class_balance(df)
-        if model_type == 'trocr': p5 = self.check_image_paths(df)
         
-        if p1 and p2 and p3 and p4 and p5:
+        if p1 and p2 and p3 and p4:
             logger.info(f"\n>>> VERDICT: {name} PASSED ALL INTEGRITY CHECKS <<<")
         else:
             logger.error(f"\n>>> VERDICT: {name} FAILED INTEGRITY CHECKS <<<")
@@ -146,7 +125,6 @@ def main():
     
     evaluator = DatasetEvaluator(base_dir)
     evaluator.evaluate(processed_dir / "bio_clinicalbert_dataset.jsonl", "Bio_ClinicalBERT Dataset", "bert")
-    evaluator.evaluate(processed_dir / "trocr_dataset.jsonl", "TrOCR Dataset", "trocr")
 
 if __name__ == "__main__":
     main()

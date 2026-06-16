@@ -1,6 +1,6 @@
 # --- Stage 1: Builder ---
 # This stage installs dependencies and builds necessary artifacts
-FROM python:3.14-slim as builder
+FROM python:3.11-slim as builder
 
 WORKDIR /app
 
@@ -11,7 +11,8 @@ RUN pip install --upgrade pip && \
 
 # --- Stage 2: Final Image ---
 # This stage creates the final, lean production image
-FROM python:3.14-slim
+FROM python:3.11-slim
+
 
 # Install Tesseract OCR
 RUN apt-get update && apt-get install -y tesseract-ocr && rm -rf /var/lib/apt/lists/*
@@ -23,7 +24,7 @@ RUN useradd -m -u 1000 appuser
 WORKDIR /home/appuser/app
 
 # Copy installed packages and executables from the builder stage
-COPY --from=builder /usr/local/lib/python3.14/site-packages/ /usr/local/lib/python3.14/site-packages/
+COPY --from=builder /usr/local/lib/python3.11/site-packages/ /usr/local/lib/python3.11/site-packages/
 COPY --from=builder /usr/local/bin/ /usr/local/bin/
 
 # Set ENV to prod

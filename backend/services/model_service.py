@@ -7,6 +7,7 @@ from pathlib import Path
 import io
 
 from transformers import AutoTokenizer, AutoModelForSequenceClassification, AutoConfig
+from huggingface_hub import hf_hub_download
 import pytesseract
 from captum.attr import LayerIntegratedGradients
 
@@ -25,7 +26,6 @@ class ModelService:
         self.base_dir = Path(__file__).resolve().parent.parent
         self.models_dir = self.base_dir / "models"
         self.bert_dir = self.models_dir / "bio_clinicalBERT"
-        self.trocr_dir = self.models_dir / "TrOCR_model"
         
         self.bert_model = None
         self.bert_tokenizer = None
@@ -37,15 +37,36 @@ class ModelService:
     def _load_models(self):
         # 1. Load Bio_ClinicalBERT
         try:
-            self.bert_config = AutoConfig.from_pretrained(self.bert_dir)
+            self.bert_config = AutoConfig.from_pretrained("emilyalsentzer/Bio_ClinicalBERT")
             self.bert_tokenizer = AutoTokenizer.from_pretrained("emilyalsentzer/Bio_ClinicalBERT")
             self.bert_model = AutoModelForSequenceClassification.from_config(self.bert_config)
+            
+            # Ensure directory exists
+            self.bert_dir.mkdir(parents=True, exist_ok=True)
             bert_pth_path = self.bert_dir / "bio_clinicalBERT_model.pth"
+            
+            # Dynamic Runtime Download for Production (from HF Model Hub)
+            if os.environ.get("ENV") == "prod" and not bert_pth_path.exists():
+                hf_model_repo = os.environ.get("HF_MODEL_REPO", "abhshkgtm19/medvision-models")
+                print(f"Production environment detected. Downloading missing weights from HF Hub: {hf_model_repo}...")
+                try:
+                    # Download directly into the local models directory
+                    downloaded_path = hf_hub_download(
+                        repo_id=hf_model_repo, 
+                        filename="bio_clinicalBERT_model.pth", 
+                        local_dir=str(self.bert_dir)
+                    )
+                    print(f"Successfully downloaded weights to {downloaded_path}")
+                except Exception as e:
+                    print(f"Warning: Failed to download weights from HF. Ensure repo exists and is public. Error: {e}")
+            elif not bert_pth_path.exists():
+                 print(f"Warning: Local model weights not found at {bert_pth_path}. Ensure you have fine-tuned the model locally.")
             
             if bert_pth_path.exists():
                 self.bert_model.load_state_dict(torch.load(bert_pth_path, map_location=self.device, weights_only=True))
             else:
-                self.bert_model = AutoModelForSequenceClassification.from_pretrained(self.bert_dir)
+                print("Falling back to un-finetuned HuggingFace weights.")
+                self.bert_model = AutoModelForSequenceClassification.from_pretrained("emilyalsentzer/Bio_ClinicalBERT")
                 
             self.bert_model.to(self.device)
             self.bert_model.eval()
@@ -141,7 +162,7 @@ class ModelService:
         extracted_text = pytesseract.image_to_string(image).strip()
         
         if not extracted_text:
-            extracted_text = "No text could be extracted."
+            return "", "Unknown", 0.0, []
             
         # 3. Text classification and XAI
         specialty, conf, attributions = self.extract_from_text(extracted_text)
