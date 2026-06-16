@@ -1,8 +1,8 @@
 from fastapi.testclient import TestClient
 
 from main import app
-from services.model_service import model_service
 from schemas.predict import WordAttribution
+from services.model_service import model_service
 
 client = TestClient(app)
 

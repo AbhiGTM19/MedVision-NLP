@@ -1,8 +1,9 @@
 import os
-from fastapi import APIRouter, File, HTTPException, UploadFile
-from fastapi.responses import HTMLResponse, FileResponse
 
-from core.config import settings, BASE_DIR
+from fastapi import APIRouter, File, HTTPException, UploadFile
+from fastapi.responses import FileResponse
+
+from core.config import BASE_DIR
 from schemas.predict import PredictionRequest, PredictionResponse
 from services.model_service import model_service
 

@@ -1,10 +1,11 @@
-import os
-import io
 import glob
+import io
+import os
 import random
+
 import pandas as pd
-from PIL import Image
 import pytesseract
+from PIL import Image
 from tqdm import tqdm
 
 BASE_DIR = "/Users/abhi/Downloads/AI ML/MedVision-NLP"
@@ -78,7 +79,7 @@ def generate_dataset():
                         "label": label,
                         "source": "tesseract_image"
                     })
-                except Exception as e:
+                except Exception:
                     pass
         except Exception as e:
             print(f"Error reading {p_file}: {e}")

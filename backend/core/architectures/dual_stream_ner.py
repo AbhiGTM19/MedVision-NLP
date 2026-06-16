@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 from transformers import AutoModel
 
+
 class DualStreamFusionNER(nn.Module):
     def __init__(self, bert_hidden_size=768, num_classes=13, bert_model_name="emilyalsentzer/Bio_ClinicalBERT"):
         super(DualStreamFusionNER, self).__init__()

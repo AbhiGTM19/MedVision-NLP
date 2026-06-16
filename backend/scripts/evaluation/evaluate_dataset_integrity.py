@@ -1,10 +1,10 @@
-import pandas as pd
-import json
-import numpy as np
-import logging
 import argparse
+import logging
 from pathlib import Path
-from typing import List, Dict, Any
+from typing import List
+
+import numpy as np
+import pandas as pd
 
 # Configure Production Logging
 logging.basicConfig(
@@ -30,7 +30,8 @@ class DatasetEvaluator:
             perc = (count / total) * 100
             status = "PASS" if count == 0 else f"FAIL ({perc:.2f}% missing)"
             logger.info(f"  - {col}: {count} missing [{status}]")
-            if count > 0: passed = False
+            if count > 0:
+                passed = False
             
         return passed
 
@@ -101,14 +102,16 @@ class DatasetEvaluator:
         logger.info(f"Total Valid Records Parsed: {len(df)}")
         
         expected_cols = ['id', 'source', 'modality', 'text']
-        if model_type == 'bert': expected_cols.append('label')
+        if model_type == 'bert':
+            expected_cols.append('label')
             
         p1 = self.check_schema(df, expected_cols)
         p2 = self.check_missingness(df)
         p3 = self.check_outliers(df, model_type)
         
         p4 = True
-        if model_type == 'bert': p4 = self.check_class_balance(df)
+        if model_type == 'bert':
+            p4 = self.check_class_balance(df)
         
         if p1 and p2 and p3 and p4:
             logger.info(f"\n>>> VERDICT: {name} PASSED ALL INTEGRITY CHECKS <<<")

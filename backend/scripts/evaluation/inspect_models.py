@@ -1,14 +1,14 @@
-import os
-import io
 import glob
-import torch
+import io
+import os
+
 import pandas as pd
+import pytesseract
+import torch
+import torch.nn.functional as F
 from PIL import Image
 from tqdm import tqdm
-import torch.nn.functional as F
-
-from transformers import AutoTokenizer, AutoModelForSequenceClassification, AutoConfig
-import pytesseract
+from transformers import AutoConfig, AutoModelForSequenceClassification, AutoTokenizer
 
 print("=== MedVision End-to-End Pipeline Evaluation ===")
 
@@ -95,7 +95,7 @@ for img_name in test_images:
 
 # Process Parquet Files
 parquet_files = glob.glob(os.path.join(PARQUET_DIR, "*.parquet"))
-print(f"\nProcessing parquet files from medical_records_parsing_validation_set...")
+print("\nProcessing parquet files from medical_records_parsing_validation_set...")
 parquet_processed = 0
 for p_file in tqdm(parquet_files, desc="Processing Parquets"):
     if parquet_processed >= 5:
@@ -128,7 +128,7 @@ for p_file in tqdm(parquet_files, desc="Processing Parquets"):
                     "confidence": conf
                 })
                 parquet_processed += 1
-            except Exception as e:
+            except Exception:
                 # Ignore corrupted rows silently to continue evaluation
                 pass
                 

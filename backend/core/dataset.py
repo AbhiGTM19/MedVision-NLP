@@ -1,6 +1,8 @@
 import json
+
 import torch
 from torch.utils.data import Dataset
+
 
 class FusedMedicalDataset(Dataset):
     def __init__(self, jsonl_path, tokenizer, max_length=512):

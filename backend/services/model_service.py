@@ -1,17 +1,17 @@
+import io
 import os
+from pathlib import Path
+
+import pytesseract
 import torch
 import torch.nn.functional as F
-import numpy as np
-from PIL import Image
-from pathlib import Path
-import io
-
-from transformers import AutoTokenizer, AutoModelForSequenceClassification, AutoConfig
-from huggingface_hub import hf_hub_download
-import pytesseract
 from captum.attr import LayerIntegratedGradients
+from huggingface_hub import hf_hub_download
+from PIL import Image
+from transformers import AutoConfig, AutoModelForSequenceClassification, AutoTokenizer
 
 from schemas.predict import WordAttribution
+
 
 def get_device():
     if torch.backends.mps.is_available():
