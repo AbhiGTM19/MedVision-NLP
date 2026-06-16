@@ -24,4 +24,4 @@ jobs:
           git config --global user.name "github-actions[bot]"
           
           # Force push all files to the HF Space
-          git push -f https://abhishekgtm19:$HF_TOKEN@huggingface.co/spaces/abhishekgtm19/MedVision main:main
+          git push -f https://abhshkgtm19:$HF_TOKEN@huggingface.co/spaces/abhshkgtm19/MedVision main:main
