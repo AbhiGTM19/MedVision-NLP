@@ -24,5 +24,10 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config lfs.allowincompletepush true
           
-          # Force push all files to the HF Space
-          git push -f https://abhshkgtm19:$HF_TOKEN@huggingface.co/spaces/abhshkgtm19/MedVision main:main
+          # Create a fresh orphan branch to completely bypass Git history
+          git checkout --orphan hf-deploy
+          git add -A
+          git commit -m "Automated deployment to Hugging Face Spaces"
+          
+          # Force push this single history-free commit to the HF Space
+          git push -f https://abhshkgtm19:$HF_TOKEN@huggingface.co/spaces/abhshkgtm19/MedVision hf-deploy:main
