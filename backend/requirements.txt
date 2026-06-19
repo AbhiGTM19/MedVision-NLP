@@ -29,6 +29,7 @@ seaborn
 # Deep Learning (Transformers)
 torch
 transformers
+huggingface_hub
 datasets
 accelerate
 evaluate

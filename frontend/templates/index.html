@@ -71,11 +71,18 @@
                     id="theme-btn">
                     <span class="material-symbols-outlined" data-icon="dark_mode" id="theme-icon">dark_mode</span>
                 </button>
-                <button class="md:hidden p-2">
+                <button class="md:hidden p-2" id="mobile-menu-btn">
                     <span class="material-symbols-outlined" data-icon="menu">menu</span>
                 </button>
             </div>
         </nav>
+        <!-- Mobile Nav Panel -->
+        <div id="mobile-nav-panel" class="hidden md:hidden bg-surface border-b border-outline-variant/30 flex flex-col px-6 py-4 gap-4 shadow-lg font-label text-sm uppercase tracking-widest">
+            <a class="text-primary font-bold transition-colors" href="/">Predictor</a>
+            <a class="text-on-surface-variant hover:text-primary transition-colors" href="/metrics">Metrics</a>
+            <a class="text-on-surface-variant hover:text-primary transition-colors" href="/monitoring">Monitoring</a>
+            <a class="text-on-surface-variant hover:text-primary transition-colors flex items-center gap-1" href="/docs" target="_blank">API Docs <span class="material-symbols-outlined text-[16px]">open_in_new</span></a>
+        </div>
     </header>
 
     <main class="pt-20">
@@ -94,13 +101,11 @@
 
             <h1
                 class="font-headline text-4xl sm:text-5xl md:text-7xl font-black tracking-tight mb-6 max-w-4xl text-on-surface relative z-10">
-                Named Entity Recognition for <span
-                    class="text-transparent bg-clip-text bg-gradient-to-r from-primary via-secondary to-primary">Medical
-                    Prescriptions</span>
+                Medical Specialty Classification for <span
+                    class="text-transparent bg-clip-text bg-gradient-to-r from-primary via-secondary to-primary">Clinical Text</span>
             </h1>
             <p class="text-on-surface-variant text-lg md:text-xl max-w-2xl mb-10 font-light relative z-10">
-                An end-to-end Computer Vision & NLP pipeline for extracting clinical entities from raw text and images.
-                Powered by Bio_ClinicalBERT, EasyOCR, and production-grade APIs.
+                An end-to-end OCR & NLP pipeline for classifying medical specialties from raw text and prescription images. Powered by Bio_ClinicalBERT, Tesseract OCR, and Explainable AI.
             </p>
             <div class="flex flex-col sm:flex-row gap-4">
                 <a class="px-8 py-4 bg-primary text-on-primary rounded-xl font-bold hover:bg-primary/90 transition-colors flex justify-center items-center gap-2 shadow-lg dark:shadow-xl shadow-primary/20 dark:shadow-white/5"
@@ -129,7 +134,7 @@
                         <span class="material-symbols-outlined" data-icon="document_scanner">document_scanner</span>
                     </div>
                     <h3 class="relative z-10 text-xl font-bold">Optical Character Recognition</h3>
-                    <p class="relative z-10 text-on-surface-variant text-sm leading-relaxed">Pipelines raw medical prescription images through EasyOCR to extract localized bounding boxes and text.</p>
+                    <p class="relative z-10 text-on-surface-variant text-sm leading-relaxed">Extracts raw text from medical prescription images using Google's Tesseract OCR engine for downstream classification.</p>
                 </div>
                 <!-- Card 2 -->
                 <div
@@ -142,7 +147,7 @@
                         <span class="material-symbols-outlined" data-icon="psychology">psychology</span>
                     </div>
                     <h3 class="relative z-10 text-xl font-bold">Bio Clinical BERT</h3>
-                    <p class="relative z-10 text-on-surface-variant text-sm leading-relaxed">Utilizes advanced Hugging Face transformers pre-trained on MIMIC-III to classify clinical text into exact Named Entity tokens.</p>
+                    <p class="relative z-10 text-on-surface-variant text-sm leading-relaxed">Utilizes advanced Hugging Face transformers pre-trained on MIMIC-III to classify clinical text into medical specialties with fine-tuned transformer embeddings.</p>
                 </div>
                 <!-- Card 3 -->
                 <div
@@ -156,7 +161,7 @@
                             data-icon="visibility">visibility</span>
                     </div>
                     <h3 class="relative z-10 text-xl font-bold">Explainable AI</h3>
-                    <p class="relative z-10 text-on-surface-variant text-sm leading-relaxed">Dynamic frontend parsing natively annotates raw text and synthesizes a human-readable explanation of the detected medical anomalies.</p>
+                    <p class="relative z-10 text-on-surface-variant text-sm leading-relaxed">Dynamic frontend parsing natively annotates raw text and synthesizes a human-readable explanation using Captum Integrated Gradients for word-level attribution.</p>
                 </div>
             </div>
         </section>
@@ -175,19 +180,19 @@
                                 classDef default fill:transparent,stroke:#888888,stroke-width:1px;
                                 classDef highlight fill:#f59e0b20,stroke:#f59e0b,stroke-width:2px;
 
-                                UI(Vanilla JS Client) -->|REST /predict or /predict-image| API[FastAPI Gateway]
-                                API --> Engine{DualStreamFusionNER}
+                                UI(Vanilla JS Client) -->|REST POST /predict| API[FastAPI Gateway]
+                                UI -->|REST POST /predict-image| API
 
-                                Engine -->|Image Bytes| OCR[EasyOCR]:::highlight
-                                Engine -->|Raw Text| Transformer[Bio_ClinicalBERT]:::highlight
+                                API -->|Raw Text| BERT[Bio_ClinicalBERT]:::highlight
+                                API -->|Image Bytes| OCR[Tesseract OCR]:::highlight
 
-                                OCR --> Vision(Spatial Vision Metadata)
-                                Transformer --> Text(NER Token Embeddings)
+                                OCR -->|Extracted Text| BERT
+                                BERT --> Classification(Specialty Classification)
+                                BERT --> XAI[Captum Integrated Gradients]:::highlight
 
-                                Vision --> Fusion{Fusion Layer}
-                                Text --> Fusion
-                                Fusion --> Response(Entity Extraction List JSON)
-                                Response -->|XAI Annotated Payload| UI
+                                Classification --> Response(JSON Response)
+                                XAI --> Response
+                                Response -->|Annotated Payload| UI
                             </div>
                         </div>
                     </div>
@@ -199,13 +204,11 @@
                         This application demonstrates a production-grade <strong>Machine Learning Engineering</strong>
                         lifecycle. It implements a decoupled <strong>N-Tier Architecture</strong> powered by a
                         lightning-fast <strong>FastAPI</strong> backend.
-                        The architecture relies on <strong>DualStreamFusionNER</strong>, which extracts spatial vision properties via <strong>EasyOCR</strong> 
-                        and merges them with token embeddings from a fine-tuned <strong>Bio_ClinicalBERT</strong> 
-                        Transformer via the Hugging Face Pipeline.
+                        The architecture relies on <strong>Bio_ClinicalBERT</strong> for sequence classification (specialty prediction), supported by <strong>Tesseract OCR</strong> for extracting text from clinical notes.
                         <br><br>
                         The deployment pipeline is fully automated and containerized using secure, multi-stage <strong>Docker</strong> builds 
                         hosted on Hugging Face Spaces. The entire experience is wrapped in a bespoke <strong>Vanilla JS & TailwindCSS</strong> frontend that
-                        highlights transparent <strong>Explainable AI (XAI)</strong> insights by dynamically annotating medical text.
+                        highlights transparent <strong>Explainable AI (XAI)</strong> insights by dynamically annotating medical text with <strong>Captum Integrated Gradients</strong>.
                     </p>
 
                     <div class="flex flex-wrap gap-2 mt-4 mb-2">
@@ -217,23 +220,23 @@
                         <div
                             class="flex items-center gap-1.5 sm:gap-2 bg-surface p-2 sm:p-3 rounded-lg border border-outline-variant/50 text-[10px] sm:text-xs font-bold text-on-surface-variant shadow-sm dark:shadow-none">
                             <span class="text-primary text-lg sm:text-xl material-symbols-outlined"
-                                data-icon="monitoring">monitoring</span> MLflow
-                        </div>
-                        <div
-                            class="flex items-center gap-1.5 sm:gap-2 bg-surface p-2 sm:p-3 rounded-lg border border-outline-variant/50 text-[10px] sm:text-xs font-bold text-on-surface-variant shadow-sm dark:shadow-none">
-                            <span class="text-primary text-lg sm:text-xl material-symbols-outlined"
                                 data-icon="dns">dns</span>
                             FastAPI
                         </div>
                         <div
                             class="flex items-center gap-1.5 sm:gap-2 bg-surface p-2 sm:p-3 rounded-lg border border-outline-variant/50 text-[10px] sm:text-xs font-bold text-on-surface-variant shadow-sm dark:shadow-none">
                             <span class="text-primary text-lg sm:text-xl material-symbols-outlined"
-                                data-icon="memory">memory</span> Scikit-Learn
+                                data-icon="document_scanner">document_scanner</span> Tesseract OCR
                         </div>
                         <div
                             class="flex items-center gap-1.5 sm:gap-2 bg-surface p-2 sm:p-3 rounded-lg border border-outline-variant/50 text-[10px] sm:text-xs font-bold text-on-surface-variant shadow-sm dark:shadow-none">
                             <span class="text-primary text-lg sm:text-xl material-symbols-outlined"
                                 data-icon="psychology">psychology</span> Hugging Face
+                        </div>
+                        <div
+                            class="flex items-center gap-1.5 sm:gap-2 bg-surface p-2 sm:p-3 rounded-lg border border-outline-variant/50 text-[10px] sm:text-xs font-bold text-on-surface-variant shadow-sm dark:shadow-none">
+                            <span class="text-primary text-lg sm:text-xl material-symbols-outlined"
+                                data-icon="visibility">visibility</span> Captum XAI
                         </div>
                         <div
                             class="flex items-center gap-1.5 sm:gap-2 bg-surface p-2 sm:p-3 rounded-lg border border-outline-variant/50 text-[10px] sm:text-xs font-bold text-on-surface-variant shadow-sm dark:shadow-none">
@@ -259,8 +262,8 @@
             <div class="glass p-5 sm:p-8 md:p-12 rounded-3xl border border-outline-variant/50 shadow-xl bg-surface">
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
                     <div>
-                        <h2 class="text-3xl font-bold mb-2">MedVision NER Classifier</h2>
-                        <p class="text-on-surface-variant">Paste clinical notes or images below to extract anomalies.</p>
+                        <h2 class="text-3xl font-bold mb-2">MedVision Specialty Classifier</h2>
+                        <p class="text-on-surface-variant">Paste clinical notes or images below to classify medical specialties and visualize feature attributions.</p>
                     </div>
                 </div>
                 <div class="relative mb-8">
@@ -308,14 +311,14 @@
                         <!-- Data Table & Explanation -->
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                             <div class="flex flex-col gap-4">
-                                <h3 class="text-sm font-label uppercase tracking-widest text-outline mb-2">Extracted Entities</h3>
+                                <h3 class="text-sm font-label uppercase tracking-widest text-outline mb-2">Word Attributions</h3>
                                 <div class="overflow-x-auto border border-outline-variant/50 rounded-xl">
                                     <table class="w-full text-sm text-left">
                                         <thead class="text-xs text-on-surface uppercase bg-surface-container">
                                             <tr>
-                                                <th scope="col" class="px-6 py-3">Token</th>
-                                                <th scope="col" class="px-6 py-3">Tag</th>
-                                                <th scope="col" class="px-6 py-3">Confidence</th>
+                                                <th scope="col" class="px-6 py-3">Word</th>
+                                                <th scope="col" class="px-6 py-3">Attribution</th>
+                                                <th scope="col" class="px-6 py-3">Influence</th>
                                             </tr>
                                         </thead>
                                         <tbody id="entity-table-body" class="divide-y divide-outline-variant/30">
@@ -326,7 +329,7 @@
                             </div>
                             
                             <div id="breakdown-container" class="flex flex-col gap-4">
-                                <h3 class="text-sm font-label uppercase tracking-widest text-outline mb-2">Diagnostic Summary</h3>
+                                <h3 class="text-sm font-label uppercase tracking-widest text-outline mb-2">Classification Summary</h3>
                                 <div class="text-on-surface-variant leading-relaxed p-6 bg-surface-container-high rounded-xl italic border-l-4 border-primary shadow-sm"
                                     id="breakdown-text">
                                     <!-- Explainable AI Summary injected here -->
@@ -411,8 +414,8 @@
                 <h3 class="text-2xl font-black shrink" id="modalTitle">Model Architecture</h3>
                 <select id="modalModelSelect"
                     class="shrink-0 min-w-[160px] bg-surface border border-outline-variant rounded-lg text-sm p-2 pr-8 text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none cursor-pointer">
-                    <option value="fast">Fast Heuristics</option>
-                    <option value="accurate">Deep Transformer</option>
+                    <option value="fast">Tesseract OCR Pipeline</option>
+                    <option value="accurate">Bio_ClinicalBERT Classifier</option>
                 </select>
             </div>
             <div class="flex flex-col gap-4 overflow-y-auto pr-4 pb-2" id="modalBody">

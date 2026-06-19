@@ -43,6 +43,49 @@ document.addEventListener("DOMContentLoaded", () => {
     analyzeBtn.addEventListener('click', runAnalysis);
     clearHistoryBtn.addEventListener('click', clearHistory);
 
+    // Modal Elements
+    const modelInfoBtn = document.getElementById('model-info-btn');
+    const archModal = document.getElementById('arch-modal');
+    const closeModalBtn = document.getElementById('close-modal-btn');
+    const modalOverlay = document.getElementById('modal-overlay');
+    const modalBody = document.getElementById('modalBody');
+    const modalModelSelect = document.getElementById('modalModelSelect');
+
+    const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+    const mobileNavPanel = document.getElementById('mobile-nav-panel');
+
+    // Modal Handlers
+    if (modelInfoBtn) {
+        modelInfoBtn.addEventListener('click', () => {
+            archModal.classList.remove('hidden');
+            populateModal(modalModelSelect.value);
+        });
+    }
+
+    if (closeModalBtn) {
+        closeModalBtn.addEventListener('click', () => archModal.classList.add('hidden'));
+        modalOverlay.addEventListener('click', () => archModal.classList.add('hidden'));
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') archModal.classList.add('hidden');
+        });
+        modalModelSelect.addEventListener('change', (e) => populateModal(e.target.value));
+    }
+
+    // Mobile Menu Handler
+    if (mobileMenuBtn && mobileNavPanel) {
+        mobileMenuBtn.addEventListener('click', () => {
+            mobileNavPanel.classList.toggle('hidden');
+        });
+    }
+
+    function populateModal(type) {
+        if (type === 'fast') {
+            modalBody.innerHTML = `<p class="text-on-surface-variant leading-relaxed">The <strong class="text-primary">Tesseract OCR Pipeline</strong> uses the pytesseract wrapper around Google's Tesseract OCR engine to extract text from raw prescription images. It handles preprocessing internally and provides the transcribed string to the downstream classifier.</p>`;
+        } else {
+            modalBody.innerHTML = `<p class="text-on-surface-variant leading-relaxed">The <strong class="text-secondary">Bio_ClinicalBERT Classifier</strong> uses a pre-trained Transformer model fine-tuned on the MIMIC-III clinical database. It computes dense embeddings of the transcribed text and applies a sequence classification head to predict the medical specialty.</p>`;
+        }
+    }
+
     // OCR Event Listeners
     dropzone.addEventListener('click', () => imageInput.click());
     dropzone.addEventListener('dragover', (e) => {
@@ -197,6 +240,26 @@ document.addEventListener("DOMContentLoaded", () => {
         `;
         entityTableBody.appendChild(tr);
 
+        // Add individual attributions
+        if (data.attributions) {
+            const sortedAttrs = [...data.attributions].sort((a, b) => Math.abs(b.score) - Math.abs(a.score));
+            sortedAttrs.forEach(attr => {
+                if (Math.abs(attr.score) > 0.05) {
+                    const attrTr = document.createElement('tr');
+                    attrTr.className = "hover:bg-surface-container transition-colors";
+                    const scoreClass = attr.score > 0 ? "text-primary bg-primary/10 border-primary/20" : "text-error bg-error/10 border-error/20";
+                    attrTr.innerHTML = `
+                        <td class="px-6 py-4 font-mono font-bold">${attr.word}</td>
+                        <td class="px-6 py-4">
+                            <span class="px-2 py-1 rounded text-xs font-bold border ${scoreClass}">${attr.score.toFixed(4)}</span>
+                        </td>
+                        <td class="px-6 py-4 font-mono text-outline">Word Level Feature Attribution</td>
+                    `;
+                    entityTableBody.appendChild(attrTr);
+                }
+            });
+        }
+
         // 2. XAI Annotated Text (Feature Attribution)
         let annotatedHtml = '';
         const attrDict = {};
@@ -208,7 +271,7 @@ document.addEventListener("DOMContentLoaded", () => {
             });
         }
 
-        let words = data.text.split(/(\\s+)/);
+        let words = data.text.split(/(\s+)/);
         words.forEach(word => {
             if (word.trim() === '') {
                 annotatedHtml += word;
@@ -232,7 +295,7 @@ document.addEventListener("DOMContentLoaded", () => {
         let summary = `The <em>Bio_ClinicalBERT</em> engine classified this text as <strong>${data.specialty}</strong> with ${confPercent} confidence.<br><br>`;
         summary += `The highlighted text above uses <strong>PyTorch Captum (Integrated Gradients)</strong> to visualize Feature Attribution. Darker highlights indicate words that had the strongest influence on the model's classification. `;
         if (data.text.length > 0 && selectedImageFile) {
-            summary += `The text was seamlessly transcribed via <em>TrOCR</em>.`;
+            summary += `The text was seamlessly transcribed via <em>Tesseract OCR</em>.`;
         }
         breakdownText.innerHTML = summary;
     }
