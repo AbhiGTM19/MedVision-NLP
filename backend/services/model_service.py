@@ -2,7 +2,6 @@ import io
 import os
 from pathlib import Path
 
-import pytesseract
 import torch
 import torch.nn.functional as F
 from captum.attr import LayerIntegratedGradients
@@ -10,13 +9,13 @@ from huggingface_hub import hf_hub_download
 from PIL import Image
 from transformers import AutoConfig, AutoModelForSequenceClassification, AutoTokenizer
 
-from schemas.predict import WordAttribution
+from core.config import settings
+from schemas.predict import WordAttribution, RAGResponse
+from services.llm_service import llm_service
 
 
 def get_device():
-    if torch.backends.mps.is_available():
-        return torch.device("mps")
-    elif torch.cuda.is_available():
+    if torch.cuda.is_available():
         return torch.device("cuda")
     return torch.device("cpu")
 
@@ -37,36 +36,39 @@ class ModelService:
     def _load_models(self):
         # 1. Load Bio_ClinicalBERT
         try:
-            self.bert_config = AutoConfig.from_pretrained("emilyalsentzer/Bio_ClinicalBERT")
-            self.bert_tokenizer = AutoTokenizer.from_pretrained("emilyalsentzer/Bio_ClinicalBERT")
-            self.bert_model = AutoModelForSequenceClassification.from_config(self.bert_config)
-            
             # Ensure directory exists
             self.bert_dir.mkdir(parents=True, exist_ok=True)
             bert_pth_path = self.bert_dir / "bio_clinicalBERT_model.pth"
+            bert_config_path = self.bert_dir / "config.json"
             
             # Dynamic Runtime Download for Production (from HF Model Hub)
-            if os.environ.get("ENV") == "prod" and not bert_pth_path.exists():
-                hf_model_repo = os.environ.get("HF_MODEL_REPO", "abhshkgtm19/medvision-models")
+            if os.environ.get("ENV") == "prod" and (not bert_pth_path.exists() or not bert_config_path.exists()):
+                hf_model_repo = settings.HF_MODEL_REPO_ID
                 print(f"Production environment detected. Downloading missing weights from HF Hub: {hf_model_repo}...")
                 try:
                     # Download directly into the local models directory
-                    downloaded_path = hf_hub_download(
-                        repo_id=hf_model_repo, 
-                        filename="bio_clinicalBERT_model.pth", 
-                        local_dir=str(self.bert_dir)
-                    )
-                    print(f"Successfully downloaded weights to {downloaded_path}")
+                    if not bert_pth_path.exists():
+                        hf_hub_download(repo_id=hf_model_repo, filename="bio_clinicalBERT_model.pth", local_dir=str(self.bert_dir))
+                    if not bert_config_path.exists():
+                        hf_hub_download(repo_id=hf_model_repo, filename="config.json", local_dir=str(self.bert_dir))
+                    print(f"Successfully downloaded weights and config to {self.bert_dir}")
                 except Exception as e:
                     print(f"Warning: Failed to download weights from HF. Ensure repo exists and is public. Error: {e}")
             elif not bert_pth_path.exists():
                  print(f"Warning: Local model weights not found at {bert_pth_path}. Ensure you have fine-tuned the model locally.")
             
+            if bert_config_path.exists():
+                self.bert_config = AutoConfig.from_pretrained(str(self.bert_dir))
+            else:
+                self.bert_config = AutoConfig.from_pretrained("emilyalsentzer/Bio_ClinicalBERT")
+                
+            self.bert_tokenizer = AutoTokenizer.from_pretrained("emilyalsentzer/Bio_ClinicalBERT")
+            self.bert_model = AutoModelForSequenceClassification.from_config(self.bert_config)
+            
             if bert_pth_path.exists():
                 self.bert_model.load_state_dict(torch.load(bert_pth_path, map_location=self.device, weights_only=True))
             else:
                 print("Falling back to un-finetuned HuggingFace weights.")
-                self.bert_model = AutoModelForSequenceClassification.from_pretrained("emilyalsentzer/Bio_ClinicalBERT")
                 
             self.bert_model.to(self.device)
             self.bert_model.eval()
@@ -152,9 +154,16 @@ class ModelService:
         return predicted_specialty, confidence, word_attributions
 
     def extract_from_image(self, image_bytes: bytes) -> tuple[str, str, float, list[WordAttribution]]:
+        """
+        DEPRECATED: Tesseract OCR produces sub-30% confidence on handwritten prescriptions.
+        Retained for backward compatibility and architectural reference.
+        Use extract_from_text() for production workloads.
+        """
         if not self.is_ready():
             raise RuntimeError("Models are not fully loaded.")
             
+        import pytesseract
+        
         # 1. Image loading
         image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
         
@@ -168,6 +177,18 @@ class ModelService:
         specialty, conf, attributions = self.extract_from_text(extracted_text)
         
         return extracted_text, specialty, conf, attributions
+
+    def predict_with_rag(self, text: str) -> tuple[str, float, list[WordAttribution], RAGResponse]:
+        """
+        Extracts clinical specialty from text and then uses the RAG + LLM to answer the clinical text.
+        """
+        # 1. Classification
+        specialty, conf, attributions = self.extract_from_text(text)
+        
+        # 2. RAG Generation
+        rag_response = llm_service.generate_rag_response(text, specialty=specialty)
+        
+        return specialty, conf, attributions, rag_response
 
 # Singleton instance
 model_service = ModelService()

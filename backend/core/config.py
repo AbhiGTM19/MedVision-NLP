@@ -11,10 +11,13 @@ class Settings(BaseSettings):
     ENV: str = os.getenv("ENV", "local")  # 'local' or 'prod'
     
     # Remote Hugging Face Model Repository
-    HF_MODEL_REPO_ID: str = "abhshkgtm19/Healthcare-NLP-Models"
+    HF_MODEL_REPO_ID: str = "abhshkgtm19/medvision-models"
     
     # Pre-trained Transformer configurations
     HF_TRANSFORMER_MODEL_ID: str = os.getenv("HF_TRANSFORMER_MODEL_ID", "emilyalsentzer/Bio_ClinicalBERT")
+
+    # LLM Integration
+    GOOGLE_API_KEY: str | None = None
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 

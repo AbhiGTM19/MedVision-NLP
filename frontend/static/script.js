@@ -12,19 +12,29 @@ document.addEventListener("DOMContentLoaded", () => {
     
     const resultsArea = document.getElementById('results-area');
     const annotatedText = document.getElementById('annotated-text');
-    const entityTableBody = document.getElementById('entity-table-body');
     const breakdownText = document.getElementById('breakdown-text');
+    const ragResponseContainer = document.createElement('div');
+    ragResponseContainer.className = 'w-full bg-surface-container-low rounded-2xl p-8 border border-outline-variant/50 shadow-inner mt-8';
+    ragResponseContainer.innerHTML = '<h3 class="text-sm font-label uppercase tracking-widest text-outline mb-4">RAG Assistant Analysis</h3><div id="rag-content" class="text-on-surface leading-relaxed"></div>';
+    breakdownText.parentElement.parentElement.parentElement.appendChild(ragResponseContainer);
+    const ragContent = document.getElementById('rag-content');
+
     
     const historyList = document.getElementById('history-list');
     const historyEmptyMessage = document.getElementById('history-empty-message');
     const clearHistoryBtn = document.getElementById('clear-history-button');
 
-    // OCR Elements
-    const dropzone = document.getElementById('dropzone');
-    const imageInput = document.getElementById('image-input');
-    const imagePreviewContainer = document.getElementById('image-preview-container');
-    const imagePreview = document.getElementById('image-preview');
-    let selectedImageFile = null;
+    // Chat UI Elements
+    const chatFab = document.getElementById('chat-fab');
+    const chatPanel = document.getElementById('chat-panel');
+    const closeChatBtn = document.getElementById('close-chat-btn');
+    const chatForm = document.getElementById('chat-form');
+    const chatInput = document.getElementById('chat-input');
+    const chatMessages = document.getElementById('chat-messages');
+    const chatSubmitBtn = document.getElementById('chat-submit-btn');
+    
+    let chatHistory = [];
+
 
     let latestResult = null;
 
@@ -43,44 +53,60 @@ document.addEventListener("DOMContentLoaded", () => {
     analyzeBtn.addEventListener('click', runAnalysis);
     clearHistoryBtn.addEventListener('click', clearHistory);
 
-    // OCR Event Listeners
-    dropzone.addEventListener('click', () => imageInput.click());
-    dropzone.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        dropzone.classList.add('border-primary', 'bg-surface-container-high');
-    });
-    dropzone.addEventListener('dragleave', (e) => {
-        e.preventDefault();
-        dropzone.classList.remove('border-primary', 'bg-surface-container-high');
-    });
-    dropzone.addEventListener('drop', (e) => {
-        e.preventDefault();
-        dropzone.classList.remove('border-primary', 'bg-surface-container-high');
-        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-            handleImageUpload(e.dataTransfer.files[0]);
-        }
-    });
-    imageInput.addEventListener('change', (e) => {
-        if (e.target.files && e.target.files[0]) {
-            handleImageUpload(e.target.files[0]);
-        }
+    // Modal Elements
+    const modelInfoBtn = document.getElementById('model-info-btn');
+    const archModal = document.getElementById('arch-modal');
+    const closeModalBtn = document.getElementById('close-modal-btn');
+    const modalOverlay = document.getElementById('modal-overlay');
+    const modalBody = document.getElementById('modalBody');
+    const modalModelSelect = document.getElementById('modalModelSelect');
+
+    const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+    const mobileNavPanel = document.getElementById('mobile-nav-panel');
+
+    // Modal Handlers
+    if (modelInfoBtn) {
+        modelInfoBtn.addEventListener('click', () => {
+            archModal.classList.remove('hidden');
+            populateModal(modalModelSelect.value);
+        });
+    }
+
+    if (closeModalBtn) {
+        closeModalBtn.addEventListener('click', () => archModal.classList.add('hidden'));
+        modalOverlay.addEventListener('click', () => archModal.classList.add('hidden'));
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') archModal.classList.add('hidden');
+        });
+        modalModelSelect.addEventListener('change', (e) => populateModal(e.target.value));
+    }
+
+    // Mobile Menu Handler
+    if (mobileMenuBtn && mobileNavPanel) {
+        mobileMenuBtn.addEventListener('click', () => {
+            mobileNavPanel.classList.toggle('hidden');
+        });
+    }
+
+    // Chat Panel Handlers
+    chatFab.addEventListener('click', () => {
+        chatPanel.classList.remove('translate-x-full');
     });
 
-    function handleImageUpload(file) {
-        if (!file.type.startsWith('image/')) {
-            alert('Please upload a valid image file.');
-            return;
+    closeChatBtn.addEventListener('click', () => {
+        chatPanel.classList.add('translate-x-full');
+    });
+
+    chatForm.addEventListener('submit', handleChatSubmit);
+
+    function populateModal(type) {
+        if (type === 'fast') {
+            modalBody.innerHTML = `<p class="text-on-surface-variant leading-relaxed">The <strong class="text-primary">RAG Knowledge Pipeline</strong> retrieves relevant medical knowledge from a Vector Database (ChromaDB) to augment and ground language model predictions.</p>`;
+        } else {
+            modalBody.innerHTML = `<p class="text-on-surface-variant leading-relaxed">The <strong class="text-secondary">Bio_ClinicalBERT Classifier</strong> uses a pre-trained Transformer model fine-tuned on the MIMIC-III clinical database. It computes dense embeddings of the transcribed text and applies a sequence classification head to predict the medical specialty.</p>`;
         }
-        selectedImageFile = file;
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            imagePreview.src = e.target.result;
-            imagePreviewContainer.classList.remove('hidden');
-            textInput.value = '';
-            charCount.textContent = '0';
-        };
-        reader.readAsDataURL(file);
     }
+
 
     renderHistory();
 
@@ -101,8 +127,8 @@ document.addEventListener("DOMContentLoaded", () => {
     async function runAnalysis() {
         const input = textInput.value.trim();
         
-        if (!input && !selectedImageFile) {
-            alert("Please enter clinical text or upload an image to classify.");
+        if (!input) {
+            alert("Please enter clinical text to classify.");
             return;
         }
 
@@ -112,39 +138,22 @@ document.addEventListener("DOMContentLoaded", () => {
         resultsArea.classList.add('hidden');
 
         try {
-            let response;
-            if (selectedImageFile) {
-                const formData = new FormData();
-                formData.append("file", selectedImageFile);
-                
-                response = await fetch("/predict-image", {
-                    method: "POST",
-                    body: formData
-                });
-            } else {
-                response = await fetch("/predict", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ text: input })
-                });
-            }
+            let response = await fetch("/predict-rag", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ text: input })
+            });
 
             if (!response.ok) throw new Error(`Server error: ${response.statusText}`);
 
             const data = await response.json();
             
-            if (selectedImageFile && data.extracted_text) {
-                textInput.value = data.extracted_text;
-                charCount.textContent = data.extracted_text.length;
-            }
-
-            const activeText = selectedImageFile ? data.extracted_text : input;
-            
             latestResult = { 
                 specialty: data.specialty,
                 confidence: data.confidence,
                 attributions: data.word_attributions, 
-                text: activeText,
+                rag_response: data.rag_response,
+                text: input,
                 timestamp: new Date().toISOString()
             };
             
@@ -159,10 +168,6 @@ document.addEventListener("DOMContentLoaded", () => {
             btnSpinner.classList.add('hidden');
             resultsArea.classList.remove('hidden');
             resultsArea.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            
-            selectedImageFile = null;
-            imageInput.value = '';
-            imagePreviewContainer.classList.add('hidden');
         }
     }
 
@@ -178,24 +183,11 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function displayResults(data) {
-        entityTableBody.innerHTML = '';
         annotatedText.innerHTML = '';
         breakdownText.innerHTML = '';
+        ragContent.innerHTML = '';
 
-        // 1. Data Table
-        const tr = document.createElement('tr');
-        tr.className = "hover:bg-surface-container transition-colors";
-        
         const confPercent = (data.confidence * 100).toFixed(1) + '%';
-
-        tr.innerHTML = `
-            <td class="px-6 py-4 font-mono font-bold">Overarching Diagnosis</td>
-            <td class="px-6 py-4">
-                <span class="px-2 py-1 rounded text-xs font-bold bg-primary/20 text-primary border border-primary/30">${data.specialty}</span>
-            </td>
-            <td class="px-6 py-4 font-mono text-outline">${confPercent}</td>
-        `;
-        entityTableBody.appendChild(tr);
 
         // 2. XAI Annotated Text (Feature Attribution)
         let annotatedHtml = '';
@@ -208,7 +200,7 @@ document.addEventListener("DOMContentLoaded", () => {
             });
         }
 
-        let words = data.text.split(/(\\s+)/);
+        let words = data.text.split(/(\s+)/);
         words.forEach(word => {
             if (word.trim() === '') {
                 annotatedHtml += word;
@@ -230,11 +222,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // 3. Explainable AI Summary
         let summary = `The <em>Bio_ClinicalBERT</em> engine classified this text as <strong>${data.specialty}</strong> with ${confPercent} confidence.<br><br>`;
-        summary += `The highlighted text above uses <strong>PyTorch Captum (Integrated Gradients)</strong> to visualize Feature Attribution. Darker highlights indicate words that had the strongest influence on the model's classification. `;
-        if (data.text.length > 0 && selectedImageFile) {
-            summary += `The text was seamlessly transcribed via <em>TrOCR</em>.`;
-        }
+        summary += `The highlighted text above uses <strong>PyTorch Captum (Integrated Gradients)</strong> to visualize Feature Attribution. Darker highlights indicate words that had the strongest influence on the model's classification.`;
         breakdownText.innerHTML = summary;
+        
+        // 4. RAG Response
+        if (data.rag_response) {
+            let ragHtml = `<p>${data.rag_response.answer}</p>`;
+            if (data.rag_response.sources && data.rag_response.sources.length > 0) {
+                ragHtml += `<div class="mt-4 text-xs text-outline font-label uppercase tracking-widest">Sources: ${data.rag_response.sources.join(', ')}</div>`;
+            }
+            ragContent.innerHTML = ragHtml;
+            ragResponseContainer.classList.remove('hidden');
+        } else {
+            ragResponseContainer.classList.add('hidden');
+        }
     }
 
     // History Logic
@@ -281,5 +282,63 @@ document.addEventListener("DOMContentLoaded", () => {
     function clearHistory() {
         localStorage.removeItem('medvisionHistory');
         renderHistory();
+    }
+
+    // Chat Logic
+    function appendChatMessage(role, text) {
+        const div = document.createElement('div');
+        div.className = `max-w-[85%] p-3 shadow-sm border ${role === 'user' ? 'self-end bg-primary text-on-primary rounded-2xl rounded-tr-sm border-primary' : 'self-start bg-surface-container rounded-2xl rounded-tl-sm border-outline-variant/20 text-on-surface'}`;
+        div.innerHTML = `<p class="text-sm">${text}</p>`;
+        chatMessages.appendChild(div);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    async function handleChatSubmit(e) {
+        e.preventDefault();
+        const input = chatInput.value.trim();
+        if (!input) return;
+
+        // Add user message to UI and history
+        appendChatMessage('user', input);
+        chatHistory.push({ role: 'user', content: input });
+        chatInput.value = '';
+        
+        // Disable input
+        chatInput.disabled = true;
+        chatSubmitBtn.disabled = true;
+
+        // Add loading indicator
+        const loadingDiv = document.createElement('div');
+        loadingDiv.id = 'chat-loading';
+        loadingDiv.className = 'self-start max-w-[85%] bg-surface-container rounded-2xl rounded-tl-sm p-3 shadow-sm border border-outline-variant/20';
+        loadingDiv.innerHTML = '<div class="flex gap-1 items-center h-4"><div class="w-1.5 h-1.5 bg-outline rounded-full animate-bounce"></div><div class="w-1.5 h-1.5 bg-outline rounded-full animate-bounce" style="animation-delay: 0.1s"></div><div class="w-1.5 h-1.5 bg-outline rounded-full animate-bounce" style="animation-delay: 0.2s"></div></div>';
+        chatMessages.appendChild(loadingDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+
+        try {
+            const response = await fetch('/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ messages: chatHistory })
+            });
+
+            if (!response.ok) throw new Error('Chat API failed');
+            const data = await response.json();
+            
+            // Remove loading
+            document.getElementById('chat-loading').remove();
+            
+            // Add assistant message
+            appendChatMessage('assistant', data.response);
+            chatHistory.push({ role: 'assistant', content: data.response });
+            
+        } catch (error) {
+            document.getElementById('chat-loading').remove();
+            appendChatMessage('assistant', `Error: ${error.message}`);
+        } finally {
+            chatInput.disabled = false;
+            chatSubmitBtn.disabled = false;
+            chatInput.focus();
+        }
     }
 });
