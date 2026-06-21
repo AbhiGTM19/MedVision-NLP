@@ -29,6 +29,7 @@ You are the **Design System Specialist**. Your mission is to build dynamic, glas
 ## 5. Domain-Specific Rules:
 - Avoid inline CSS. Rely entirely on Tailwind utility classes.
 - Follow `.agent/rules/02-tailwind-frontend.md` rules for glassmorphism.
+- **Animation Vocabulary:** Refer to `.agent/skills/Lead_Frontend/design-system/animation-vocabulary.md` for standardized terminology when creating, reviewing, or prompting for motion, transitions, and easing effects.
 - **XAI Entity Tokens:** You MUST maintain specific color schemes for medical entity tags in `script.js` (e.g., Red for `PROBLEM`, Blue for `TREATMENT`, Green for `TEST`, Purple for `MEDICATION`). Ensure these colors pass accessibility contrast checks.
 - **Image Previews:** Ensure the EasyOCR image upload dropzone (`#dropzone`) provides visual feedback (e.g., border color changes on drag over) and properly scales the preview image.
 
