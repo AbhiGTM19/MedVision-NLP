@@ -1,11 +1,12 @@
 import os
 
-from fastapi import APIRouter, File, HTTPException, UploadFile
+from fastapi import APIRouter, File, HTTPException, Response, UploadFile
 from fastapi.responses import FileResponse
 
 from core.config import BASE_DIR
-from schemas.predict import PredictionRequest, PredictionResponse
+from schemas.predict import ChatRequest, PredictionRequest, PredictionResponse, PredictionRAGResponse
 from services.model_service import model_service
+from services.llm_service import llm_service
 
 router = APIRouter()
 
@@ -44,12 +45,41 @@ def predict(request: PredictionRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.post("/predict-image", response_model=PredictionResponse)
-async def predict_image(file: UploadFile = File(...)):
+@router.post("/predict-rag", response_model=PredictionRAGResponse)
+def predict_rag(request: PredictionRequest):
     """
-    Accepts an image, runs OCR via Tesseract OCR, passes text to Bio_ClinicalBERT for 
+    Predicts medical specialty from raw clinical text, provides XAI word attributions, and returns a RAG response.
+    """
+    try:
+        specialty, confidence, word_attributions, rag_response = model_service.predict_with_rag(request.text)
+        return PredictionRAGResponse(
+            specialty=specialty,
+            confidence=confidence,
+            word_attributions=word_attributions,
+            extracted_text=request.text,
+            rag_response=rag_response
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/chat")
+def chat(request: ChatRequest):
+    """
+    Interactive chat using LLM and clinical context.
+    """
+    try:
+        response_text = llm_service.generate_chat_response(request.messages)
+        return {"response": response_text}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/predict-image", response_model=PredictionResponse)
+async def predict_image(response: Response, file: UploadFile = File(...)):
+    """
+    DEPRECATED: Accepts an image, runs OCR via Tesseract OCR, passes text to Bio_ClinicalBERT for 
     sequence classification, and provides XAI word attributions.
     """
+    response.headers["X-Deprecated"] = "Use /predict for text input. OCR path deprecated."
     try:
         # Read image bytes
         image_bytes = await file.read()

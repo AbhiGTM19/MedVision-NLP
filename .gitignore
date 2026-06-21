@@ -41,3 +41,4 @@ frontend/static/monitoring_report.html
 PAT.txt
 medvision-space-token.png
 node_modules/
+backend/data/chroma_db/

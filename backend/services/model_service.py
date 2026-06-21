@@ -2,7 +2,6 @@ import io
 import os
 from pathlib import Path
 
-import pytesseract
 import torch
 import torch.nn.functional as F
 from captum.attr import LayerIntegratedGradients
@@ -11,7 +10,8 @@ from PIL import Image
 from transformers import AutoConfig, AutoModelForSequenceClassification, AutoTokenizer
 
 from core.config import settings
-from schemas.predict import WordAttribution
+from schemas.predict import WordAttribution, RAGResponse
+from services.llm_service import llm_service
 
 
 def get_device():
@@ -154,9 +154,16 @@ class ModelService:
         return predicted_specialty, confidence, word_attributions
 
     def extract_from_image(self, image_bytes: bytes) -> tuple[str, str, float, list[WordAttribution]]:
+        """
+        DEPRECATED: Tesseract OCR produces sub-30% confidence on handwritten prescriptions.
+        Retained for backward compatibility and architectural reference.
+        Use extract_from_text() for production workloads.
+        """
         if not self.is_ready():
             raise RuntimeError("Models are not fully loaded.")
             
+        import pytesseract
+        
         # 1. Image loading
         image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
         
@@ -170,6 +177,18 @@ class ModelService:
         specialty, conf, attributions = self.extract_from_text(extracted_text)
         
         return extracted_text, specialty, conf, attributions
+
+    def predict_with_rag(self, text: str) -> tuple[str, float, list[WordAttribution], RAGResponse]:
+        """
+        Extracts clinical specialty from text and then uses the RAG + LLM to answer the clinical text.
+        """
+        # 1. Classification
+        specialty, conf, attributions = self.extract_from_text(text)
+        
+        # 2. RAG Generation
+        rag_response = llm_service.generate_rag_response(text, specialty=specialty)
+        
+        return specialty, conf, attributions, rag_response
 
 # Singleton instance
 model_service = ModelService()

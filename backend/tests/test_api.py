@@ -67,3 +67,30 @@ def test_predict_empty_text():
 def test_predict_massive_text():
     response = client.post("/predict", json={"text": "A" * 5001})
     assert response.status_code == 422  # Unprocessable Entity due to max_length=5000
+
+def test_predict_rag_mocked(monkeypatch):
+    from schemas.predict import RAGResponse
+    def mock_predict_with_rag(text):
+        rag_response = RAGResponse(answer="Mock RAG Answer", sources=["Source A"])
+        return "Neurology", 0.99, [WordAttribution(word="Aspirin", score=0.85)], rag_response
+
+    monkeypatch.setattr(model_service, "predict_with_rag", mock_predict_with_rag)
+
+    response = client.post("/predict-rag", json={"text": "Patient taking Aspirin."})
+    assert response.status_code == 200
+    data = response.json()
+    assert data["specialty"] == "Neurology"
+    assert "rag_response" in data
+    assert data["rag_response"]["answer"] == "Mock RAG Answer"
+
+def test_chat_mocked(monkeypatch):
+    from services.llm_service import llm_service
+    def mock_generate_chat(messages):
+        return "Hello from mock assistant"
+
+    monkeypatch.setattr(llm_service, "generate_chat_response", mock_generate_chat)
+
+    response = client.post("/chat", json={"messages": [{"role": "user", "content": "Hi"}]})
+    assert response.status_code == 200
+    data = response.json()
+    assert data["response"] == "Hello from mock assistant"

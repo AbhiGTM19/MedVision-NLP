@@ -131,10 +131,10 @@
                     </div>
                     <div
                         class="relative z-10 w-12 h-12 rounded-xl bg-primary-container flex items-center justify-center text-on-primary-container">
-                        <span class="material-symbols-outlined" data-icon="document_scanner">document_scanner</span>
+                        <span class="material-symbols-outlined" data-icon="search">search</span>
                     </div>
-                    <h3 class="relative z-10 text-xl font-bold">Optical Character Recognition</h3>
-                    <p class="relative z-10 text-on-surface-variant text-sm leading-relaxed">Extracts raw text from medical prescription images using Google's Tesseract OCR engine for downstream classification.</p>
+                    <h3 class="relative z-10 text-xl font-bold">RAG Knowledge Pipeline</h3>
+                    <p class="relative z-10 text-on-surface-variant text-sm leading-relaxed">Augments predictions with a vector database (ChromaDB) to retrieve relevant clinical guidelines, drug interactions, and abbreviations.</p>
                 </div>
                 <!-- Card 2 -->
                 <div
@@ -179,18 +179,21 @@
                                 graph TD
                                 classDef default fill:transparent,stroke:#888888,stroke-width:1px;
                                 classDef highlight fill:#f59e0b20,stroke:#f59e0b,stroke-width:2px;
+                                classDef rag fill:#3b82f620,stroke:#3b82f6,stroke-width:2px;
 
-                                UI(Vanilla JS Client) -->|REST POST /predict| API[FastAPI Gateway]
-                                UI -->|REST POST /predict-image| API
+                                UI(Vanilla JS Client) -->|REST POST /predict-rag| API[FastAPI Gateway]
 
                                 API -->|Raw Text| BERT[Bio_ClinicalBERT]:::highlight
-                                API -->|Image Bytes| OCR[Tesseract OCR]:::highlight
+                                API -->|Query| RAG[ChromaDB Vector Store]:::rag
 
-                                OCR -->|Extracted Text| BERT
                                 BERT --> Classification(Specialty Classification)
                                 BERT --> XAI[Captum Integrated Gradients]:::highlight
 
-                                Classification --> Response(JSON Response)
+                                Classification --> LLM[Gemini 2.5 Flash]:::rag
+                                RAG -->|Retrieved Context| LLM
+                                
+                                LLM -->|Medical Advice| Response(JSON Response)
+                                Classification --> Response
                                 XAI --> Response
                                 Response -->|Annotated Payload| UI
                             </div>
@@ -204,7 +207,7 @@
                         This application demonstrates a production-grade <strong>Machine Learning Engineering</strong>
                         lifecycle. It implements a decoupled <strong>N-Tier Architecture</strong> powered by a
                         lightning-fast <strong>FastAPI</strong> backend.
-                        The architecture relies on <strong>Bio_ClinicalBERT</strong> for sequence classification (specialty prediction), supported by <strong>Tesseract OCR</strong> for extracting text from clinical notes.
+                        The architecture relies on <strong>Bio_ClinicalBERT</strong> for sequence classification (specialty prediction).
                         <br><br>
                         The deployment pipeline is fully automated and containerized using secure, multi-stage <strong>Docker</strong> builds 
                         hosted on Hugging Face Spaces. The entire experience is wrapped in a bespoke <strong>Vanilla JS & TailwindCSS</strong> frontend that
@@ -223,11 +226,7 @@
                                 data-icon="dns">dns</span>
                             FastAPI
                         </div>
-                        <div
-                            class="flex items-center gap-1.5 sm:gap-2 bg-surface p-2 sm:p-3 rounded-lg border border-outline-variant/50 text-[10px] sm:text-xs font-bold text-on-surface-variant shadow-sm dark:shadow-none">
-                            <span class="text-primary text-lg sm:text-xl material-symbols-outlined"
-                                data-icon="document_scanner">document_scanner</span> Tesseract OCR
-                        </div>
+
                         <div
                             class="flex items-center gap-1.5 sm:gap-2 bg-surface p-2 sm:p-3 rounded-lg border border-outline-variant/50 text-[10px] sm:text-xs font-bold text-on-surface-variant shadow-sm dark:shadow-none">
                             <span class="text-primary text-lg sm:text-xl material-symbols-outlined"
@@ -263,7 +262,7 @@
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
                     <div>
                         <h2 class="text-3xl font-bold mb-2">MedVision Specialty Classifier</h2>
-                        <p class="text-on-surface-variant">Paste clinical notes or images below to classify medical specialties and visualize feature attributions.</p>
+                        <p class="text-on-surface-variant">Paste clinical notes below to classify medical specialties and visualize feature attributions.</p>
                     </div>
                 </div>
                 <div class="relative mb-8">
@@ -274,18 +273,7 @@
                             id="char-count">0</span></div>
                 </div>
 
-                <!-- OCR Drag & Drop Zone -->
-                <div id="dropzone" class="mb-8 border-2 border-dashed border-outline-variant rounded-xl p-8 text-center cursor-pointer hover:border-primary hover:bg-surface-container-high transition-all duration-200">
-                    <p class="text-on-surface-variant flex flex-col items-center gap-2">
-                        <span class="material-symbols-outlined text-3xl">document_scanner</span>
-                        <span>Drag & Drop an image of a clinical note, or click to upload</span>
-                    </p>
-                    <input type="file" id="image-input" class="hidden" accept="image/png, image/jpeg, image/jpg" />
-                    <div id="image-preview-container" class="mt-4 hidden flex-col items-center">
-                        <img id="image-preview" src="" alt="Document Preview" class="max-h-48 rounded shadow-md border border-outline-variant mb-4" />
-                        <p class="text-xs text-outline">Image ready. Click classify to extract text via MedVision NLP.</p>
-                    </div>
-                </div>
+
 
                 <button
                     class="w-full bg-primary text-on-primary py-4 rounded-xl font-black text-lg shadow-lg dark:shadow-xl shadow-primary/20 dark:shadow-white/5 hover:shadow-primary/40 dark:hover:shadow-none hover:brightness-105 dark:hover:brightness-90 active:scale-[0.98] transition-all flex items-center justify-center gap-3"
@@ -309,25 +297,7 @@
                         </div>
 
                         <!-- Data Table & Explanation -->
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                            <div class="flex flex-col gap-4">
-                                <h3 class="text-sm font-label uppercase tracking-widest text-outline mb-2">Word Attributions</h3>
-                                <div class="overflow-x-auto border border-outline-variant/50 rounded-xl">
-                                    <table class="w-full text-sm text-left">
-                                        <thead class="text-xs text-on-surface uppercase bg-surface-container">
-                                            <tr>
-                                                <th scope="col" class="px-6 py-3">Word</th>
-                                                <th scope="col" class="px-6 py-3">Attribution</th>
-                                                <th scope="col" class="px-6 py-3">Influence</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="entity-table-body" class="divide-y divide-outline-variant/30">
-                                            <!-- JS inserts rows here -->
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                            
+                        <div class="grid grid-cols-1 md:grid-cols-1 gap-8">
                             <div id="breakdown-container" class="flex flex-col gap-4">
                                 <h3 class="text-sm font-label uppercase tracking-widest text-outline mb-2">Classification Summary</h3>
                                 <div class="text-on-surface-variant leading-relaxed p-6 bg-surface-container-high rounded-xl italic border-l-4 border-primary shadow-sm"
@@ -414,13 +384,46 @@
                 <h3 class="text-2xl font-black shrink" id="modalTitle">Model Architecture</h3>
                 <select id="modalModelSelect"
                     class="shrink-0 min-w-[160px] bg-surface border border-outline-variant rounded-lg text-sm p-2 pr-8 text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none cursor-pointer">
-                    <option value="fast">Tesseract OCR Pipeline</option>
                     <option value="accurate">Bio_ClinicalBERT Classifier</option>
+                    <option value="fast">RAG Knowledge Pipeline</option>
                 </select>
             </div>
             <div class="flex flex-col gap-4 overflow-y-auto pr-4 pb-2" id="modalBody">
                 <!-- Content Injected Here -->
             </div>
+        </div>
+    </div>
+
+    <!-- Floating Chat Assistant -->
+    <button id="chat-fab" class="fixed bottom-6 right-6 w-14 h-14 bg-primary text-on-primary rounded-full shadow-lg flex items-center justify-center hover:scale-110 transition-transform z-40" aria-label="Open Chat Assistant">
+        <span class="material-symbols-outlined" data-icon="forum">forum</span>
+    </button>
+
+    <div id="chat-panel" class="fixed top-0 right-0 h-full w-full sm:w-[400px] bg-surface border-l border-outline-variant/30 shadow-2xl z-50 transform translate-x-full transition-transform duration-300 flex flex-col">
+        <div class="p-4 border-b border-outline-variant/30 flex justify-between items-center bg-surface-container-low">
+            <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary" data-icon="smart_toy">smart_toy</span>
+                <h3 class="font-bold text-lg">Medical Assistant</h3>
+            </div>
+            <button id="close-chat-btn" class="p-2 hover:bg-surface-container rounded-full text-outline transition-all active:scale-95">
+                <span class="material-symbols-outlined" data-icon="close">close</span>
+            </button>
+        </div>
+        
+        <div id="chat-messages" class="flex-1 overflow-y-auto p-4 flex flex-col gap-4 bg-surface">
+            <!-- Initial Greeting -->
+            <div class="self-start max-w-[85%] bg-surface-container rounded-2xl rounded-tl-sm p-3 shadow-sm border border-outline-variant/20">
+                <p class="text-sm text-on-surface">Hello! I'm your Medical AI Assistant. Ask me about clinical guidelines, medical abbreviations, or drug information.</p>
+            </div>
+        </div>
+
+        <div class="p-4 border-t border-outline-variant/30 bg-surface-container-low">
+            <form id="chat-form" class="flex gap-2 relative">
+                <input type="text" id="chat-input" class="w-full bg-surface border border-outline-variant rounded-full py-2 pl-4 pr-12 text-sm focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-all" placeholder="Ask a question..." autocomplete="off">
+                <button type="submit" id="chat-submit-btn" class="absolute right-1 top-1 bottom-1 w-8 h-8 flex items-center justify-center bg-primary text-on-primary rounded-full hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                    <span class="material-symbols-outlined text-[18px]" data-icon="send">send</span>
+                </button>
+            </form>
         </div>
     </div>
 
