@@ -178,7 +178,7 @@ class ModelService:
         
         return extracted_text, specialty, conf, attributions
 
-    def predict_with_rag(self, text: str) -> tuple[str, float, list[WordAttribution], RAGResponse]:
+    async def predict_with_rag(self, text: str) -> tuple[str, float, list[WordAttribution], RAGResponse]:
         """
         Extracts clinical specialty from text and then uses the RAG + LLM to answer the clinical text.
         """
@@ -186,7 +186,7 @@ class ModelService:
         specialty, conf, attributions = self.extract_from_text(text)
         
         # 2. RAG Generation
-        rag_response = llm_service.generate_rag_response(text, specialty=specialty)
+        rag_response = await llm_service.generate_rag_response(text, specialty=specialty)
         
         return specialty, conf, attributions, rag_response
 

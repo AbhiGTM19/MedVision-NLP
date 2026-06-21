@@ -1,7 +1,7 @@
 import os
 
 from fastapi import APIRouter, File, HTTPException, Response, UploadFile
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, StreamingResponse
 
 from core.config import BASE_DIR
 from schemas.predict import ChatRequest, PredictionRequest, PredictionResponse, PredictionRAGResponse
@@ -34,6 +34,9 @@ def predict(request: PredictionRequest):
     """
     Predicts medical specialty from raw clinical text and provides XAI word attributions.
     """
+    if not request.text or len(request.text.strip()) < 10:
+        raise HTTPException(status_code=400, detail="Input text is too short to be meaningful clinical text.")
+
     try:
         specialty, confidence, word_attributions = model_service.extract_from_text(request.text)
         return PredictionResponse(
@@ -46,12 +49,15 @@ def predict(request: PredictionRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/predict-rag", response_model=PredictionRAGResponse)
-def predict_rag(request: PredictionRequest):
+async def predict_rag(request: PredictionRequest):
     """
     Predicts medical specialty from raw clinical text, provides XAI word attributions, and returns a RAG response.
     """
+    if not request.text or len(request.text.strip()) < 10:
+        raise HTTPException(status_code=400, detail="Input text is too short to be meaningful clinical text.")
+
     try:
-        specialty, confidence, word_attributions, rag_response = model_service.predict_with_rag(request.text)
+        specialty, confidence, word_attributions, rag_response = await model_service.predict_with_rag(request.text)
         return PredictionRAGResponse(
             specialty=specialty,
             confidence=confidence,
@@ -63,15 +69,17 @@ def predict_rag(request: PredictionRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/chat")
-def chat(request: ChatRequest):
+async def chat(request: ChatRequest):
     """
     Interactive chat using LLM and clinical context.
     """
-    try:
-        response_text = llm_service.generate_chat_response(request.messages)
-        return {"response": response_text}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    if not request.messages:
+        raise HTTPException(status_code=400, detail="Chat messages cannot be empty.")
+
+    return StreamingResponse(
+        llm_service.generate_chat_response_stream(request.messages),
+        media_type="text/event-stream"
+    )
 
 @router.post("/predict-image", response_model=PredictionResponse)
 async def predict_image(response: Response, file: UploadFile = File(...)):

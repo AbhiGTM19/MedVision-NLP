@@ -227,7 +227,7 @@ document.addEventListener("DOMContentLoaded", () => {
         
         // 4. RAG Response
         if (data.rag_response) {
-            let ragHtml = `<p>${data.rag_response.answer}</p>`;
+            let ragHtml = marked.parse(data.rag_response.answer);
             if (data.rag_response.sources && data.rag_response.sources.length > 0) {
                 ragHtml += `<div class="mt-4 text-xs text-outline font-label uppercase tracking-widest">Sources: ${data.rag_response.sources.join(', ')}</div>`;
             }
@@ -288,7 +288,7 @@ document.addEventListener("DOMContentLoaded", () => {
     function appendChatMessage(role, text) {
         const div = document.createElement('div');
         div.className = `max-w-[85%] p-3 shadow-sm border ${role === 'user' ? 'self-end bg-primary text-on-primary rounded-2xl rounded-tr-sm border-primary' : 'self-start bg-surface-container rounded-2xl rounded-tl-sm border-outline-variant/20 text-on-surface'}`;
-        div.innerHTML = `<p class="text-sm">${text}</p>`;
+        div.innerHTML = `<div class="text-sm">${marked.parse(text)}</div>`;
         chatMessages.appendChild(div);
         chatMessages.scrollTop = chatMessages.scrollHeight;
     }
@@ -323,17 +323,57 @@ document.addEventListener("DOMContentLoaded", () => {
             });
 
             if (!response.ok) throw new Error('Chat API failed');
-            const data = await response.json();
             
             // Remove loading
             document.getElementById('chat-loading').remove();
             
-            // Add assistant message
-            appendChatMessage('assistant', data.response);
-            chatHistory.push({ role: 'assistant', content: data.response });
+            // Create a new message div for assistant
+            const div = document.createElement('div');
+            div.className = `self-start max-w-[85%] bg-surface-container rounded-2xl rounded-tl-sm p-3 shadow-sm border border-outline-variant/20 text-on-surface`;
+            const contentDiv = document.createElement('div');
+            contentDiv.className = "text-sm";
+            div.appendChild(contentDiv);
+            chatMessages.appendChild(div);
+            
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder('utf-8');
+            let assistantMessage = "";
+            let buffer = "";
+            
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                
+                buffer += decoder.decode(value, {stream: true});
+                let lines = buffer.split('\n\n');
+                
+                // The last element might be incomplete, so keep it in buffer
+                buffer = lines.pop() || "";
+                
+                for (const line of lines) {
+                    if (line.startsWith('data: ')) {
+                        const dataStr = line.substring(6);
+                        try {
+                            const data = JSON.parse(dataStr);
+                            if (data.error) {
+                                assistantMessage += `\nError: ${data.error}`;
+                            } else if (data.text) {
+                                assistantMessage += data.text;
+                            }
+                            contentDiv.innerHTML = marked.parse(assistantMessage);
+                            chatMessages.scrollTop = chatMessages.scrollHeight;
+                        } catch (e) {
+                            console.error("JSON parse error for SSE chunk", e);
+                        }
+                    }
+                }
+            }
+            
+            chatHistory.push({ role: 'assistant', content: assistantMessage });
             
         } catch (error) {
-            document.getElementById('chat-loading').remove();
+            const loadingNode = document.getElementById('chat-loading');
+            if (loadingNode) loadingNode.remove();
             appendChatMessage('assistant', `Error: ${error.message}`);
         } finally {
             chatInput.disabled = false;

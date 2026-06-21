@@ -43,3 +43,4 @@ requests
 
 # LLM Integration
 google-genai
+langchain-text-splitters

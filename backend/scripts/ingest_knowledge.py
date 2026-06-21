@@ -2,18 +2,24 @@ import json
 import os
 import sys
 import requests
+import logging
 from pathlib import Path
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 # Add backend directory to path
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 
 from services.knowledge_service import knowledge_service
 
+# Configure basic logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
+
 DATA_DIR = Path(__file__).resolve().parent.parent / "data" / "knowledge"
 
 def fetch_openfda_drugs(limit=20):
     """Fetch a sample of drug labels from OpenFDA"""
-    print(f"Fetching {limit} drug labels from OpenFDA...")
+    logger.info(f"Fetching {limit} drug labels from OpenFDA...")
     url = f"https://api.fda.gov/drug/label.json?limit={limit}"
     
     try:
@@ -40,23 +46,22 @@ def fetch_openfda_drugs(limit=20):
                         "specialty": "General" # We could try to map this better
                     }
                 })
-        print(f"Successfully fetched {len(drugs)} drug records.")
+        logger.info(f"Successfully fetched {len(drugs)} drug records.")
         return drugs
     except Exception as e:
-        print(f"Error fetching from OpenFDA: {e}")
+        logger.error(f"Error fetching from OpenFDA: {e}")
         return []
 
 def ingest_abbreviations():
     abbv_file = DATA_DIR / "abbreviations.json"
     if not abbv_file.exists():
-        print("Abbreviations file not found.")
+        logger.warning("Abbreviations file not found.")
         return []
         
     with open(abbv_file, "r") as f:
         data = json.load(f)
         
     documents = []
-    # We group abbreviations into chunks of 10 to avoid too many small documents
     items = list(data.items())
     chunk_size = 10
     
@@ -71,14 +76,21 @@ def ingest_abbreviations():
                 "specialty": "General"
             }
         })
-    print(f"Processed {len(documents)} abbreviation chunks.")
+    logger.info(f"Processed {len(documents)} abbreviation chunks.")
     return documents
 
 def ingest_guidelines():
     specialties_dir = DATA_DIR / "specialties"
     if not specialties_dir.exists():
-        print("Specialties directory not found.")
+        logger.warning("Specialties directory not found.")
         return []
+        
+    text_splitter = RecursiveCharacterTextSplitter(
+        chunk_size=1000,
+        chunk_overlap=200,
+        length_function=len,
+        is_separator_regex=False,
+    )
         
     documents = []
     for file_path in specialties_dir.glob("*.md"):
@@ -86,41 +98,26 @@ def ingest_guidelines():
         with open(file_path, "r") as f:
             content = f.read()
             
-        # For simplicity, we chunk by H2 headings (##)
-        sections = content.split("\n## ")
+        chunks = text_splitter.split_text(content)
         
-        # The first chunk might just be the title
-        if sections:
-            intro = sections[0].strip()
-            if intro:
-                documents.append({
-                    "content": intro,
-                    "metadata": {
-                        "source": f"Local Guidelines - {specialty_name}",
-                        "document_type": "guideline",
-                        "specialty": specialty_name
-                    }
-                })
-                
-            for section in sections[1:]:
-                section_content = "## " + section.strip()
-                documents.append({
-                    "content": section_content,
-                    "metadata": {
-                        "source": f"Local Guidelines - {specialty_name}",
-                        "document_type": "guideline",
-                        "specialty": specialty_name
-                    }
-                })
-    print(f"Processed {len(documents)} guideline sections.")
+        for chunk in chunks:
+            documents.append({
+                "content": chunk,
+                "metadata": {
+                    "source": f"Local Guidelines - {specialty_name}",
+                    "document_type": "guideline",
+                    "specialty": specialty_name
+                }
+            })
+    logger.info(f"Processed {len(documents)} guideline chunks using RecursiveCharacterTextSplitter.")
     return documents
 
 def main():
     if not knowledge_service.collection:
-        print("KnowledgeService failed to initialize. Cannot ingest.")
+        logger.error("KnowledgeService failed to initialize. Cannot ingest.")
         return
         
-    print("Starting Knowledge Ingestion...")
+    logger.info("Starting Knowledge Ingestion...")
     all_docs = []
     
     all_docs.extend(fetch_openfda_drugs())
@@ -128,10 +125,10 @@ def main():
     all_docs.extend(ingest_guidelines())
     
     if not all_docs:
-        print("No documents to ingest.")
+        logger.warning("No documents to ingest.")
         return
         
-    print(f"Ingesting {len(all_docs)} documents into ChromaDB...")
+    logger.info(f"Ingesting {len(all_docs)} documents into ChromaDB...")
     
     texts = [doc["content"] for doc in all_docs]
     metadatas = [doc["metadata"] for doc in all_docs]
@@ -143,8 +140,8 @@ def main():
         ids=ids
     )
     
-    print("Ingestion complete!")
-    print(f"Total documents in DB: {knowledge_service.collection.count()}")
+    logger.info("Ingestion complete!")
+    logger.info(f"Total documents in DB: {knowledge_service.collection.count()}")
 
 if __name__ == "__main__":
     main()

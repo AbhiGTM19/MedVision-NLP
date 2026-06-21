@@ -1,9 +1,12 @@
 import os
 from pathlib import Path
+import logging
 import chromadb
 import chromadb.utils.embedding_functions as embedding_functions
 
 from schemas.knowledge import RetrievedChunk
+
+logger = logging.getLogger(__name__)
 
 CHROMA_DB_PATH = Path(__file__).resolve().parent.parent / "data" / "chroma_db"
 
@@ -25,12 +28,13 @@ class KnowledgeService:
                 name="medical_knowledge",
                 embedding_function=emb_fn
             )
-            print("ChromaDB initialized successfully.")
+            logger.info("ChromaDB initialized successfully.")
         except Exception as e:
-            print(f"Failed to initialize ChromaDB: {e}")
+            logger.error(f"Failed to initialize ChromaDB: {e}", exc_info=True)
 
     def retrieve_context(self, query_text: str, specialty: str | None = None, top_k: int = 5) -> list[RetrievedChunk]:
         if not self.collection:
+            logger.warning("Retrieval attempted but ChromaDB collection is not initialized.")
             return []
             
         # We rely on semantic search instead of exact match metadata filtering 
@@ -61,7 +65,7 @@ class KnowledgeService:
                     ))
             return chunks
         except Exception as e:
-            print(f"Retrieval failed: {e}")
+            logger.error(f"Retrieval failed: {e}", exc_info=True)
             return []
 
 knowledge_service = KnowledgeService()

@@ -70,7 +70,7 @@ def test_predict_massive_text():
 
 def test_predict_rag_mocked(monkeypatch):
     from schemas.predict import RAGResponse
-    def mock_predict_with_rag(text):
+    async def mock_predict_with_rag(text):
         rag_response = RAGResponse(answer="Mock RAG Answer", sources=["Source A"])
         return "Neurology", 0.99, [WordAttribution(word="Aspirin", score=0.85)], rag_response
 
@@ -85,12 +85,11 @@ def test_predict_rag_mocked(monkeypatch):
 
 def test_chat_mocked(monkeypatch):
     from services.llm_service import llm_service
-    def mock_generate_chat(messages):
-        return "Hello from mock assistant"
+    async def mock_generate_chat(messages):
+        yield "data: {\"text\": \"Hello from mock assistant\"}\n\n"
 
-    monkeypatch.setattr(llm_service, "generate_chat_response", mock_generate_chat)
+    monkeypatch.setattr(llm_service, "generate_chat_response_stream", mock_generate_chat)
 
     response = client.post("/chat", json={"messages": [{"role": "user", "content": "Hi"}]})
     assert response.status_code == 200
-    data = response.json()
-    assert data["response"] == "Hello from mock assistant"
+    assert "Hello from mock assistant" in response.text
