@@ -34,15 +34,15 @@ MedVision-NLP/
 │   │   │   │   └── SKILL_STATE.json
 │   │   │   └── design-system/
 │   │   │       ├── SKILL.md
-│   │   │       └── SKILL_STATE.json
+│   │   │       ├── SKILL_STATE.json
+│   │   │       └── animation-vocabulary.md
 │   │   ├── Lead_ML_Backend/
 │   │   │   ├── inference-server/
 │   │   │   │   ├── SKILL.md
 │   │   │   │   └── SKILL_STATE.json
 │   │   │   └── model-trainer/
 │   │   │       ├── SKILL.md
-│   │   │       ├── SKILL_STATE.json
-│   │   │       └── ablation_study.md
+│   │   │       └── SKILL_STATE.json
 │   │   └── Lead_DevOps/
 │   │       ├── SKILL.md
 │   │       └── SKILL_STATE.json
@@ -67,10 +67,10 @@ All agents must adhere to the rules defined in `.agent/rules/`:
 ## The Handoff Contract
 
 The root-level `HANDOFF_SCHEMA.json` is the **immutable boundary contract** between the backend and frontend. It specifies:
-- **API Endpoints:** `POST /predict`, `GET /health`, `GET /model-info`
-- **Input Schema:** `PredictionRequest { review: string, model_choice: string }`
-- **Output Schema:** `PredictionResponse { prediction, confidence, verdict, word_importances, model_used, error }`
-- **Model Artifacts:** SGDClassifier (`models/clinical_text_classifier.pkl`) and DistilBERT (`models/distilbert/`)
+- **API Endpoints:** `POST /predict`, `POST /predict-image`, `POST /predict-rag`, `POST /chat`, `GET /health`
+- **Input Schema:** `PredictionRequest { text: string }`
+- **Output Schema:** `PredictionResponse { specialty: string, confidence: float, extracted_text: Optional[string], word_attributions: List[WordAttribution], rag_response: Optional[RAGResponse] }`
+- **Model Artifacts:** Sequence Classification via Bio_ClinicalBERT.
 
 Any agent modifying schemas or API routes **must** update `HANDOFF_SCHEMA.json` and run `/sync-pass`.
 
@@ -78,7 +78,7 @@ Any agent modifying schemas or API routes **must** update `HANDOFF_SCHEMA.json` 
 
 ### 1. Integration QA Specialist
 **SKILL:** `.agent/skills/Integration_QA/SKILL.md`
-**Mission:** Test system boundaries, verify authorized file modifications, and detect schema/DTO drift.
+**Mission:** Test system boundaries, verify authorized file modifications, and detect schema/DTO drift across XAI DOM boundaries and API contracts.
 **Scripts:**
 - `scripts/surgical_audit.py` — Parses Git diffs for XML-strict compliance and 3-file atomicity.
 - `scripts/project_sync_audit.py` — Validates `schemas/` ↔ `templates/` parity.
@@ -91,12 +91,12 @@ Any agent modifying schemas or API routes **must** update `HANDOFF_SCHEMA.json` 
 #### 2a. Core Architecture
 **SKILL:** `.agent/skills/Lead_Frontend/core-architecture/SKILL.md`
 **Owns:** `templates/`, `static/script.js`
-**Key Constraint:** Forms must submit `review` and `model_choice` (not `review_text`) — see `HANDOFF_SCHEMA.json`.
+**Key Constraint:** The UI must correctly parse the `word_attributions` array and inject Captum XAI feature attribution highlights dynamically into the DOM.
 
 #### 2b. Design System
 **SKILL:** `.agent/skills/Lead_Frontend/design-system/SKILL.md`
 **Owns:** `static/input.pcss`, `tailwind.config.js`, `static/styles.css`
-**Key Constraint:** Run `npm run build:css` after every style change.
+**Key Constraint:** Run `npm run build:css` after every style change. Ensure styling adheres to the ambient medical/clinical amber aesthetic.
 
 ---
 
@@ -104,8 +104,8 @@ Any agent modifying schemas or API routes **must** update `HANDOFF_SCHEMA.json` 
 
 #### 3a. Inference Server
 **SKILL:** `.agent/skills/Lead_ML_Backend/inference-server/SKILL.md`
-**Owns:** `main.py`, `api/routes.py`, `schemas/predict.py`, `services/model_service.py`
-**Key Constraint:** Models are loaded eagerly via the singleton `ModelService()` — never per-request.
+**Owns:** `main.py`, `api/routes.py`, `schemas/predict.py`, `services/model_service.py`, `services/knowledge_service.py`, `services/llm_service.py`
+**Key Constraint:** Models (Bio_ClinicalBERT), Embeddings (ChromaDB), and GenAI clients (Gemini) are loaded eagerly via singleton services — never per-request.
 
 #### 3b. Model Trainer
 **SKILL:** `.agent/skills/Lead_ML_Backend/model-trainer/SKILL.md`
@@ -117,7 +117,7 @@ Any agent modifying schemas or API routes **must** update `HANDOFF_SCHEMA.json` 
 ### 4. Lead DevOps
 **SKILL:** `.agent/skills/Lead_DevOps/SKILL.md`
 **Owns:** `Dockerfile`, `.dockerignore`, `.github/workflows/`, `requirements.txt`
-**Key Constraint:** Multi-stage Docker builds, no `latest` tags, CPU-only PyTorch wheels for Render.
+**Key Constraint:** Multi-stage Docker builds, no `latest` tags, CPU-only PyTorch wheels for cost-effective deployments.
 
 ## Workflows (Slash Commands)
 
