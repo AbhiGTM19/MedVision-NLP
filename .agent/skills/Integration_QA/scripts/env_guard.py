@@ -13,8 +13,8 @@ def check_env():
     errors = 0
 
     required_files = [
-        "requirements.txt",
-        "pyproject.toml",
+        "backend/requirements.txt",
+        "backend/pyproject.toml",
         "Dockerfile",
         ".dockerignore",
         "HANDOFF_SCHEMA.json",
@@ -22,6 +22,8 @@ def check_env():
         "backend/schemas/predict.py",
         "backend/api/routes.py",
         "backend/services/model_service.py",
+        "backend/services/knowledge_service.py",
+        "backend/services/llm_service.py",
         "backend/core/config.py",
     ]
 

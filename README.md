@@ -7,47 +7,45 @@ sdk: docker
 app_port: 7860
 ---
 
-# MedVision NLP: Healthcare NLP Pipeline
+# MedVision NLP: Medical Specialty Classification & AI Assistant
 
 [![Language](https://img.shields.io/badge/Language-Python-3776AB?style=for-the-badge&logo=python)](https://www.python.org/)
 [![Framework](https://img.shields.io/badge/Framework-FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![MLOps](https://img.shields.io/badge/MLOps-MLflow-000?style=for-the-badge&logo=m&logoColor=F0523A)](https://mlflow.org/)
 [![Data](https://img.shields.io/badge/Dataset-MTSamples-2196F3?style=for-the-badge&logo=huggingface)](https://huggingface.co/datasets/tchebonenko/MedicalTranscriptions)
 
-A full-stack web application that performs Clinical Token-Level Named Entity Recognition (NER) on raw medical texts and prescription images. This project demonstrates end-to-end MLOps, from dataset preparation and model inference to Explainable AI (XAI) UI rendering and containerized deployment.
+A full-stack web application that performs **Medical Specialty Classification** on raw clinical texts and prescription images. This project demonstrates end-to-end MLOps and advanced generative AI integrations, from dataset preparation and model inference to Explainable AI (XAI) UI rendering, RAG-augmented chatbot capabilities, and containerized deployment.
 
 ---
 
 ## 🌟 Architecture & Skills Highlighted
 
-This project serves as a comprehensive portfolio piece demonstrating modern, production-ready software and machine learning engineering practices in the **Healthcare NLP** domain.
+This project serves as a comprehensive portfolio piece demonstrating modern, production-ready software, machine learning, and AI engineering practices in the **Healthcare NLP** domain.
 
 ### 🧠 Machine Learning & MLOps
--   **DualStreamFusionNER**: A dual-modality pipeline combining **Bio_ClinicalBERT** (for semantic clinical text token classification) and **EasyOCR** (for spatial extraction of text from prescription images).
--   **Explainable AI (XAI)**: Features transparent predictions by extracting token-level bounding boxes and dynamically highlighting the parsed `PROBLEM`, `TREATMENT`, `TEST`, and `MEDICATION` tags directly in the user interface.
--   **Experiment Tracking**: Managed hyperparameters and model lifecycle metrics using **MLflow** tracked in a local SQLite database (`mlruns.db`).
--   **Data Monitoring**: Integrated **Evidently AI** for monitoring medical note length drift, confidence score distributions, and dataset statistics.
+-   **Medical Specialty Classification**: A robust sequence classification pipeline powered by **Bio_ClinicalBERT**, fine-tuned to categorize unstructured clinical text into specific medical specialties (e.g., Cardiology, Neurology).
+-   **Explainable AI (XAI)**: Features highly transparent predictions using **PyTorch Captum** (Integrated Gradients) to calculate word-level feature attributions, dynamically highlighting influential tokens directly in the user interface.
+-   **Retrieval-Augmented Generation (RAG)**: Integrates **ChromaDB** for semantic search across clinical guidelines, allowing the AI to base its responses on grounded, domain-specific context.
+-   **Conversational AI Assistant**: Uses the **Google Gemini 2.5 Flash** LLM for streaming, context-aware chat interactions and summarizing complex medical text for end users.
+-   **OCR Integration**: Utilizes **EasyOCR** for spatial extraction of text from uploaded prescription images prior to downstream classification.
 
 ### ⚙️ Software Engineering (Backend)
 -   **Modern API Framework**: Built a highly performant, asynchronous API gateway using **FastAPI** and **Uvicorn** (ASGI).
--   **Singleton Services**: Models are eagerly loaded at startup via centralized singletons (`ModelService` and `OCRService`) to ensure high-throughput zero-latency requests.
+-   **Singleton Services**: Models and embeddings are eagerly loaded at startup via centralized singletons (`ModelService`, `OCRService`, `KnowledgeService`, `LLMService`) to ensure zero-latency inference requests.
 -   **Type Safety**: Enforced strict data validation and serialization using **Pydantic** schema boundaries.
 
 ### 🎨 Frontend Engineering
 -   **Vanilla JS & TailwindCSS**: Built a highly responsive Single Page Application (SPA).
--   **Modern UI/UX**: Implemented a healthcare-themed design using elegant Glassmorphism aesthetics, dynamic DOM manipulation for XAI entity tag injection, and CSS micro-animations.
--   **Dual Input Routing**: The frontend seamlessly switches between processing raw clinical text (`/predict`) and multipart `FormData` image uploads (`/predict-image`).
+-   **Modern UI/UX**: Implemented a healthcare-themed design using elegant Glassmorphism aesthetics, clinical amber color schemes, dynamic DOM manipulation for XAI attribution highlighting, and micro-animations.
+-   **Multi-Modal Routing**: The UI seamlessly handles raw text submission, multipart `FormData` image uploads, and SSE (Server-Sent Events) for real-time chatbot streaming.
 
 ### 🛡️ Deep Auditing & Security
--   **Strict Boundary Validation**: Maintained precise `HANDOFF_SCHEMA.json` rules verified by custom continuous integration auditing scripts (`validate_all.py`).
--   **OWASP Compliance**: Enforced strict request limits (`max_length=5000`) and rigorous input sanitization.
+-   **Strict Boundary Validation**: Maintained precise `HANDOFF_SCHEMA.json` rules verified by custom continuous integration auditing scripts.
 -   **Type Safety**: 100% strict Python type hinting enforced across the backend.
 
 ### 🚀 DevOps & CI/CD
--   **Containerization**: Built highly optimized **Docker** images ensuring all OpenCV dependencies (`libgl1-mesa-glx`) and PyTorch CPU-only wheels are correctly resolved for efficient cloud deployments (e.g. Hugging Face Spaces).
--   **Continuous Integration**: Automated testing and linting pipelines via **GitHub Actions**.
--   **DVC Pipeline**: Reproducible training and evaluation tracking via **Data Version Control** (`dvc repro`).
--   **Testing**: Test-Driven Development (TDD) using **Pytest** with comprehensive mocking of ML services to ensure robust API contracts without demanding heavy ML weights.
+-   **Containerization**: Built highly optimized **Docker** images ensuring all dependencies (e.g., `libgl1-mesa-glx`) and PyTorch wheels are correctly resolved for efficient cloud deployments.
+-   **Automated Testing**: Test-Driven Development (TDD) using **Pytest** with comprehensive mocking of ML services to ensure robust API contracts.
 
 ---
 
@@ -55,7 +53,7 @@ This project serves as a comprehensive portfolio piece demonstrating modern, pro
 
 ### Prerequisites
 
--   Python 3.14 (recommended to manage with `pyenv`)
+-   Python 3.10+ (recommended to manage with `pyenv`)
 -   Docker Desktop
 
 ### 1. Clone the Repository
@@ -68,10 +66,6 @@ cd MedVision-NLP
 ### 2. Set Up the Python Environment
 
 ```bash
-# Install and set the local Python version using pyenv
-pyenv install 3.14.4
-pyenv local 3.14.4
-
 # Create and activate a virtual environment
 python -m venv .venv
 source .venv/bin/activate
@@ -84,15 +78,10 @@ pip install --upgrade pip
 pip install -r backend/requirements.txt
 ```
 
-### 4. Training & Evaluation (Optional)
-
-Model training is conducted natively inside Jupyter Notebooks. Navigate to `backend/notebooks/kaggle_training.ipynb` to view or rerun the fine-tuning of the Bio_ClinicalBERT model on the MTSamples dataset.
-
-To run the full evaluation pipeline reproducibly using Data Version Control:
-
-```bash
-cd backend
-dvc repro
+### 4. Configure Environment Variables
+Create a `.env` file in the `backend/` directory:
+```env
+GOOGLE_API_KEY=your_gemini_api_key
 ```
 
 ### 5. Run the Application
@@ -118,7 +107,7 @@ docker build -t <your-dockerhub-username>/medvision-nlp .
 ### 2. Run the Container Locally
 
 ```bash
-docker run -p 7860:7860 <your-dockerhub-username>/medvision-nlp
+docker run -p 7860:7860 --env GOOGLE_API_KEY=your_gemini_api_key <your-dockerhub-username>/medvision-nlp
 ```
 
 The application will be available at `http://localhost:7860`.
@@ -128,50 +117,43 @@ The application will be available at `http://localhost:7860`.
 ## API Endpoints
 
 ### `/predict`
-
 -   **Method**: `POST`
--   **Description**: Evaluates raw clinical text via Bio_ClinicalBERT.
--   **Body**: 
-    ```json
-    { 
-      "text": "Patient was prescribed 50mg of Aspirin for mild chest pain."
-    }
-    ```
+-   **Description**: Evaluates raw clinical text via Bio_ClinicalBERT for specialty classification.
 -   **Response**:
     ```json
     {
-      "entities": [
-        {
-          "word": "Aspirin",
-          "tag": "B-MEDICATIONS",
-          "confidence": 0.985
-        },
-        {
-          "word": "chest pain",
-          "tag": "B-PROBLEM",
-          "confidence": 0.921
-        }
+      "specialty": "Cardiology",
+      "confidence": 0.985,
+      "word_attributions": [
+        { "word": "chest", "score": 0.45 },
+        { "word": "pain", "score": 0.52 }
       ]
     }
     ```
 
 ### `/predict-image`
-
 -   **Method**: `POST`
--   **Description**: Evaluates prescription images using EasyOCR spatial extraction followed by Bio_ClinicalBERT token classification.
--   **Body**: `multipart/form-data` with a single `file` field containing the image.
--   **Response**: Same as `/predict`, returning a JSON array of parsed entities.
+-   **Description**: Evaluates prescription images using EasyOCR followed by Bio_ClinicalBERT classification.
+-   **Body**: `multipart/form-data` with a single `file` field.
+
+### `/predict-rag`
+-   **Method**: `POST`
+-   **Description**: Evaluates text via Bio_ClinicalBERT and additionally queries ChromaDB to generate a RAG-augmented summary using Gemini.
+-   **Response**: Includes standard classification data plus a `rag_response` object containing the generated `answer` and retrieved `sources`.
+
+### `/chat`
+-   **Method**: `POST`
+-   **Description**: A conversational endpoint that accepts a history of messages and streams responses (SSE) from the Gemini 2.5 Flash LLM.
 
 ### `/health`
-
 -   **Method**: `GET`
--   **Response**: Returns the operational status of the dual inference engines.
+-   **Description**: Returns the operational status of the inference engines, vector database, and LLM services.
 
 ---
 
 ## 📊 Dataset
 
-This project uses the **MTSamples Medical Transcription** dataset, a widely used benchmark for medical specialty and NER classification containing ~5,000 transcribed medical reports across 40+ specialties.
+This project uses the **MTSamples Medical Transcription** dataset, a widely used benchmark for medical specialty classification containing ~5,000 transcribed medical reports across 40+ specialties.
 
 -   **Source**: [Hugging Face - tchebonenko/MedicalTranscriptions](https://huggingface.co/datasets/tchebonenko/MedicalTranscriptions)
 -   **Original**: [mtsamples.com](https://mtsamples.com/)
