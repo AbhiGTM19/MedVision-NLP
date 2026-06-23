@@ -1,12 +1,15 @@
-import os
 
 from fastapi import APIRouter, File, HTTPException, Response, UploadFile
-from fastapi.responses import FileResponse, StreamingResponse
+from fastapi.responses import StreamingResponse
 
-from core.config import BASE_DIR
-from schemas.predict import ChatRequest, PredictionRequest, PredictionResponse, PredictionRAGResponse
-from services.model_service import model_service
+from schemas.predict import (
+    ChatRequest,
+    PredictionRAGResponse,
+    PredictionRequest,
+    PredictionResponse,
+)
 from services.llm_service import llm_service
+from services.model_service import model_service
 
 router = APIRouter()
 

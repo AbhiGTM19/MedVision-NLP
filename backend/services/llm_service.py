@@ -1,8 +1,9 @@
-import os
+import inspect
 import logging
+import os
+
 from google import genai
 from google.genai import types
-import inspect
 
 from core.config import settings
 from schemas.predict import ChatMessage, RAGResponse

@@ -1,6 +1,6 @@
-import os
-from pathlib import Path
 import logging
+from pathlib import Path
+
 import chromadb
 import chromadb.utils.embedding_functions as embedding_functions
 

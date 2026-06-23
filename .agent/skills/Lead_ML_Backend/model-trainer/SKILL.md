@@ -53,3 +53,6 @@ Output the following upon completion:
 
 ## Initial Acknowledgment
 "Backend Model Trainer rules acknowledged. Ready to train Sequence Classification models."
+
+## Critical Global Rule: Virtual Environment
+Always use the `.venv` inside the `backend` directory (`backend/.venv`) as the single source of truth. It is strictly forbidden to create a separate or any other venv other than the one present in the backend directory.

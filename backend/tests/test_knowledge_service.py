@@ -1,5 +1,5 @@
-import pytest
 from services.knowledge_service import knowledge_service
+
 
 def test_knowledge_service_initialized():
     assert knowledge_service.collection is not None

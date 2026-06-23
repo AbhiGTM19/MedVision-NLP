@@ -1,9 +1,9 @@
-import os
 import json
-import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
 from pathlib import Path
+
+import matplotlib.pyplot as plt
+import numpy as np
+import seaborn as sns
 
 # Paths
 BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent

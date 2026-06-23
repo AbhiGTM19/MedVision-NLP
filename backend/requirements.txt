@@ -44,3 +44,8 @@ requests
 # LLM Integration
 google-genai
 langchain-text-splitters
+
+# Development & Testing
+pytest
+pytest-asyncio
+ruff

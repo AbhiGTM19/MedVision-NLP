@@ -1,16 +1,17 @@
-import pytest
 from unittest.mock import MagicMock, patch
 
-from services.llm_service import LLMService
+import pytest
+
 from schemas.predict import ChatMessage
+from services.llm_service import LLMService
+
 
 @pytest.fixture
 def mock_llm_service():
-    with patch("services.llm_service.genai.Client") as mock_client:
+    with patch("services.llm_service.genai.Client"):
         with patch("services.llm_service.settings") as mock_settings:
             mock_settings.GOOGLE_API_KEY = "fake_key"
-            service = LLMService()
-            yield service
+            yield LLMService()
 
 @pytest.mark.asyncio
 async def test_generate_chat_response_stream_with_key(mock_llm_service):

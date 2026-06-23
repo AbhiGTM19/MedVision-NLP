@@ -1,9 +1,9 @@
 import json
-import os
-import sys
-import requests
 import logging
+import sys
 from pathlib import Path
+
+import requests
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 # Add backend directory to path

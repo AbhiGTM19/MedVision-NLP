@@ -25,9 +25,11 @@ jobs:
         pip install pytest httpx ruff
         
     - name: Lint with Ruff
+      working-directory: ./backend
       run: |
-        ruff check backend/
+        ruff check .
         
     - name: Run Tests with Pytest
+      working-directory: ./backend
       run: |
-        PYTHONPATH=backend pytest backend/tests/
+        PYTHONPATH=. pytest tests/

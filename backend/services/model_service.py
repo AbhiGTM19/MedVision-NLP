@@ -10,7 +10,7 @@ from PIL import Image
 from transformers import AutoConfig, AutoModelForSequenceClassification, AutoTokenizer
 
 from core.config import settings
-from schemas.predict import WordAttribution, RAGResponse
+from schemas.predict import RAGResponse, WordAttribution
 from services.llm_service import llm_service
 
 
