@@ -20,7 +20,7 @@ class LLMService:
             logger.info("LLMService initialized with Gemini client.")
         else:
             self.client = None
-            logger.warning("GOOGLE_API_KEY is not set. LLMService is disabled.")
+            logger.warning("GEMINI_API_KEY is not set. LLMService is disabled.")
 
     async def generate_rag_response(self, query: str, specialty: str | None = None) -> RAGResponse:
         if not self.client:

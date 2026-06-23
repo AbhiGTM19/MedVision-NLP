@@ -10,7 +10,7 @@ from services.llm_service import LLMService
 def mock_llm_service():
     with patch("services.llm_service.genai.Client"):
         with patch("services.llm_service.settings") as mock_settings:
-            mock_settings.GOOGLE_API_KEY = "fake_key"
+            mock_settings.GEMINI_API_KEY = "fake_key"
             yield LLMService()
 
 @pytest.mark.asyncio
@@ -57,7 +57,7 @@ async def test_generate_rag_response_with_key(mock_llm_service):
 async def test_llm_service_no_key():
     with patch("services.llm_service.os.getenv", return_value=None):
         with patch("services.llm_service.settings") as mock_settings:
-            mock_settings.GOOGLE_API_KEY = None
+            mock_settings.GEMINI_API_KEY = None
             service = LLMService()
             
             rag_resp = await service.generate_rag_response("test")

@@ -42,7 +42,7 @@ You are the **Inference Server Architect**. Your mission is to serve Medical Spe
 - **To Integration QA:** Ensure `backend/schemas/` align with the exact JSON expected by the Frontend, including `WordAttribution` array and `rag_response` schema.
 
 ## 8. Troubleshooting Decision Tree:
-- **Issue: ChromaDB / GenAI init Error** -> *Check:* Ensure `GOOGLE_API_KEY` is set in `.env`.
+- **Issue: ChromaDB / GenAI init Error** -> *Check:* Ensure `GEMINI_API_KEY` is set in `.env`.
 - **Issue: Inference timeout** -> *Check:* `ModelService._load_models()` in `backend/services/model_service.py` -> *Fix:* Ensure Hugging Face Hub download succeeds or `.pth` model files exist locally.
 
 ## 9. Strict Output Formats:
