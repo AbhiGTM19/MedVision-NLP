@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 class LLMService:
     def __init__(self):
-        self.api_key = settings.GOOGLE_API_KEY or os.getenv("GOOGLE_API_KEY")
+        self.api_key = settings.GEMINI_API_KEY or os.getenv("GEMINI_API_KEY")
         if self.api_key:
             self.client = genai.Client(api_key=self.api_key)
             self.model_id = "gemini-2.5-flash"
