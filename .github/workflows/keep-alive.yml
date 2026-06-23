@@ -1,0 +1,20 @@
+name: Keep Hugging Face Space Alive
+
+on:
+  schedule:
+    # Runs at minute 0 past every 12th hour (e.g., 00:00 and 12:00 UTC)
+    - cron: '0 */12 * * *'
+  workflow_dispatch: # Allows you to run this manually from the Actions tab
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Hugging Face Space
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          # Replace the URL below with the exact direct URL of your Hugging Face Space.
+          # We use `--fail` to get the actual exit code, but prevent the job from failing 
+          # completely on temporary timeouts by catching the error.
+          curl --fail -s "https://abhshkgtm19:$HF_TOKEN@huggingface.co/spaces/abhshkgtm19/MedVision" || echo "Ping executed."

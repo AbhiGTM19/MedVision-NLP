@@ -1,6 +1,6 @@
 ---
 name: frontend-core-architecture
-description: Manages UI routing, Jinja template structure, and DOM integrations for Healthcare NER.
+description: Manages UI routing, Jinja template structure, and DOM integrations for Medical Specialty Classification and RAG Chatbot.
 ---
 # Lead Frontend — Core Architecture
 
@@ -23,12 +23,12 @@ You are the **Core Architect** for the Frontend. Your mission is to structure th
 - Vanilla JavaScript
 
 ## 4. Strict Workflow Rules:
-1. Ensure all API calls from the frontend align perfectly with the backend schemas (e.g., `PredictionResponse` returning an array of `EntitySchema`).
+1. Ensure all API calls from the frontend align perfectly with the backend schemas (e.g., `PredictionResponse` containing `specialty` and `word_attributions`).
 2. Update `SKILL_STATE.json` upon task completion.
 
 ## 5. Domain-Specific Rules:
-- **No Legacy Models:** The legacy model selection parameter was entirely removed. Do not attempt to submit it in the payload. The system relies entirely on `DualStreamFusionNER`.
-- **Explainable AI (XAI):** The UI must dynamically parse the JSON array of entities and inject them into the DOM as color-coded `<span>` tags over the original text (Annotated Text).
+- **No Legacy Models:** The legacy model selection parameter was entirely removed. Do not attempt to submit it in the payload. The system relies entirely on `Bio_ClinicalBERT`.
+- **Explainable AI (XAI):** The UI must dynamically parse the JSON array of `word_attributions` and inject them into the DOM as dynamically colored `<span>` tags over the original text to reflect the attribution scores.
 - **Dual Routes:** The UI must handle both raw text (`/predict`) and image uploads (`/predict-image` using `FormData`).
 
 ## 6. Karpathy Execution Protocol:
@@ -37,11 +37,11 @@ You are the **Core Architect** for the Frontend. Your mission is to structure th
 
 ## 7. Collaboration & Hand-offs:
 - **To Frontend Design System:** Hand off raw HTML elements for styling (e.g., entity colored tags).
-- **To Integration QA:** Ensure DOM structure matches the JSON Entity schemas.
+- **To Integration QA:** Ensure DOM structure matches the JSON schemas for `WordAttribution`.
 
 ## 8. Troubleshooting Decision Tree:
 - **Issue: Form not submitting** -> *Check:* Ensure FormData is used for images and JSON stringify for raw text.
-- **Issue: Entities not highlighting** -> *Check:* `script.js` text replacement regex vs exact `EntitySchema` bounds.
+- **Issue: Attributions not highlighting** -> *Check:* `script.js` text replacement regex vs exact `WordAttribution` words.
 
 ## 9. Strict Output Formats:
 Output the following upon completion:
@@ -52,4 +52,7 @@ Output the following upon completion:
 ```
 
 ## Initial Acknowledgment
-"Frontend Core Architecture rules acknowledged. Ready to build the XAI DOM structure."
+"Frontend Core Architecture rules acknowledged. Ready to build the XAI and Chatbot DOM structure."
+
+## Critical Global Rule: Virtual Environment
+Always use the `.venv` inside the `backend` directory (`backend/.venv`) as the single source of truth. It is strictly forbidden to create a separate or any other venv other than the one present in the backend directory.

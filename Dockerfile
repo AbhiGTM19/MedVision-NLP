@@ -13,12 +13,14 @@ RUN pip install --upgrade pip && \
 # This stage creates the final, lean production image
 FROM python:3.11-slim
 
-
-# Install Tesseract OCR
-RUN apt-get update && apt-get install -y tesseract-ocr && rm -rf /var/lib/apt/lists/*
-
 # Hugging Face Spaces specifically requires the app to run as user 1000
 RUN useradd -m -u 1000 appuser
+
+# Install system dependencies (sqlite3 required for chromadb)
+RUN apt-get update && apt-get install -y \
+    sqlite3 \
+    libsqlite3-dev \
+    && rm -rf /var/lib/apt/lists/*
 
 # Set the working directory
 WORKDIR /home/appuser/app

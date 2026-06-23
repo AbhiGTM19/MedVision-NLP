@@ -8,7 +8,7 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build:css": "tailwindcss -i ./static/input.pcss -o ./static/styles.css --minify"
+    "build:css": "tailwindcss -i ./static/css/input.pcss -o ./static/css/styles.css --minify"
   },
   "repository": {
     "type": "git",

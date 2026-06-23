@@ -1,11 +1,13 @@
 {
-  "handoff_id": "SYNC_HEALTHCARE_NER",
+  "handoff_id": "SYNC_MEDICAL_CLASSIFICATION",
   "source_role": "Integration QA Specialist",
   "target_roles": ["Lead ML/Backend Engineer", "Lead Frontend Engineer"],
   "payload": {
     "api_endpoints": {
       "predict": "/predict",
       "predict_image": "/predict-image",
+      "predict_rag": "/predict-rag",
+      "chat": "/chat",
       "health": "/health",
       "metrics": "/metrics",
       "monitoring": "/monitoring"
@@ -16,31 +18,35 @@
       },
       "ImageUpload": {
         "file": "UploadFile (FormData, required image file)"
+      },
+      "ChatRequest": {
+        "messages": "List[{role: 'user' | 'assistant', content: string}]"
       }
     },
     "output_schema": {
       "PredictionResponse": {
-        "entities": [
+        "specialty": "string",
+        "confidence": "float",
+        "word_attributions": [
           {
-            "word": "string (e.g. 'Aspirin')",
-            "tag": "string (e.g. 'MEDICATION')",
-            "confidence": "float",
-            "start": "int (optional)",
-            "end": "int (optional)"
+            "word": "string",
+            "score": "float"
           }
-        ]
+        ],
+        "extracted_text": "string (optional)",
+        "error": "string (optional)"
       }
     },
     "models": {
-      "DualStreamFusionNER": {
-        "type": "Bio_ClinicalBERT + EasyOCR",
-        "model_path": "backend/models/saved_weights/dual_stream_ner_best.pth",
-        "hf_repo_id": "abhshkgtm19/Healthcare-NLP-Models"
+      "Bio_ClinicalBERT_Classifier": {
+        "type": "SequenceClassification + Captum XAI",
+        "model_path": "backend/models/bio_clinicalBERT/bio_clinicalBERT_model.pth",
+        "hf_repo_id": "abhshkgtm19/medvision-models"
       }
     }
   },
   "required_actions": {
-    "frontend": "Ensure text submissions use JSON body for /predict and FormData for /predict-image. Parse 'entities' array for XAI DOM highlighting.",
-    "ml": "Maintain spatial OCR bounding boxes and ensure token offsets map correctly in evaluate_fusion.py."
+    "frontend": "Ensure text submissions use JSON body for /predict and FormData for /predict-image. Parse 'word_attributions' array for Captum XAI highlighting.",
+    "ml": "Maintain eager singleton loading of models, ChromaDB, and GenAI clients."
   }
 }

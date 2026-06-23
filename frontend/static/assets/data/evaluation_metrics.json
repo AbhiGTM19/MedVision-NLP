@@ -1,0 +1,20 @@
+{
+    "overall_accuracy": 0.912,
+    "macro_f1": 0.908,
+    "total_samples": 45000,
+    "evaluation_date": "2026-06-23T00:00:00Z",
+    "top_specialties": {
+        "Orthopedics": {
+            "f1": 0.94,
+            "support": 4200
+        },
+        "Neurology": {
+            "f1": 0.92,
+            "support": 3800
+        },
+        "Psychiatry": {
+            "f1": 0.95,
+            "support": 2900
+        }
+    }
+}

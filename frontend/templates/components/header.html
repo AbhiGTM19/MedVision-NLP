@@ -1,0 +1,39 @@
+<!-- TopAppBar Shell -->
+<header
+    class="{{ header_class | default('fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-md border-b border-outline-variant/30') }}">
+    <nav class="flex justify-center items-center px-4 sm:px-6 h-16 max-w-[1600px] mx-auto">
+
+        <div class="hidden md:flex gap-8 items-center font-bold text-xs uppercase tracking-widest">
+            <a class="{% if active_page == 'predictor' %}text-primary{% else %}text-on-surface-variant hover:text-primary{% endif %} transition-colors"
+                href="/">Predictor</a>
+            <a class="{% if active_page == 'chat' %}text-primary{% else %}text-on-surface-variant hover:text-primary{% endif %} transition-colors"
+                href="/chat-ui">Chat</a>
+            <a class="{% if active_page == 'metrics' %}text-primary{% else %}text-on-surface-variant hover:text-primary{% endif %} transition-colors"
+                href="/metrics">Metrics</a>
+            <a class="{% if active_page == 'monitoring' %}text-primary{% else %}text-on-surface-variant hover:text-primary{% endif %} transition-colors"
+                href="/monitoring">Monitoring</a>
+            <a class="{% if active_page == 'docs' %}text-primary{% else %}text-on-surface-variant hover:text-primary{% endif %} transition-colors"
+                href="/docs">API Docs</a>
+        </div>
+        <div class="flex items-center gap-4">
+
+            <button class="md:hidden p-2" id="mobile-menu-btn">
+                <span class="material-symbols-outlined" data-icon="menu">menu</span>
+            </button>
+        </div>
+    </nav>
+    <!-- Mobile Nav Panel -->
+    <div id="mobile-nav-panel"
+        class="hidden md:hidden bg-surface border-b border-outline-variant/30 flex flex-col px-6 py-4 gap-4 shadow-lg z-50 font-label text-sm uppercase tracking-widest {{ 'absolute top-[72px] left-0 w-full' if not header_class or 'fixed' not in header_class else '' }}">
+        <a class="{% if active_page == 'predictor' %}text-primary font-bold{% else %}text-on-surface-variant hover:text-primary{% endif %} transition-colors"
+            href="/">Predictor</a>
+        <a class="{% if active_page == 'chat' %}text-primary font-bold{% else %}text-on-surface-variant hover:text-primary{% endif %} transition-colors"
+            href="/chat-ui">Chat</a>
+        <a class="{% if active_page == 'metrics' %}text-primary font-bold{% else %}text-on-surface-variant hover:text-primary{% endif %} transition-colors"
+            href="/metrics">Metrics</a>
+        <a class="{% if active_page == 'monitoring' %}text-primary font-bold{% else %}text-on-surface-variant hover:text-primary{% endif %} transition-colors"
+            href="/monitoring">Monitoring</a>
+        <a class="text-on-surface-variant hover:text-primary transition-colors flex items-center gap-1" href="/docs"
+            target="_blank">API Docs <span class="material-symbols-outlined text-[16px]">open_in_new</span></a>
+    </div>
+</header>

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>{% block title %}MedVision NLP{% endblock %}</title>
+    <!-- Standardized Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/static/assets/icons/favicon.svg">
+
+    <!-- Tailwind & Fonts -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" type="text/css" href="/static/css/styles.css">
+
+    {% block extra_head %}{% endblock %}
+</head>
+
+<body
+    class="bg-background text-on-surface font-body overflow-x-hidden flex flex-col min-h-screen selection:bg-primary/30">
+
+    {% set header_class = 'fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-md border-b border-outline-variant/30' %}
+    {% include 'components/header.html' %}
+
+    <!-- Unified Layout Wrapper -->
+    <main class="flex-1 w-full mt-[65px] flex flex-col">
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    {% include 'components/footer.html' %}
+
+    {% block scripts %}
+    <script src="/static/js/script.js?v=4"></script>
+    {% endblock %}
+
+</body>
+
+</html>

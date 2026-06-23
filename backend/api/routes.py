@@ -1,10 +1,14 @@
-import os
 
-from fastapi import APIRouter, File, HTTPException, UploadFile
-from fastapi.responses import FileResponse
+from fastapi import APIRouter, File, HTTPException, Response, UploadFile
+from fastapi.responses import StreamingResponse
 
-from core.config import BASE_DIR
-from schemas.predict import PredictionRequest, PredictionResponse
+from schemas.predict import (
+    ChatRequest,
+    PredictionRAGResponse,
+    PredictionRequest,
+    PredictionResponse,
+)
+from services.llm_service import llm_service
 from services.model_service import model_service
 
 router = APIRouter()
@@ -21,18 +25,15 @@ def health_check() -> dict:
         "models": models_status
     }
 
-@router.get("/monitoring", response_class=FileResponse)
-def get_monitoring_report():
-    report_path = BASE_DIR.parent / "frontend" / "static" / "monitoring_report.html"
-    if not os.path.exists(report_path):
-        raise HTTPException(status_code=404, detail="Monitoring report not found.")
-    return FileResponse(report_path)
 
 @router.post("/predict", response_model=PredictionResponse)
 def predict(request: PredictionRequest):
     """
     Predicts medical specialty from raw clinical text and provides XAI word attributions.
     """
+    if not request.text or len(request.text.strip()) < 10:
+        raise HTTPException(status_code=400, detail="Input text is too short to be meaningful clinical text.")
+
     try:
         specialty, confidence, word_attributions = model_service.extract_from_text(request.text)
         return PredictionResponse(
@@ -44,12 +45,46 @@ def predict(request: PredictionRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.post("/predict-image", response_model=PredictionResponse)
-async def predict_image(file: UploadFile = File(...)):
+@router.post("/predict-rag", response_model=PredictionRAGResponse)
+async def predict_rag(request: PredictionRequest):
     """
-    Accepts an image, runs OCR via Tesseract OCR, passes text to Bio_ClinicalBERT for 
+    Predicts medical specialty from raw clinical text, provides XAI word attributions, and returns a RAG response.
+    """
+    if not request.text or len(request.text.strip()) < 10:
+        raise HTTPException(status_code=400, detail="Input text is too short to be meaningful clinical text.")
+
+    try:
+        specialty, confidence, word_attributions, rag_response = await model_service.predict_with_rag(request.text)
+        return PredictionRAGResponse(
+            specialty=specialty,
+            confidence=confidence,
+            word_attributions=word_attributions,
+            extracted_text=request.text,
+            rag_response=rag_response
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/chat")
+async def chat(request: ChatRequest):
+    """
+    Interactive chat using LLM and clinical context.
+    """
+    if not request.messages:
+        raise HTTPException(status_code=400, detail="Chat messages cannot be empty.")
+
+    return StreamingResponse(
+        llm_service.generate_chat_response_stream(request.messages),
+        media_type="text/event-stream"
+    )
+
+@router.post("/predict-image", response_model=PredictionResponse)
+async def predict_image(response: Response, file: UploadFile = File(...)):
+    """
+    DEPRECATED: Accepts an image, runs OCR via Tesseract OCR, passes text to Bio_ClinicalBERT for 
     sequence classification, and provides XAI word attributions.
     """
+    response.headers["X-Deprecated"] = "Use /predict for text input. OCR path deprecated."
     try:
         # Read image bytes
         image_bytes = await file.read()

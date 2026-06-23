@@ -1,6 +1,5 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  darkMode: "class",
   content: [
     "./templates/**/*.html",
     "./static/**/*.js"
@@ -60,7 +59,7 @@ module.exports = {
         "headline": ["Inter", "sans-serif"],
         "display": ["Inter", "sans-serif"],
         "body": ["Inter", "sans-serif"],
-        "label": ["Public Sans", "sans-serif"]
+        "label": ["Inter", "sans-serif"]
       }
     },
   },
