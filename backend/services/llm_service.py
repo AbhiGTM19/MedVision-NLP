@@ -94,7 +94,7 @@ Query: {query}
                 role = "user" if msg.role == "user" else "model"
                 gemini_messages.append({"role": role, "parts": [{"text": msg.content}]})
                 
-            response = await self.client.aio.models.generate_content_stream(
+            response = self.client.aio.models.generate_content_stream(
                 model=self.model_id,
                 contents=gemini_messages,
             )
