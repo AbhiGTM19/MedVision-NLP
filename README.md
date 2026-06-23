@@ -81,7 +81,7 @@ pip install -r backend/requirements.txt
 ### 4. Configure Environment Variables
 Create a `.env` file in the `backend/` directory:
 ```env
-GOOGLE_API_KEY=your_gemini_api_key
+GEMINI_API_KEY=your_gemini_api_key
 ```
 
 ### 5. Run the Application
@@ -107,7 +107,7 @@ docker build -t <your-dockerhub-username>/medvision-nlp .
 ### 2. Run the Container Locally
 
 ```bash
-docker run -p 7860:7860 --env GOOGLE_API_KEY=your_gemini_api_key <your-dockerhub-username>/medvision-nlp
+docker run -p 7860:7860 --env GEMINI_API_KEY=your_gemini_api_key <your-dockerhub-username>/medvision-nlp
 ```
 
 The application will be available at `http://localhost:7860`.

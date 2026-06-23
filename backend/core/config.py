@@ -17,7 +17,7 @@ class Settings(BaseSettings):
     HF_TRANSFORMER_MODEL_ID: str = os.getenv("HF_TRANSFORMER_MODEL_ID", "emilyalsentzer/Bio_ClinicalBERT")
 
     # LLM Integration
-    GOOGLE_API_KEY: str | None = None
+    GEMINI_API_KEY: str | None = None
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
