@@ -1,4 +1,5 @@
 import pytest
+
 from services.knowledge_service import knowledge_service
 
 
