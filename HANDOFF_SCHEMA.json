@@ -18,6 +18,9 @@
       },
       "ImageUpload": {
         "file": "UploadFile (FormData, required image file)"
+      },
+      "ChatRequest": {
+        "messages": "List[{role: 'user' | 'assistant', content: string}]"
       }
     },
     "output_schema": {

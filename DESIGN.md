@@ -1,79 +1,101 @@
 ---
-name: MedVision Clinical
+name: OrthoPrognosis AI Clinical
 colors:
-  surface: '#ffffff'
-  surface-dim: '#e5e7eb'
-  surface-bright: '#ffffff'
+  surface: '#f7f9fb'
+  surface-dim: '#d8dadc'
+  surface-bright: '#f7f9fb'
   surface-container-lowest: '#ffffff'
-  surface-container-low: '#f9fafb'
-  surface-container: '#f3f4f6'
-  surface-container-high: '#e5e7eb'
-  surface-container-highest: '#e5e7eb'
-  on-surface: '#111827'
-  on-surface-variant: '#4b5563'
-  inverse-surface: '#1f2937'
-  inverse-on-surface: '#f9fafb'
-  outline: '#9ca3af'
-  outline-variant: '#e5e7eb'
-  surface-tint: '#f59e0b'
-  primary: '#f59e0b'
+  surface-container-low: '#f2f4f6'
+  surface-container: '#eceef0'
+  surface-container-high: '#e6e8ea'
+  surface-container-highest: '#e0e3e5'
+  on-surface: '#191c1e'
+  on-surface-variant: '#44474c'
+  inverse-surface: '#2d3133'
+  inverse-on-surface: '#eff1f3'
+  outline: '#75777d'
+  outline-variant: '#c5c6cd'
+  surface-tint: '#515f74'
+  primary: '#051324'
   on-primary: '#ffffff'
-  primary-container: '#fef3c7'
-  on-primary-container: '#92400e'
-  inverse-primary: '#f59e0b'
-  secondary: '#f59e0b'
+  primary-container: '#1a283a'
+  on-primary-container: '#818fa5'
+  inverse-primary: '#b9c7df'
+  secondary: '#505f76'
   on-secondary: '#ffffff'
-  secondary-container: '#fef3c7'
-  on-secondary-container: '#92400e'
-  tertiary: '#f59e0b'
+  secondary-container: '#d4e3ff'
+  on-secondary-container: '#56657c'
+  tertiary: '#001421'
   on-tertiary: '#ffffff'
-  tertiary-container: '#fef3c7'
-  on-tertiary-container: '#92400e'
-  error: '#ef4444'
+  tertiary-container: '#002a3f'
+  on-tertiary-container: '#6493b5'
+  error: '#ba1a1a'
   on-error: '#ffffff'
-  error-container: '#fee2e2'
-  on-error-container: '#991b1b'
-  background: '#ffffff'
-  on-background: '#111827'
-  surface-variant: '#f3f4f6'
+  error-container: '#ffdad6'
+  on-error-container: '#93000a'
+  primary-fixed: '#d5e3fc'
+  primary-fixed-dim: '#b9c7df'
+  on-primary-fixed: '#0e1c2e'
+  on-primary-fixed-variant: '#3a485b'
+  secondary-fixed: '#d4e3ff'
+  secondary-fixed-dim: '#b8c7e2'
+  on-secondary-fixed: '#0c1c30'
+  on-secondary-fixed-variant: '#39485e'
+  tertiary-fixed: '#c8e6ff'
+  tertiary-fixed-dim: '#9cccf0'
+  on-tertiary-fixed: '#001e2f'
+  on-tertiary-fixed-variant: '#134b6a'
+  background: '#f7f9fb'
+  on-background: '#191c1e'
+  surface-variant: '#e0e3e5'
+  surface-glass: rgba(255, 255, 255, 0.8)
+  outline-muted: '#e2e8f0'
+  success-dim: '#89ceff'
+  error-alert: '#ba1a1a'
 typography:
   display-lg:
     fontFamily: Inter
     fontSize: 48px
-    fontWeight: '900'
-    lineHeight: 56px
+    fontWeight: '700'
+    lineHeight: '1.1'
     letterSpacing: -0.02em
   headline-lg:
     fontFamily: Inter
     fontSize: 32px
-    fontWeight: '700'
-    lineHeight: 40px
+    fontWeight: '600'
+    lineHeight: '1.2'
     letterSpacing: -0.01em
   headline-lg-mobile:
     fontFamily: Inter
     fontSize: 24px
-    fontWeight: '700'
-    lineHeight: 32px
+    fontWeight: '600'
+    lineHeight: '1.2'
   title-md:
     fontFamily: Inter
     fontSize: 20px
     fontWeight: '600'
-    lineHeight: 28px
+    lineHeight: '1.4'
   body-lg:
     fontFamily: Inter
     fontSize: 16px
     fontWeight: '400'
-    lineHeight: 24px
+    lineHeight: '1.6'
   body-sm:
     fontFamily: Inter
     fontSize: 14px
     fontWeight: '400'
-    lineHeight: 20px
+    lineHeight: '1.5'
   label-caps:
-    fontFamily: Public Sans
-    fontSize: 14px
-    fontWeight: '600'
-    lineHeight: 20px
+    fontFamily: Inter
+    fontSize: 12px
+    fontWeight: '700'
+    lineHeight: '1'
+    letterSpacing: 0.05em
+  status-tiny:
+    fontFamily: Inter
+    fontSize: 10px
+    fontWeight: '700'
+    lineHeight: '1'
     letterSpacing: 0.1em
 rounded:
   sm: 0.25rem
@@ -83,62 +105,78 @@ rounded:
   xl: 1.5rem
   full: 9999px
 spacing:
-  base: 8px
   xs: 4px
+  base: 8px
   sm: 12px
   md: 24px
   lg: 48px
+  margin: 32px
   xl: 80px
-  container-max: 1280px
   gutter: 24px
 ---
 
 ## Brand & Style
 
-This design system is built for the **MedVision NLP** Medical Specialty Classification tool. The brand personality is clinical, cutting-edge, and highly trustworthy, evoking the sterile yet advanced atmosphere of a modern hospital AI lab. The target audience includes medical professionals, data scientists, and healthcare administrators who require high-density clinical information presented with absolute clarity and precision.
+The brand identity for OrthoPrognosis AI is defined by **Clinical Precision and Future-Forward Intelligence**. It is designed for medical professionals who require high-reliability tools that feel sophisticated yet approachable. 
 
-The visual style merges **Glassmorphism** with an "Ambient Medical" aesthetic. It relies on crisp, expansive white/dark backgrounds overlaid with subtle glowing orbs and highly legible typography. The emotional response should be one of sophisticated clarity—where critical medical data and AI explanations (like Captum feature attributions) are presented on a clean, luminous canvas for maximum legibility.
+The visual style is a **Modern-Corporate** hybrid with a heavy **Glassmorphic** influence. It balances the sterile, trustworthy nature of clinical software with the dynamic, airy feel of modern SaaS. The UI utilizes semi-transparent layers, backdrop blurs, and subtle animations (floating, pulsing rings) to communicate that the system is "active" and "intelligent." The goal is to evoke a sense of calm efficiency, reducing the cognitive load associated with complex medical data entry and analysis.
 
 ## Colors
 
-The palette is anchored by a vibrant "Clinical Amber" (`#f59e0b`) representing urgency and clear attention to critical medical insights. The default experience utilizes a pure white background in Light Mode, combined with deep grays for high contrast and readability.
+The palette is anchored in **Deep Slate (#1a283a)**, providing a serious, authoritative foundation for primary actions and typography. A secondary **Steel Blue (#505f76)** is used for supporting labels and iconography, maintaining a monochromatic professional feel.
 
-- **Monochromatic Accents**: Secondary and tertiary elements use similar amber tones, while the dark mode utilizes deep blacks (`#0a0a0a`) with glowing glass borders.
-- **Explainable AI Representation**: The UI uses dynamic highlight spans (`rgba(245, 158, 11, opacity)`) to represent the intensity of word attributions from the NLP model.
-- **Translucency**: Use glassmorphism (`backdrop-filter: blur(12px)`) with semi-transparent surfaces to create depth over the ambient glowing orbs without sacrificing readability.
+The background system utilizes a very light **Cool Grey (#f7f9fb)** rather than pure white to reduce eye strain during long clinical sessions. Accent colors are used sparingly: a **Soft Cyan/Tertiary** is reserved for status indicators and "success" states, while the primary color is used for high-emphasis buttons and active input states. Transparency plays a critical role, with background blurs (80% opacity) used on navigation and cards to create depth.
 
 ## Typography
 
-This design system pairs **Inter** for dense data and general UI elements with **Public Sans** for highly structured labels and navigation to achieve a systematic, clinical aesthetic.
+The system uses **Inter** exclusively to ensure maximum legibility and a systematic, utilitarian aesthetic. 
 
-- **Hierarchy**: Use `display-lg` (`font-black`) for main hero titles and bold statements.
-- **Labels**: Use `label-caps` with `Public Sans` for navigation, sub-headers, and tags to differentiate from clinical review text.
-- **Rhythm**: Maintain a strict vertical rhythm. Typography relies on the high contrast between the text and backgrounds to ensure absolute clarity for medical professionals.
+- **Headlines:** Use tighter letter-spacing and semi-bold weights to appear confident.
+- **Data Entry Labels:** Utilize a "Label-Caps" style—uppercase, bold, and slightly tracked out—to distinguish them clearly from the user-inputted data.
+- **Body Text:** Optimized for readability with a generous 1.6 line-height.
+- **Status/Meta:** Tiny 10px caps are used for non-essential system information to keep the interface clean.
 
 ## Layout & Spacing
 
-The layout follows a **Fluid Grid** model.
-- **Spacing Principle**: Generous padding on outer containers (e.g., `py-24`) to provide breathing room, and tight coupling of related medical data points within cards.
-- **Bento Grids**: Use 3-column bento box grids for feature highlights, collapsing to 1 column on mobile.
+The interface uses a **Dual-Pane Split Layout** for its primary workflow.
+- **Left Pane (50%):** Scrollable input/form area.
+- **Right Pane (50%):** Fixed visualization/results area.
+
+A **32px (Margin)** safety zone is maintained around the screen edges. Internal spacing follows an 8px base grid. Content within cards uses **24px (MD)** padding, while vertical spacing between cards is also **24px**. The navigation bar is fixed at **64px (h-16)** to maximize the remaining vertical workspace for data analysis.
 
 ## Elevation & Depth
 
-Depth is created through **Glassmorphism** and subtle tonal layering.
-- **Surface Level 0 (Base)**: The ambient background with large, blurry glowing orbs (`blur-[100px]`).
-- **Surface Level 1 (Cards)**: Glass cards with subtle borders (`border-outline-variant/50`) and soft inner shadows (`shadow-inner`).
-- **Shadows**: Use heavy, diffused shadows (`shadow-xl`, `shadow-primary/20`) on primary call-to-actions to make them pop off the screen.
+Hierarchy is established through **Glassmorphism and Ambient Shadows**:
+- **Level 0 (Background):** Solid `surface-bright` (#f7f9fb).
+- **Level 1 (Cards):** Semi-transparent white (80% opacity) with a `16px` backdrop blur. Edges are defined by a very soft `white/40` border to simulate light hitting the edge of glass.
+- **Shadows:** Use extremely diffused shadows (`0 4px 20px rgba(71, 85, 105, 0.05)`) to create a sense of lifting off the page without feeling heavy.
+- **Interaction:** Cards scale slightly (1.01x) and gain a deeper shadow on hover to provide tactile feedback.
 
 ## Shapes
 
-The design system employs a heavily **Rounded** shape language to soften the technical density of medical AI.
-- **Primary Radius**: 0.75rem (`rounded-xl`) or 1rem (`rounded-2xl`) for almost all standard cards, text areas, and buttons.
-- **Large Radius**: 1.5rem (`rounded-3xl`) for main dashboard containers.
-- **Pill**: Used exclusively for status indicators, history badges, and the floating chat assistant button.
+The shape language is **Rounded and Organic**. 
+- **Standard Cards & Input Fields:** Use a `0.75rem` (rounded-xl) or `0.5rem` (rounded-lg) radius to soften the clinical environment.
+- **Buttons:** Primary action buttons use a `0.75rem` radius for a modern, friendly feel.
+- **Profile & Icons:** Use full circles (`rounded-full`) for avatars and status indicators to contrast against the rectangular grid of the form.
+- **Inputs:** Form elements use a slightly softer `0.5rem` radius.
 
 ## Components
 
-- **Buttons**: Primary buttons are solid Amber (`bg-primary`) with bold text and a subtle scale-down on active state (`active:scale-[0.98]`). Hover states increase brightness.
-- **Floating Chat Assistant**: A circular FAB (`w-14 h-14`) in the bottom right corner with a drop shadow, triggering a sliding side panel for the RAG chatbot.
-- **Text Areas**: Deep, slightly inset text areas (`bg-surface-container-low`) with a focus ring (`focus:ring-2 focus:ring-primary`) to encourage input of long-form clinical notes.
-- **Explainable AI Text**: Sentences are dynamically broken down with inline background color spans. Darker/more opaque backgrounds represent higher AI confidence/importance.
-- **Mermaid Diagrams**: Embedded SVG diagrams forced to high contrast (black on light, white on dark) with transparent backgrounds.
+### Buttons
+- **Primary:** High-contrast `primary` background, `on-primary` text, `rounded-xl`. Includes a subtle `pulse-ring` animation for the main CTA (e.g., "Run Analysis").
+- **Secondary/Action:** `primary-container` background with `on-primary-container` text.
+- **Icon Buttons:** Circular, `40x40px`, with a subtle hover state change.
+
+### Input Fields
+- **Default:** `surface-container-low` background, no border, `rounded-lg`.
+- **Focus State:** White background, `1px solid primary` ring, and label color shifts to `primary`.
+- **Selects:** Identical styling to text inputs but with a custom chevron.
+
+### Cards (Glass)
+- White 80% opacity, `backdrop-blur-16`, `border-white/40`, and `shadow-sm`. Used to group related data sets (e.g., Demographics, Biomarkers).
+
+### File Upload
+- A dashed-border container with a `floating icon` animation. Uses `surface-container-low/50` which turns white on drag-over.
+
+### Analysis Indicators
+- Utilizes "Subtle Float" animations and "Pulse Rings" to show system readiness or active processing.

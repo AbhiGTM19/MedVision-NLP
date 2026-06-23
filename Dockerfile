@@ -16,6 +16,12 @@ FROM python:3.11-slim
 # Hugging Face Spaces specifically requires the app to run as user 1000
 RUN useradd -m -u 1000 appuser
 
+# Install system dependencies (sqlite3 required for chromadb)
+RUN apt-get update && apt-get install -y \
+    sqlite3 \
+    libsqlite3-dev \
+    && rm -rf /var/lib/apt/lists/*
+
 # Set the working directory
 WORKDIR /home/appuser/app
 

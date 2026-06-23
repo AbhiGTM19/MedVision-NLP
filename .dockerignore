@@ -17,3 +17,9 @@ results/
 .venv/
 models/
 *.pkl
+
+# UI and Build Caches
+node_modules/
+frontend/node_modules/
+.npm/
+backend/models/tracking/

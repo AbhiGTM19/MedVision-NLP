@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% set active_page = 'docs' %}
+{% block title %}MedVision NLP - API Documentation{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5.9.0/swagger-ui.css">
+<style>
+    /* Isolate and tweak Swagger UI slightly for Dark Mode compatibility if needed */
+    .swagger-ui {
+        font-family: 'Inter', sans-serif !important;
+    }
+
+    .swagger-ui .topbar {
+        display: none;
+    }
+
+    .swagger-ui .info {
+        margin: 20px 0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Content Wrapper -->
+<div class="flex-1 pt-12 pb-12 max-w-[1600px] w-full mx-auto px-4 sm:px-6 relative flex flex-col">
+    <div
+        class="bg-surface-container-lowest rounded-2xl border border-outline-variant/30 shadow-sm p-4 sm:p-8 min-h-full">
+        <div id="swagger-ui"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<!-- Include global scripts if needed, plus Swagger UI -->
+<script src="/static/js/script.js?v=4"></script>
+<script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5.9.0/swagger-ui-bundle.js"></script>
+<script>
+    window.onload = function () {
+        window.ui = SwaggerUIBundle({
+            url: "/openapi.json",
+            dom_id: '#swagger-ui',
+            deepLinking: true,
+            presets: [
+                SwaggerUIBundle.presets.apis,
+                SwaggerUIBundle.SwaggerUIStandalonePreset
+            ],
+            layout: "BaseLayout",
+            docExpansion: "list",
+            defaultModelsExpandDepth: -1
+        });
+    };
+</script>
+{% endblock %}

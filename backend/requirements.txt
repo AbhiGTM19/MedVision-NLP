@@ -34,7 +34,7 @@ accelerate
 evaluate
 pyarrow
 aiofiles
-captum==0.9.0
+captum
 
 # RAG & Vector DB
 chromadb

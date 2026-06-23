@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% set active_page = 'monitoring' %}
+{% block title %}MedVision NLP - Monitoring Dashboard{% endblock %}
+
+{% block content %}
+    <!-- Content Wrapper -->
+    <div class="pt-16 pb-24 max-w-7xl mx-auto px-4 sm:px-6 w-full">
+        
+        <div class="mb-12 border-b border-outline-variant/30 pb-8">
+            <h1 class="text-4xl font-black mb-4 text-primary">Data Drift & Monitoring</h1>
+            <p class="text-on-surface-variant max-w-3xl leading-relaxed">
+                Real-time dashboard tracking the performance, OCR degradation, and data drift of the Bio_ClinicalBERT model on incoming unstructured clinical text.
+            </p>
+        </div>
+
+        <!-- KPI Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
+            <div class="glass p-6 rounded-xl border border-outline-variant/50 shadow-sm flex flex-col justify-center">
+                <div class="text-sm text-on-surface-variant mb-2 font-semibold uppercase tracking-wider">OOD Accuracy</div>
+                <div class="text-3xl font-black text-primary">82.5%</div>
+                <div class="text-xs text-error mt-2 flex items-center gap-1">
+                    <span class="material-symbols-outlined text-[16px]">trending_down</span>
+                    -8.7% vs Training
+                </div>
+            </div>
+            
+            <div class="glass p-6 rounded-xl border border-outline-variant/50 shadow-sm flex flex-col justify-center">
+                <div class="text-sm text-on-surface-variant mb-2 font-semibold uppercase tracking-wider">OCR Error Rate</div>
+                <div class="text-3xl font-black text-secondary">14.0%</div>
+                <div class="text-xs text-on-surface-variant mt-2 flex items-center gap-1">
+                    <span class="material-symbols-outlined text-[16px]">info</span>
+                    Estimated from character noise
+                </div>
+            </div>
+
+            <div class="glass p-6 rounded-xl border border-outline-variant/50 shadow-sm flex flex-col justify-center">
+                <div class="text-sm text-on-surface-variant mb-2 font-semibold uppercase tracking-wider">Confidence Drop</div>
+                <div class="text-3xl font-black text-tertiary">0.12</div>
+                <div class="text-xs text-on-surface-variant mt-2 flex items-center gap-1">
+                    <span class="material-symbols-outlined text-[16px]">warning</span>
+                    Mean Softmax Margin
+                </div>
+            </div>
+
+            <div class="glass p-6 rounded-xl border border-outline-variant/50 shadow-sm flex flex-col justify-center border-l-4 border-l-error">
+                <div class="text-sm text-on-surface-variant mb-2 font-semibold uppercase tracking-wider">Anomalies Detected</div>
+                <div class="text-3xl font-black text-error">420</div>
+                <div class="text-xs text-on-surface-variant mt-2 flex items-center gap-1">
+                    <span class="material-symbols-outlined text-[16px]">error</span>
+                    Requires manual review
+                </div>
+            </div>
+        </div>
+
+        <div class="border-t border-outline-variant/30 pt-12 mb-8">
+            <h2 class="text-3xl font-bold mb-4">Drift Analysis</h2>
+            <p class="text-on-surface-variant max-w-3xl leading-relaxed">
+                Visualizing the exact shifts in the model's predictive certainty when faced with noisy Out-Of-Distribution (OOD) real-world data compared to the clean MIMIC-III training distribution.
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 gap-8">
+            <!-- Confidence Scores (Wide) -->
+            <div class="glass p-6 rounded-xl border border-outline-variant/50 shadow-md">
+                <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-error">monitoring</span>
+                    Confidence Distribution Drift
+                </h3>
+                <div class="w-full max-w-4xl mx-auto">
+                    <img src="/static/assets/images/ood_confidence_scores.png" alt="OOD Confidence Scores" class="w-full rounded-lg border border-outline-variant/30">
+                </div>
+                <p class="text-sm text-on-surface-variant mt-4 text-center">
+                    A kernel density estimation of the model's Softmax confidence per predicted specialty on the OOD dataset vs the Training distribution.
+                </p>
+            </div>
+        </div>
+
+    </div>
+{% endblock %}

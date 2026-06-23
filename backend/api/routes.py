@@ -22,12 +22,6 @@ def health_check() -> dict:
         "models": models_status
     }
 
-@router.get("/monitoring", response_class=FileResponse)
-def get_monitoring_report():
-    report_path = BASE_DIR.parent / "frontend" / "static" / "monitoring_report.html"
-    if not os.path.exists(report_path):
-        raise HTTPException(status_code=404, detail="Monitoring report not found.")
-    return FileResponse(report_path)
 
 @router.post("/predict", response_model=PredictionResponse)
 def predict(request: PredictionRequest):
