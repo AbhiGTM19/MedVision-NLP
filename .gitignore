@@ -42,3 +42,4 @@ PAT.txt
 medvision-space-token.png
 node_modules/
 backend/data/chroma_db/
+demo_test_cases.txt
