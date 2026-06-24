@@ -6,6 +6,7 @@ from google import genai
 from google.genai import types
 
 from core.config import settings
+from core.prompts import RAG_SYSTEM_PROMPT, build_chat_system_prompt
 from schemas.predict import ChatMessage, RAGResponse
 from services.knowledge_service import knowledge_service
 
@@ -34,20 +35,7 @@ class LLMService:
         sources = list(set([c.source for c in chunks]))
 
         # 3. Construct prompt
-        prompt = f"""
-You are a highly capable Medical AI Assistant.
-Use the following retrieved context to answer the user's clinical query. 
-
-CRITICAL INSTRUCTIONS:
-1. You MUST ONLY answer medical or clinical queries. If the user's query is not related to medicine, clinical guidelines, or healthcare, you must politely decline to answer.
-2. If the context does not contain the exact answer, you may provide general medical knowledge, but you must clearly state that it was not found in the specific guidelines provided.
-3. You MUST provide inline citations (e.g., [1], [2]) in your text whenever you state a fact or guideline that comes from the provided context. The citations should map to the specific sources listed below.
-
-Context:
-{context_text}
-
-Query: {query}
-"""
+        prompt = RAG_SYSTEM_PROMPT.format(context_text=context_text, query=query)
 
         try:
             # We use the async client method to avoid blocking Uvicorn
@@ -84,15 +72,31 @@ Query: {query}
             yield f"data: {json.dumps({'sources': sources, 'context_preview': context_text[:500] + '...' if len(context_text) > 500 else context_text})}\n\n"
 
             # 2. System prompt for chat
-            system_prompt = "You are a Medical AI Assistant. ONLY answer medical/clinical questions. If asked non-medical questions, politely decline. Provide inline citations (e.g. [1]) if you pull facts from any provided medical context."
-            if context_text:
-                system_prompt += f"\n\nHere is the retrieved medical context for the user's latest query:\n{context_text}"
+            system_prompt = build_chat_system_prompt(context_text)
             
             gemini_messages = [{"role": "user", "parts": [{"text": system_prompt}]}, {"role": "model", "parts": [{"text": "Understood. I will strictly act as a Medical AI Assistant and decline non-medical questions."}]}]
             
             for msg in messages:
                 role = "user" if msg.role == "user" else "model"
                 gemini_messages.append({"role": role, "parts": [{"text": msg.content}]})
+                
+            # 3. Token Truncation (using Gemini native token counting)
+            MAX_TOKENS = 15000
+            while len(gemini_messages) > 3:
+                try:
+                    token_count_response = await self.client.aio.models.count_tokens(
+                        model=self.model_id,
+                        contents=gemini_messages
+                    )
+                    if token_count_response.total_tokens <= MAX_TOKENS:
+                        break
+                except Exception as e:
+                    logger.warning(f"Token counting API failed (likely quota limit). Bypassing truncation: {e}")
+                    break
+                    
+                # Remove the oldest user-model pair to keep alternating roles valid
+                logger.info(f"Context exceeds {MAX_TOKENS} tokens. Truncating oldest interaction.")
+                gemini_messages = gemini_messages[:2] + gemini_messages[4:]
                 
             response = self.client.aio.models.generate_content_stream(
                 model=self.model_id,
