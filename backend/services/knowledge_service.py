@@ -38,16 +38,13 @@ class KnowledgeService:
             logger.warning("Retrieval attempted but ChromaDB collection is not initialized.")
             return []
             
-        # We rely on semantic search instead of exact match metadata filtering 
-        # because the model's predicted specialty (e.g., "Cardiovascular / Pulmonary") 
-        # might not exactly match the ingested metadata (e.g., "Cardiology" or "General").
-        where_filter = None
+        # Advanced Retrieval: Fetch more candidates (e.g. 2x) for post-retrieval re-sorting
+        fetch_k = top_k * 2
         
         try:
             results = self.collection.query(
                 query_texts=[query_text],
-                n_results=top_k,
-                where=where_filter
+                n_results=fetch_k
             )
             
             chunks = []
@@ -64,7 +61,21 @@ class KnowledgeService:
                         document_type=meta.get("document_type", "Unknown"),
                         relevance_score=float(dist)
                     ))
-            return chunks
+                    
+            # Chunk Re-sorting: Boost relevance if metadata specialty matches the predicted specialty
+            if specialty:
+                query_spec_lower = specialty.lower()
+                for c in chunks:
+                    if c.specialty and (query_spec_lower in c.specialty.lower() or c.specialty.lower() in query_spec_lower):
+                        # Boost score (lower distance is better in ChromaDB L2 distance)
+                        c.relevance_score *= 0.5 
+                        
+            # Re-sort by the adjusted relevance score
+            chunks.sort(key=lambda x: x.relevance_score)
+            
+            # Return only the top_k requested
+            return chunks[:top_k]
+            
         except Exception as e:
             logger.error(f"Retrieval failed: {e}", exc_info=True)
             return []
