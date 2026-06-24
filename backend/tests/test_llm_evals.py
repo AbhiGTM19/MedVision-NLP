@@ -1,10 +1,10 @@
-import os
+
+import asyncio
 
 import pytest
-import asyncio
-from core.config import settings
 
 from services.llm_service import llm_service
+
 
 @pytest.mark.asyncio
 class TestLLMEvals:
