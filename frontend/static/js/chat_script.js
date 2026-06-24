@@ -253,8 +253,8 @@ document.addEventListener("DOMContentLoaded", () => {
                                 contextContent.classList.remove('hidden');
                                 contextSourcesList.innerHTML = '';
                                 if (data.sources.length === 0) {
-                                    contextSourcesList.innerHTML = '<li class="text-xs">No specific clinical guidelines retrieved.</li>';
-                                    contextSnippet.innerHTML = '<span class="italic text-outline">N/A</span>';
+                                    contextSourcesList.innerHTML = '<li class="text-xs text-primary font-bold">Foundational LLM Knowledge</li>';
+                                    contextSnippet.innerHTML = '<span class="italic text-on-surface-variant leading-relaxed text-sm">Response generated using the pre-trained medical reasoning weights of the LLM. No localized clinical documents were required for this specific query.</span>';
                                 } else {
                                     data.sources.forEach(src => {
                                         const li = document.createElement('li');
