@@ -1,9 +1,8 @@
 <!-- TopAppBar Shell -->
-<header
-    class="{{ header_class | default('fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-md border-b border-outline-variant/30') }}">
+<header class="{{ header_class | default('top-0 w-full z-50 bg-surface/80 border-b border-outline-variant/30') }}">
     <nav class="flex justify-center items-center px-4 sm:px-6 h-16 max-w-[1600px] mx-auto">
 
-        <div class="hidden md:flex gap-8 items-center font-bold text-xs uppercase tracking-widest">
+        <div class="hidden md:flex gap-8 items-center font-bold text-[1rem] pt-[2rem] uppercase tracking-widest">
             <a class="{% if active_page == 'predictor' %}text-primary{% else %}text-on-surface-variant hover:text-primary{% endif %} transition-colors"
                 href="/">Predictor</a>
             <a class="{% if active_page == 'chat' %}text-primary{% else %}text-on-surface-variant hover:text-primary{% endif %} transition-colors"
