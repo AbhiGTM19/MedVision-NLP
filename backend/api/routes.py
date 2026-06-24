@@ -1,7 +1,8 @@
 
-from fastapi import APIRouter, File, HTTPException, Response, UploadFile
+from fastapi import APIRouter, Depends, File, HTTPException, Response, UploadFile
 from fastapi.responses import StreamingResponse
 
+from core.rate_limiter import rate_limit_dependency
 from schemas.predict import (
     ChatRequest,
     PredictionRAGResponse,
@@ -46,7 +47,7 @@ def predict(request: PredictionRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/predict-rag", response_model=PredictionRAGResponse)
-async def predict_rag(request: PredictionRequest):
+async def predict_rag(request: PredictionRequest, _rate_limit: None = Depends(rate_limit_dependency)):
     """
     Predicts medical specialty from raw clinical text, provides XAI word attributions, and returns a RAG response.
     """
@@ -66,7 +67,7 @@ async def predict_rag(request: PredictionRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/chat")
-async def chat(request: ChatRequest):
+async def chat(request: ChatRequest, _rate_limit: None = Depends(rate_limit_dependency)):
     """
     Interactive chat using LLM and clinical context.
     """
