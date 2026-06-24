@@ -4,11 +4,12 @@ from pathlib import Path
 import chromadb
 import chromadb.utils.embedding_functions as embedding_functions
 
+from core.config import settings
 from schemas.knowledge import RetrievedChunk
 
 logger = logging.getLogger(__name__)
 
-CHROMA_DB_PATH = Path(__file__).resolve().parent.parent / "data" / "chroma_db"
+CHROMA_DB_PATH = Path(settings.STORAGE_PATH)
 
 class KnowledgeService:
     def __init__(self):
