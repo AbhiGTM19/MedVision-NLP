@@ -18,7 +18,7 @@ class LLMService:
         self.api_key = settings.GEMINI_API_KEY or os.getenv("GEMINI_API_KEY")
         if self.api_key:
             self.client = genai.Client(api_key=self.api_key)
-            self.model_id = "gemini-2.5-flash"
+            self.model_id = "gemini-3.1-flash-lite"
             logger.info("LLMService initialized with Gemini client.")
         else:
             self.client = None
@@ -77,7 +77,7 @@ class LLMService:
 
             import json
             # Yield the sources first so the frontend can display them in the context drawer
-            yield f"data: {json.dumps({'sources': sources, 'context_preview': context_text[:500] + '...' if len(context_text) > 500 else context_text})}\n\n"
+            yield f"data: {json.dumps({'sources': sources, 'context_preview': context_text})}\n\n"
 
             # 2. System prompt for chat
             system_prompt = build_chat_system_prompt(context_text)
@@ -136,6 +136,7 @@ class LLMService:
         except Exception as e:
             logger.error(f"Failed to generate Chat response: {e}", exc_info=True)
             import json
-            yield f"data: {json.dumps({'error': str(e)})}\n\n"
+            fallback_msg = f"\n\n**[System Alert: 3rd-Party LLM API Error ({str(e)[:50]})]**\n\nThe GenAI service is currently rate-limited or unavailable. However, your local RAG Vector Database successfully retrieved the following raw clinical context:\n\n---\n{context_text}\n---"
+            yield f"data: {json.dumps({'text': fallback_msg})}\n\n"
 
 llm_service = LLMService()

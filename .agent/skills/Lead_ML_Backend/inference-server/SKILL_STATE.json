@@ -4,6 +4,8 @@
   "confidence_score": 10,
   "last_audit_passed": true,
   "open_tasks": [
-    "Migrated to DualStreamFusionNER and established /predict-image route."
+    "Migrated to Dual-Layer RAG Architecture.",
+    "Integrated Gemini 2.5 Flash conversational endpoints.",
+    "Deprecated OCR and DualStreamFusionNER."
   ]
 }

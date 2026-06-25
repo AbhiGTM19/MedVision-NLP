@@ -209,9 +209,36 @@ document.addEventListener("DOMContentLoaded", () => {
         // Loading state
         const loadingDiv = document.createElement('div');
         loadingDiv.className = `flex gap-4 w-full justify-start`;
-        loadingDiv.innerHTML = `<div class="max-w-[85%] p-4 rounded-xl rounded-tl-sm bg-surface text-on-surface border border-outline-variant/50 flex items-center h-14"><div class="flex gap-1 items-center"><div class="w-2 h-2 bg-primary/70 rounded-full animate-bounce"></div><div class="w-2 h-2 bg-primary/70 rounded-full animate-bounce" style="animation-delay: 0.1s"></div><div class="w-2 h-2 bg-primary/70 rounded-full animate-bounce" style="animation-delay: 0.2s"></div></div></div>`;
+        
+        const loadingMessages = [
+            "Analyzing clinical query...",
+            "Searching National Guidelines...",
+            "Synthesizing RAG context...",
+            "Applying safety guardrails..."
+        ];
+        let msgIndex = 0;
+        
+        loadingDiv.innerHTML = `<div class="max-w-[85%] p-4 rounded-xl rounded-tl-sm bg-surface text-on-surface border border-outline-variant/50 flex items-center h-14 gap-4"><div class="flex gap-1 items-center shrink-0"><div class="w-2 h-2 bg-primary/70 rounded-full animate-bounce"></div><div class="w-2 h-2 bg-primary/70 rounded-full animate-bounce" style="animation-delay: 0.1s"></div><div class="w-2 h-2 bg-primary/70 rounded-full animate-bounce" style="animation-delay: 0.2s"></div></div><span class="loading-msg-text text-xs font-label text-outline tracking-wider uppercase transition-opacity duration-300 w-48">${loadingMessages[0]}</span></div>`;
         chatMessages.appendChild(loadingDiv);
         chatMessages.scrollTop = chatMessages.scrollHeight;
+
+        const loaderInterval = setInterval(() => {
+            if (!loadingDiv.parentNode) {
+                clearInterval(loaderInterval);
+                return;
+            }
+            const msgSpan = loadingDiv.querySelector('.loading-msg-text');
+            if (msgSpan) {
+                msgSpan.style.opacity = '0';
+                setTimeout(() => {
+                    if(loadingDiv.parentNode && msgSpan) {
+                        msgIndex = (msgIndex + 1) % loadingMessages.length;
+                        msgSpan.textContent = loadingMessages[msgIndex];
+                        msgSpan.style.opacity = '1';
+                    }
+                }, 300);
+            }
+        }, 2000);
 
         try {
             const response = await fetch('/chat', {
@@ -274,7 +301,7 @@ document.addEventListener("DOMContentLoaded", () => {
                             // Handle Text Payload
                             if (data.text) {
                                 assistantMessage += data.text;
-                                asstNode.innerHTML = `<div class="prose prose-sm dark:prose-invert max-w-none font-body">${marked.parse(assistantMessage)}</div>`;
+                                asstNode.innerHTML = `<div class="prose prose-sm dark:prose-invert max-w-none font-body">${marked.parse(assistantMessage + ' ▍')}</div>`;
                             }
                             
                             chatMessages.scrollTop = chatMessages.scrollHeight;
@@ -284,6 +311,9 @@ document.addEventListener("DOMContentLoaded", () => {
                     }
                 }
             }
+            
+            // Finalize message without cursor
+            asstNode.innerHTML = `<div class="prose prose-sm dark:prose-invert max-w-none font-body">${marked.parse(assistantMessage)}</div>`;
             
             // Save finalized message
             session.messages.push({ role: 'assistant', content: assistantMessage });

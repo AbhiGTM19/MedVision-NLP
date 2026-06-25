@@ -81,7 +81,7 @@ def ingest_all_pdfs():
             logger.info("  -> Extracting Markdown...")
             # For massive books, we would chunk this by page ranges to avoid OOM,
             # but for this script we will parse the whole document.
-            md_text = pymupdf4llm.to_markdown(pdf_path)
+            md_text = pymupdf4llm.to_markdown(pdf_path, use_ocr=False)
             
             if not md_text:
                 logger.warning(f"  -> Skipping {filename}, no text extracted.")

@@ -120,7 +120,7 @@ def validate_all():
 
     # ── Phase 5: Ghost Reference Detection ──
     print("\n─── Phase 5: Ghost Reference Detection ───")
-    ghost_terms = ["Generic Manager", "boundary_sync.py", "audit_script.py", "review_text", "sentiment_score", "sklearn_logreg", "Lifespan Handled", "movie", "imdb", "aclImdb", "medtext", "MedText", "Sentiment Scope", "train.py", "train_transformer.py", "SGDClassifier", "DistilBERT", "model_choice", "DualStreamFusionNER", "EntitySchema", "EasyOCR", "ocr_service", "dual_stream", "Token Classification", "Token-Level NER"]
+    ghost_terms = ["Generic Manager", "boundary_sync.py", "audit_script.py", "review_text", "sentiment_score", "sklearn_logreg", "Lifespan Handled", "movie", "imdb", "aclImdb", "medtext", "MedText", "Sentiment Scope", "train.py", "train_transformer.py", "SGDClassifier", "DistilBERT", "model_choice", "DualStreamFusionNER", "EntitySchema", "EasyOCR", "ocr_service", "dual_stream", "Token Classification", "Token-Level NER", "pytesseract", "tesseract-ocr"]
     all_md_files = glob.glob(os.path.join(agent_dir, "**", "*.md"), recursive=True)
     ghost_found = False
     for md_file in all_md_files:

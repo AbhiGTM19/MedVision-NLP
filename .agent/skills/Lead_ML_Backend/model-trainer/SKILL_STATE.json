@@ -4,6 +4,8 @@
   "confidence_score": 10,
   "last_audit_passed": true,
   "open_tasks": [
-    "Token-level NER tracking established via mlruns.db."
+    "Successfully fine-tuned Bio_ClinicalBERT for Medical Specialty Classification.",
+    "Integrated all-MiniLM-L6-v2 for text chunk embedding in RAG pipeline.",
+    "Token-level NER tracking completely deprecated."
   ]
 }

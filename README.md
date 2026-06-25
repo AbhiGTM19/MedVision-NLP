@@ -25,9 +25,9 @@ This project serves as a comprehensive portfolio piece demonstrating modern, pro
 ### 🧠 Machine Learning & MLOps
 -   **Medical Specialty Classification**: A robust sequence classification pipeline powered by **Bio_ClinicalBERT**, fine-tuned to categorize unstructured clinical text into specific medical specialties (e.g., Cardiology, Neurology).
 -   **Explainable AI (XAI)**: Features highly transparent predictions using **PyTorch Captum** (Integrated Gradients) to calculate word-level feature attributions, dynamically highlighting influential tokens directly in the user interface.
--   **Retrieval-Augmented Generation (RAG)**: Integrates **ChromaDB** for semantic search across clinical guidelines, allowing the AI to base its responses on grounded, domain-specific context.
+-   **Dual-Layer RAG Pipeline (Indian vs Global Standards)**: Integrates **ChromaDB** for semantic search across clinical guidelines. Implements advanced L2-distance relevance boosting to dynamically prioritize Indian medical protocols (e.g., API Textbook of Medicine, KD Tripathi) over generic Western standards based on geographical context cues.
+-   **Regulatory Safety Interceptors**: Implements strict Regex and System Prompt safety guardrails that actively block high-liability diagnostic attempts, pediatric dosage hallucinations, and trigger emergency triage protocol (e.g., Anaphylaxis).
 -   **Conversational AI Assistant**: Uses the **Google Gemini 2.5 Flash** LLM for streaming, context-aware chat interactions and summarizing complex medical text for end users.
--   **OCR Integration**: Utilizes **EasyOCR** for spatial extraction of text from uploaded prescription images prior to downstream classification.
 
 ### ⚙️ Software Engineering (Backend)
 -   **Modern API Framework**: Built a highly performant, asynchronous API gateway using **FastAPI** and **Uvicorn** (ASGI).
