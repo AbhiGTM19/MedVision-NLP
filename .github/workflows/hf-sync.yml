@@ -27,6 +27,10 @@ jobs:
           # Create a fresh orphan branch to completely bypass Git history
           git checkout --orphan hf-deploy
           git add -A
+          
+          # Force add the local Vector Database so HF Spaces receives it
+          git add -f backend/data/chroma_db/ || true
+          
           git commit -m "Automated deployment to Hugging Face Spaces"
           
           # Force push this single history-free commit to the HF Space

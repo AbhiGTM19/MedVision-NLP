@@ -1,9 +1,9 @@
 {
   "agent_id": "model_trainer",
-  "status": "active",
+  "status": "completed",
   "confidence_score": 10,
   "last_audit_passed": true,
   "open_tasks": [
-    "Token-level NER tracking established via mlruns.db."
+    "Bio_ClinicalBERT fine-tuning completed. Medical textbooks chunked and embedded via all-MiniLM-L6-v2."
   ]
 }

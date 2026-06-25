@@ -30,6 +30,7 @@ backend/nltk_data/
 *.pkl
 *.joblib
 *.csv
+*.pdf
 confusion_matrix*
 metrics.txt
 
@@ -43,3 +44,5 @@ medvision-space-token.png
 node_modules/
 backend/data/chroma_db/
 demo_test_cases.txt
+
+backend/data/knowledge

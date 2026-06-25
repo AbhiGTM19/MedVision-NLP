@@ -67,10 +67,10 @@ All agents must adhere to the rules defined in `.agent/rules/`:
 ## The Handoff Contract
 
 The root-level `HANDOFF_SCHEMA.json` is the **immutable boundary contract** between the backend and frontend. It specifies:
-- **API Endpoints:** `POST /predict`, `POST /predict-image`, `POST /predict-rag`, `POST /chat`, `GET /health`
-- **Input Schema:** `PredictionRequest { text: string }`
-- **Output Schema:** `PredictionResponse { specialty: string, confidence: float, extracted_text: Optional[string], word_attributions: List[WordAttribution], rag_response: Optional[RAGResponse] }`
-- **Model Artifacts:** Sequence Classification via Bio_ClinicalBERT.
+- **API Endpoints:** `POST /predict`, `POST /predict-rag`, `POST /chat`, `GET /health` (Note: OCR is strictly DEPRECATED)
+- **Input Schema:** `PredictionRequest { text: string }`, `ChatRequest`
+- **Output Schema:** `AnalysisResponse { specialty: string, confidence: float, word_attributions: List, rag_response: RAGResponse, error: Optional[string] }`
+- **Model Artifacts:** Sequence Classification via `Bio_ClinicalBERT`, Dense Vector Embeddings via `all-MiniLM-L6-v2`, Generative LLM via `Gemini 2.5 Flash Lite`.
 
 Any agent modifying schemas or API routes **must** update `HANDOFF_SCHEMA.json` and run `/sync-pass`.
 
@@ -104,13 +104,13 @@ Any agent modifying schemas or API routes **must** update `HANDOFF_SCHEMA.json` 
 
 #### 3a. Inference Server
 **SKILL:** `.agent/skills/Lead_ML_Backend/inference-server/SKILL.md`
-**Owns:** `main.py`, `api/routes.py`, `schemas/predict.py`, `services/model_service.py`, `services/knowledge_service.py`, `services/llm_service.py`
-**Key Constraint:** Models (Bio_ClinicalBERT), Embeddings (ChromaDB), and GenAI clients (Gemini) are loaded eagerly via singleton services — never per-request.
+**Owns:** `main.py`, `api/routes_v2.py`, `schemas/analysis.py`, `schemas/knowledge.py`, `services/model_service.py`, `services/rag_service.py`, `services/llm_service.py`
+**Key Constraint:** Models (Bio_ClinicalBERT), Embeddings (ChromaDB), and GenAI clients (Gemini) are loaded eagerly via singleton services. Strict Regex Safety Interceptors must execute BEFORE LLM invocation.
 
 #### 3b. Model Trainer
 **SKILL:** `.agent/skills/Lead_ML_Backend/model-trainer/SKILL.md`
-**Owns:** `train.py`, `train_transformer.py`, `evaluate_models.py`, `mlruns/`, `dataset/`
-**Key Constraint:** All experiments tracked via MLflow. Results logged in `ablation_study.md`.
+**Owns:** `train.py`, `train_transformer.py`, `evaluate_models.py`, `scripts/ingest_textbooks.py`, `data/chroma_db/`, `mlruns/`, `dataset/`
+**Key Constraint:** All experiments tracked via MLflow. Must compute Dense Vector Embeddings (all-MiniLM-L6-v2) using RecursiveCharacterTextSplitter for Dual-Layer RAG.
 
 ---
 

@@ -18,7 +18,11 @@ logger = logging.getLogger(__name__)
 DATA_DIR = Path(__file__).resolve().parent.parent / "data" / "knowledge"
 
 def fetch_openfda_drugs(limit=20):
-    """Fetch a sample of drug labels from OpenFDA"""
+    """Fetch a sample of drug labels from OpenFDA with safe threshold intervals"""
+    import time
+    logger.info("Applying safe threshold interval (2s) before OpenFDA request...")
+    time.sleep(2)
+    
     logger.info(f"Fetching {limit} drug labels from OpenFDA...")
     url = f"https://api.fda.gov/drug/label.json?limit={limit}"
     
