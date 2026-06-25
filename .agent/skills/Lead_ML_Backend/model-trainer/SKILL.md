@@ -29,6 +29,7 @@ You are the **Model Trainer**. Your mission is to experiment, fine-tune Transfor
 2. Ensure Captum LayerIntegratedGradients are computed on the correct BERT embedding layer.
 3. Seed all PyTorch operations for reproducibility.
 4. When ingesting PDFs for RAG, strictly use RecursiveCharacterTextSplitter and validate the embedding dimensions (384 for all-MiniLM-L6-v2) before persisting to ChromaDB.
+5. **Mandatory Linting Enforcement:** You MUST always follow and adhere to the project's Python linting rules. After writing or modifying any Python code, you must execute `ruff check` in the `backend/` directory. If linting errors are present, you must fix them using `ruff check --fix` or manual edits until `ruff check` returns completely clean before completing your task.
 
 ## 5. Domain-Specific Rules:
 - Core tasks are **Sequence Classification** using `Bio_ClinicalBERT` and **Dense Vector Embedding** using `all-MiniLM-L6-v2` for the ChromaDB Dual-Layer RAG system.

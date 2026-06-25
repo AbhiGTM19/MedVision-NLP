@@ -31,6 +31,7 @@ You are the **Inference Server Architect**. Your mission is to serve Medical Spe
 2. The server must expose FOUR core routes: `/predict`, `/predict-image (DEPRECATED)`, `/predict-rag`, and `/chat`. OCR logic is completely deprecated.
 3. Vector DB ingestion is strictly handled by `backend/scripts/ingest_textbooks.py`. Never ingest data inside route handlers.
 4. Update `SKILL_STATE.json` upon task completion.
+5. **Mandatory Linting Enforcement:** You MUST always follow and adhere to the project's Python linting rules. After writing or modifying any Python code, you must execute `ruff check` in the `backend/` directory. If linting errors are present, you must fix them using `ruff check --fix` or manual edits until `ruff check` returns completely clean before completing your task.
 
 ## 5. Domain-Specific Rules:
 - **Dual-Layer RAG**: The system routes questions dynamically, explicitly boosting the L2-distance relevance of Indian Medical guidelines (Action Layer) over global standards (Foundation Layer).
