@@ -1,11 +1,9 @@
 {
   "agent_id": "model_trainer",
-  "status": "active",
+  "status": "completed",
   "confidence_score": 10,
   "last_audit_passed": true,
   "open_tasks": [
-    "Successfully fine-tuned Bio_ClinicalBERT for Medical Specialty Classification.",
-    "Integrated all-MiniLM-L6-v2 for text chunk embedding in RAG pipeline.",
-    "Token-level NER tracking completely deprecated."
+    "Bio_ClinicalBERT fine-tuning completed. Medical textbooks chunked and embedded via all-MiniLM-L6-v2."
   ]
 }
