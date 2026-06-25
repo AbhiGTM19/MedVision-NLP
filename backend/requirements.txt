@@ -49,3 +49,5 @@ langchain-text-splitters
 pytest
 pytest-asyncio
 ruff
+langchain-chroma
+langchain-huggingface
