@@ -20,6 +20,13 @@ class KnowledgeService:
     def _init_db(self):
         try:
             CHROMA_DB_PATH.mkdir(parents=True, exist_ok=True)
+            logger.info(f"Initializing ChromaDB at path: {CHROMA_DB_PATH}")
+            sqlite_path = CHROMA_DB_PATH / "chroma.sqlite3"
+            if sqlite_path.exists():
+                logger.info(f"Found chroma.sqlite3! Size: {sqlite_path.stat().st_size} bytes")
+            else:
+                logger.warning(f"chroma.sqlite3 NOT FOUND at {sqlite_path}! (It may be created fresh)")
+                
             self.chroma_client = chromadb.PersistentClient(path=str(CHROMA_DB_PATH))
             
             # Using sentence-transformers for local fast embeddings
@@ -29,7 +36,12 @@ class KnowledgeService:
                 name="medvision_knowledge",
                 embedding_function=emb_fn
             )
-            logger.info("ChromaDB initialized successfully.")
+            
+            doc_count = self.collection.count()
+            logger.info(f"ChromaDB initialized successfully. Collection 'medvision_knowledge' contains {doc_count} documents.")
+            
+            if doc_count == 0:
+                logger.error("CRITICAL: ChromaDB collection is empty! The RAG will return N/A.")
         except Exception as e:
             logger.error(f"Failed to initialize ChromaDB: {e}", exc_info=True)
 

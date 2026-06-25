@@ -19,7 +19,7 @@ class Settings(BaseSettings):
     # LLM Integration
     GEMINI_API_KEY: str | None = None
 
-    # Persistent Storage (HF Storage Buckets)
+    # Persistent Storage
     STORAGE_PATH: str = "/data/chroma_db" if Path("/data").exists() else str(BASE_DIR / "data" / "chroma_db")
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
