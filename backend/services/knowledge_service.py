@@ -26,7 +26,7 @@ class KnowledgeService:
             emb_fn = embedding_functions.SentenceTransformerEmbeddingFunction(model_name="all-MiniLM-L6-v2")
             
             self.collection = self.chroma_client.get_or_create_collection(
-                name="medical_knowledge",
+                name="medvision_knowledge",
                 embedding_function=emb_fn
             )
             logger.info("ChromaDB initialized successfully.")
@@ -38,8 +38,8 @@ class KnowledgeService:
             logger.warning("Retrieval attempted but ChromaDB collection is not initialized.")
             return []
             
-        # Advanced Retrieval: Fetch more candidates (e.g. 2x) for post-retrieval re-sorting
-        fetch_k = top_k * 2
+        # Advanced Retrieval: Fetch more candidates (e.g. 3x) for post-retrieval re-sorting
+        fetch_k = top_k * 3
         
         try:
             results = self.collection.query(
@@ -59,16 +59,22 @@ class KnowledgeService:
                         source=meta.get("source", "Unknown"),
                         specialty=meta.get("specialty"),
                         document_type=meta.get("document_type", "Unknown"),
+                        layer=meta.get("layer", "foundation"),
                         relevance_score=float(dist)
                     ))
                     
-            # Chunk Re-sorting: Boost relevance if metadata specialty matches the predicted specialty
+            # Chunk Re-sorting: Boost relevance if layer == "action"
+            # L2 distance means lower is better, so multiplying by 0.5 boosts its ranking
+            for c in chunks:
+                if c.layer == "action":
+                    c.relevance_score *= 0.5
+                    
+            # Secondary Chunk Re-sorting: Boost relevance if metadata specialty matches the predicted specialty
             if specialty:
                 query_spec_lower = specialty.lower()
                 for c in chunks:
                     if c.specialty and (query_spec_lower in c.specialty.lower() or c.specialty.lower() in query_spec_lower):
-                        # Boost score (lower distance is better in ChromaDB L2 distance)
-                        c.relevance_score *= 0.5 
+                        c.relevance_score *= 0.8
                         
             # Re-sort by the adjusted relevance score
             chunks.sort(key=lambda x: x.relevance_score)

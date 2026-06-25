@@ -1,6 +1,7 @@
 import inspect
 import logging
 import os
+import re
 
 from google import genai
 from google.genai import types
@@ -46,7 +47,14 @@ class LLMService:
                     temperature=0.2,
                 ),
             )
-            return RAGResponse(answer=response.text, sources=sources)
+            answer_text = response.text
+            
+            # Phase 4: Regex Dosing Interceptor Safety Guardrail
+            if re.search(r'\d+\.?\d*\s?(mg|mcg|mL|g|IU)', answer_text, re.IGNORECASE):
+                warning_msg = "\n\n> [!CAUTION]\n> **CRITICAL SAFETY WARNING:** A drug dosage was detected in this response. You MUST cross-reference all drug doses with the National Formulary of India (NFI) before clinical application."
+                answer_text += warning_msg
+                
+            return RAGResponse(answer=answer_text, sources=sources)
         except Exception as e:
             logger.error(f"Failed to generate RAG response: {e}", exc_info=True)
             return RAGResponse(answer="Failed to generate response.", error=str(e))
@@ -110,13 +118,21 @@ class LLMService:
             if inspect.iscoroutine(iterator):
                 iterator = await iterator
                 
+            full_response = ""
             while True:
                 try:
                     chunk = await anext(iterator)
                     if chunk.text:
+                        full_response += chunk.text
                         yield f"data: {json.dumps({'text': chunk.text})}\n\n"
                 except StopAsyncIteration:
                     break
+                    
+            # Phase 4: Regex Dosing Interceptor Safety Guardrail (Streaming)
+            if re.search(r'\d+\.?\d*\s?(mg|mcg|mL|g|IU)', full_response, re.IGNORECASE):
+                warning_msg = "\n\n> [!CAUTION]\n> **CRITICAL SAFETY WARNING:** A drug dosage was detected in this response. You MUST cross-reference all drug doses with the National Formulary of India (NFI) before clinical application."
+                yield f"data: {json.dumps({'text': warning_msg})}\n\n"
+
         except Exception as e:
             logger.error(f"Failed to generate Chat response: {e}", exc_info=True)
             import json
