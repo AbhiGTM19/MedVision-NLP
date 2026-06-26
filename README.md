@@ -26,12 +26,12 @@ This project serves as a comprehensive portfolio piece demonstrating modern, pro
 -   **Medical Specialty Classification**: A robust sequence classification pipeline powered by **Bio_ClinicalBERT**, fine-tuned to categorize unstructured clinical text into specific medical specialties (e.g., Cardiology, Neurology).
 -   **Explainable AI (XAI)**: Features highly transparent predictions using **PyTorch Captum** (Integrated Gradients) to calculate word-level feature attributions, dynamically highlighting influential tokens directly in the user interface.
 -   **Dual-Layer RAG Pipeline (Indian vs Global Standards)**: Integrates **ChromaDB** for semantic search across clinical guidelines. Implements advanced L2-distance relevance boosting to dynamically prioritize Indian medical protocols (e.g., API Textbook of Medicine, KD Tripathi) over generic Western standards based on geographical context cues.
--   **Regulatory Safety Interceptors**: Implements strict Regex and System Prompt safety guardrails that actively block high-liability diagnostic attempts, pediatric dosage hallucinations, and trigger emergency triage protocol (e.g., Anaphylaxis).
--   **Conversational AI Assistant**: Uses the **Google Gemini 2.5 Flash** LLM for streaming, context-aware chat interactions and summarizing complex medical text for end users.
+-   **Regulatory Safety Interceptors**: Implements a strict Regex dosing interceptor and System Prompt safety guardrails that enforce medical-only constraints and mitigate diagnostic liability.
+-   **Conversational AI Assistant**: Uses the **Gemini 3.1 Flash Lite** LLM for streaming, context-aware chat interactions and summarizing complex medical text for end users.
 
 ### ⚙️ Software Engineering (Backend)
 -   **Modern API Framework**: Built a highly performant, asynchronous API gateway using **FastAPI** and **Uvicorn** (ASGI).
--   **Singleton Services**: Models and embeddings are eagerly loaded at startup via centralized singletons (`ModelService`, `OCRService`, `KnowledgeService`, `LLMService`) to ensure zero-latency inference requests.
+-   **Singleton Services**: Models and embeddings are eagerly loaded at startup via centralized singletons (`ModelService`, `KnowledgeService`, `LLMService`) to ensure zero-latency inference requests.
 -   **Type Safety**: Enforced strict data validation and serialization using **Pydantic** schema boundaries.
 
 ### 🎨 Frontend Engineering
@@ -133,7 +133,7 @@ The application will be available at `http://localhost:7860`.
 
 ### `/predict-image`
 -   **Method**: `POST`
--   **Description**: Evaluates prescription images using EasyOCR followed by Bio_ClinicalBERT classification.
+-   **Description**: Evaluates prescription images using Tesseract OCR (pytesseract) followed by Bio_ClinicalBERT classification.
 -   **Body**: `multipart/form-data` with a single `file` field.
 
 ### `/predict-rag`
@@ -143,11 +143,11 @@ The application will be available at `http://localhost:7860`.
 
 ### `/chat`
 -   **Method**: `POST`
--   **Description**: A conversational endpoint that accepts a history of messages and streams responses (SSE) from the Gemini 2.5 Flash LLM.
+-   **Description**: A conversational endpoint that accepts a history of messages and streams responses (SSE) from the Gemini 3.1 Flash Lite LLM.
 
 ### `/health`
 -   **Method**: `GET`
--   **Description**: Returns the operational status of the inference engines, vector database, and LLM services.
+-   **Description**: Returns the operational status of the inference engine (Bio_ClinicalBERT).
 
 ---
 

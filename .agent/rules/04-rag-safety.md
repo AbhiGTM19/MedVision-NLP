@@ -8,9 +8,9 @@ Any AI Agent interacting with the MedVision RAG pipeline MUST respect the Dual-L
 **Rule**: Never bypass this routing logic. Do not directly inject external global guidelines into the prompt if Indian Action Layer text is available in the vector store.
 
 ## 2. Safety Interceptors (Crucial)
-The backend enforces strict Regex-based and Prompt-based interceptors in `llm_service.py`:
-- **Emergency Triage**: If keywords like "anaphylaxis", "heart attack", or "cannot breathe" are detected, the system MUST refuse analysis and direct the user to emergency services.
-- **Pediatric Dosing**: Specifically blocks explicit pediatric medication dosing (e.g., Aspirin for children) due to Reye's syndrome risk.
-- **Diagnostic Liability**: The LLM is explicitly forbidden from generating a definitive medical diagnosis. It may only state "Symptoms are consistent with X" and must advise consulting a physician.
+The backend enforces strict safety mechanisms in `llm_service.py` to mitigate clinical liability:
+- **Dosing Interceptor (Regex-Based)**: A regex pattern (`mg|mcg|mL|g|IU`) scans the final LLM output. If quantitative dosing is detected, a mandatory markdown warning is appended inline to the response, explicitly advising that the AI is not a doctor and dosages must be verified by a licensed professional.
+- **Diagnostic Liability (Prompt-Based)**: The `RAG_SYSTEM_PROMPT` explicitly forbids the LLM from generating definitive medical diagnoses. It may only state "Symptoms are consistent with X" and must advise consulting a physician.
+- **Medical-Only Constraint (Prompt-Based)**: The `CHAT_BASE_SYSTEM_PROMPT` strictly confines the assistant to medical queries, rejecting out-of-domain interactions.
 
-**Rule**: Any modifications to `llm_service.py` MUST preserve these regex safety checks before the LLM is even invoked. Under no circumstances should the LLM be allowed to evaluate high-risk pediatric dosages without a safety interceptor catching it first.
+**Rule**: Any modifications to `llm_service.py` MUST preserve the dosing regex interceptor and the prompt-level guardrails. Under no circumstances should the LLM be allowed to output unchecked medication dosages without the appended safety warning.

@@ -1,5 +1,5 @@
 ---
-name: OrthoPrognosis AI Clinical
+name: MedVision NLP
 colors:
   surface: '#f7f9fb'
   surface-dim: '#d8dadc'
@@ -117,7 +117,7 @@ spacing:
 
 ## Brand & Style
 
-The brand identity for OrthoPrognosis AI is defined by **Clinical Precision and Future-Forward Intelligence**. It is designed for medical professionals who require high-reliability tools that feel sophisticated yet approachable. 
+The brand identity for MedVision NLP is defined by **Clinical Precision and Future-Forward Intelligence**. It is designed for medical professionals who require high-reliability tools that feel sophisticated yet approachable. 
 
 The visual style is a **Modern-Corporate** hybrid with a heavy **Glassmorphic** influence. It balances the sterile, trustworthy nature of clinical software with the dynamic, airy feel of modern SaaS. The UI utilizes semi-transparent layers, backdrop blurs, and subtle animations (floating, pulsing rings) to communicate that the system is "active" and "intelligent." The goal is to evoke a sense of calm efficiency, reducing the cognitive load associated with complex medical data entry and analysis.
 

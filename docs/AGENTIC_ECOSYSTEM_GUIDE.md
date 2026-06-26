@@ -17,7 +17,8 @@ MedVision-NLP/
 │   ├── rules/
 │   │   ├── 01-karpathy-protocol.md  # XML-strict reasoning + audit mandate
 │   │   ├── 02-tailwind-frontend.md  # Frontend styling constraints
-│   │   └── 03-fastapi-ml.md         # Backend ML constraints
+│   │   ├── 03-fastapi-ml.md         # Backend ML constraints
+│   │   └── 04-rag-safety.md         # RAG & Safety Architecture
 │   ├── scripts/
 │   │   └── validate_all.py          # Global ecosystem validation
 │   ├── skills/
@@ -63,14 +64,15 @@ All agents must adhere to the rules defined in `.agent/rules/`:
 | `01-karpathy-protocol.md` | Enforces XML-strict reasoning (`<thought>`, `<surgical_plan>`, `<verification_log>`) and the 3-file atomicity rule. |
 | `02-tailwind-frontend.md` | Constrains frontend to Tailwind utility classes, mandates `npm run build:css`. |
 | `03-fastapi-ml.md` | Constrains backend to eager-singleton model loading via `ModelService()`, strict Pydantic validation, and MLflow tracking. |
+| `04-rag-safety.md` | Enforces Dual-Layer RAG routing and strict safety interceptors (dosing regex, diagnostic liability prompt guardrails). |
 
 ## The Handoff Contract
 
 The root-level `HANDOFF_SCHEMA.json` is the **immutable boundary contract** between the backend and frontend. It specifies:
 - **API Endpoints:** `POST /predict`, `POST /predict-rag`, `POST /chat`, `GET /health` (Note: OCR is strictly DEPRECATED)
 - **Input Schema:** `PredictionRequest { text: string }`, `ChatRequest`
-- **Output Schema:** `AnalysisResponse { specialty: string, confidence: float, word_attributions: List, rag_response: RAGResponse, error: Optional[string] }`
-- **Model Artifacts:** Sequence Classification via `Bio_ClinicalBERT`, Dense Vector Embeddings via `all-MiniLM-L6-v2`, Generative LLM via `Gemini 2.5 Flash Lite`.
+- **Output Schema:** `PredictionResponse`, `PredictionRAGResponse`
+- **Model Artifacts:** Sequence Classification via `Bio_ClinicalBERT`, Dense Vector Embeddings via `all-MiniLM-L6-v2`, Generative LLM via `Gemini 3.1 Flash Lite`.
 
 Any agent modifying schemas or API routes **must** update `HANDOFF_SCHEMA.json` and run `/sync-pass`.
 
@@ -90,12 +92,12 @@ Any agent modifying schemas or API routes **must** update `HANDOFF_SCHEMA.json` 
 
 #### 2a. Core Architecture
 **SKILL:** `.agent/skills/Lead_Frontend/core-architecture/SKILL.md`
-**Owns:** `templates/`, `static/script.js`
+**Owns:** `templates/`, `static/js/script.js`, `static/js/chat_script.js`
 **Key Constraint:** The UI must correctly parse the `word_attributions` array and inject Captum XAI feature attribution highlights dynamically into the DOM.
 
 #### 2b. Design System
 **SKILL:** `.agent/skills/Lead_Frontend/design-system/SKILL.md`
-**Owns:** `static/input.pcss`, `tailwind.config.js`, `static/styles.css`
+**Owns:** `static/css/input.pcss`, `frontend/tailwind.config.js`, `static/css/styles.css`
 **Key Constraint:** Run `npm run build:css` after every style change. Ensure styling adheres to the ambient medical/clinical amber aesthetic.
 
 ---
@@ -104,12 +106,12 @@ Any agent modifying schemas or API routes **must** update `HANDOFF_SCHEMA.json` 
 
 #### 3a. Inference Server
 **SKILL:** `.agent/skills/Lead_ML_Backend/inference-server/SKILL.md`
-**Owns:** `main.py`, `api/routes_v2.py`, `schemas/analysis.py`, `schemas/knowledge.py`, `services/model_service.py`, `services/rag_service.py`, `services/llm_service.py`
+**Owns:** `main.py`, `api/routes.py`, `schemas/predict.py`, `schemas/knowledge.py`, `services/model_service.py`, `services/knowledge_service.py`, `services/llm_service.py`
 **Key Constraint:** Models (Bio_ClinicalBERT), Embeddings (ChromaDB), and GenAI clients (Gemini) are loaded eagerly via singleton services. Strict Regex Safety Interceptors must execute BEFORE LLM invocation.
 
 #### 3b. Model Trainer
 **SKILL:** `.agent/skills/Lead_ML_Backend/model-trainer/SKILL.md`
-**Owns:** `train.py`, `train_transformer.py`, `evaluate_models.py`, `scripts/ingest_textbooks.py`, `data/chroma_db/`, `mlruns/`, `dataset/`
+**Owns:** `scripts/data_preparation/finetune_bert.py`, `scripts/evaluation/`, `scripts/ingest_textbooks.py`, `scripts/ingest_knowledge.py`, `notebooks/`, `data/chroma_db/`, `models/tracking/mlruns.db`
 **Key Constraint:** All experiments tracked via MLflow. Must compute Dense Vector Embeddings (all-MiniLM-L6-v2) using RecursiveCharacterTextSplitter for Dual-Layer RAG.
 
 ---
