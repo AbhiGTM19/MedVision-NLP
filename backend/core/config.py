@@ -16,8 +16,9 @@ class Settings(BaseSettings):
     # Pre-trained Transformer configurations
     HF_TRANSFORMER_MODEL_ID: str = os.getenv("HF_TRANSFORMER_MODEL_ID", "emilyalsentzer/Bio_ClinicalBERT")
 
-    # LLM Integration
+    # LLM & Hub Integration
     GEMINI_API_KEY: str | None = None
+    HF_TOKEN: str | None = None
 
     # Persistent Storage
     STORAGE_PATH: str = "/data/chroma_db" if Path("/data").exists() else str(BASE_DIR / "data" / "chroma_db")
