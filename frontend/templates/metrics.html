@@ -7,8 +7,8 @@
     <div class="pt-16 pb-24 max-w-7xl mx-auto px-4 sm:px-6 w-full">
         
         <div class="mb-12 border-b border-outline-variant/30 pb-8">
-            <h1 class="text-4xl font-black mb-4">Evaluation Metrics</h1>
-            <p class="text-on-surface-variant max-w-3xl leading-relaxed">
+            <h1 class="type-h1 mb-4">Evaluation Metrics</h1>
+            <p class="type-body max-w-3xl">
                 Our Bio_ClinicalBERT classifier is evaluated against Out-Of-Distribution (OOD) real-world clinical datasets. 
                 Below are the performance metrics derived from specialty classification and Tesseract OCR text extraction quality analysis.
             </p>
@@ -17,32 +17,32 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
             <!-- F1 Scores -->
             <div class="glass p-6 rounded-xl border border-outline-variant/50 shadow-md">
-                <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
+                <h3 class="type-h3 mb-4 flex items-center gap-2">
                     <span class="material-symbols-outlined text-primary">bar_chart</span>
                     Macro F1 Scores
                 </h3>
                 <img src="/static/assets/images/f1_scores.png" alt="F1 Scores" class="w-full rounded-lg border border-outline-variant/30">
-                <p class="text-sm text-on-surface-variant mt-4">
+                <p class="type-body mt-4">
                     Demonstrates the F1-Score across all major clinical specialties (Orthopedic, Neurology, etc.).
                 </p>
             </div>
 
             <!-- Precision Recall -->
             <div class="glass p-6 rounded-xl border border-outline-variant/50 shadow-md">
-                <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
+                <h3 class="type-h3 mb-4 flex items-center gap-2">
                     <span class="material-symbols-outlined text-secondary">show_chart</span>
                     Precision-Recall Tradeoff
                 </h3>
                 <img src="/static/assets/images/precision_recall.png" alt="Precision Recall Curves" class="w-full rounded-lg border border-outline-variant/30">
-                <p class="text-sm text-on-surface-variant mt-4">
+                <p class="type-body mt-4">
                     Illustrates the robust thresholding capabilities of the ClinicalBERT embeddings across classification confidence levels.
                 </p>
             </div>
         </div>
 
         <div class="border-t border-outline-variant/30 pt-12 mb-8">
-            <h2 class="text-3xl font-bold mb-4">Out-Of-Distribution (OOD) Analysis</h2>
-            <p class="text-on-surface-variant max-w-3xl leading-relaxed">
+            <h2 class="type-h2 mb-4">Out-Of-Distribution (OOD) Analysis</h2>
+            <p class="type-body max-w-3xl">
                 To guarantee zero data-leakage, the model was tested against completely unseen Kaggle prescriptions.
             </p>
         </div>
@@ -50,24 +50,24 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
             <!-- Entity Counts -->
             <div class="glass p-6 rounded-xl border border-outline-variant/50 shadow-md">
-                <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
+                <h3 class="type-h3 mb-4 flex items-center gap-2">
                     <span class="material-symbols-outlined text-tertiary">category</span>
                     Entity Extraction Yield
                 </h3>
                 <img src="/static/assets/images/ood_entity_counts.png" alt="OOD Entity Counts" class="w-full rounded-lg border border-outline-variant/30">
-                <p class="text-sm text-on-surface-variant mt-4">
+                <p class="type-body mt-4">
                     The distribution of clinical entities (Medications, Diagnoses, Procedures, etc.) extracted via Tesseract OCR from the unseen OOD dataset.
                 </p>
             </div>
 
             <!-- Confidence Scores -->
             <div class="glass p-6 rounded-xl border border-outline-variant/50 shadow-md">
-                <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
+                <h3 class="type-h3 mb-4 flex items-center gap-2">
                     <span class="material-symbols-outlined text-error">monitoring</span>
                     Confidence Distribution
                 </h3>
                 <img src="/static/assets/images/ood_confidence_scores.png" alt="OOD Confidence Scores" class="w-full rounded-lg border border-outline-variant/30">
-                <p class="text-sm text-on-surface-variant mt-4">
+                <p class="type-body mt-4">
                     A kernel density estimation of the model's Softmax confidence per predicted specialty on the OOD dataset.
                 </p>
             </div>

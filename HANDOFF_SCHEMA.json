@@ -8,9 +8,7 @@
       "predict_image": "/predict-image (DEPRECATED)",
       "predict_rag": "/predict-rag",
       "chat": "/chat",
-      "health": "/health",
-      "metrics": "/metrics",
-      "monitoring": "/monitoring"
+      "health": "/health"
     },
     "input_schema": {
       "PredictionRequest": {
@@ -21,7 +19,7 @@
       }
     },
     "output_schema": {
-      "AnalysisResponse": {
+      "PredictionResponse": {
         "specialty": "string",
         "confidence": "float",
         "word_attributions": [
@@ -30,12 +28,24 @@
             "score": "float"
           }
         ],
+        "extracted_text": "string (optional)",
+        "error": "string (optional)"
+      },
+      "PredictionRAGResponse": {
+        "specialty": "string",
+        "confidence": "float",
+        "word_attributions": [
+          {
+            "word": "string",
+            "score": "float"
+          }
+        ],
+        "extracted_text": "string (optional)",
         "rag_response": {
           "answer": "string",
-          "sources": "List[{content: string, source: string, layer: string, relevance_score: float}]",
-          "interceptor_flag": "string (optional - e.g. EMERGENCY, PEDIATRIC_DOSING)"
-        },
-        "error": "string (optional)"
+          "sources": "List[string]",
+          "error": "string (optional)"
+        }
       }
     },
     "models": {
@@ -49,13 +59,13 @@
         "layers": ["Action Layer (Indian Guidelines)", "Foundation Layer (Global Standards)"]
       },
       "Generative_LLM": {
-        "type": "Google Gemini 2.5 Flash",
+        "type": "Gemini 3.1 Flash Lite",
         "role": "Medical Assistant / Safety Enforcer"
       }
     }
   },
   "required_actions": {
-    "frontend": "Parse 'word_attributions' array for Captum XAI highlighting. Parse 'rag_response.sources' to display citation badges. Handle 'interceptor_flag' to render red emergency alert banners.",
+    "frontend": "Parse 'word_attributions' array for Captum XAI highlighting. Parse 'rag_response.sources' to display citation badges. Handle inline markdown safety warnings (e.g. dosing limits) returned in the text.",
     "ml": "Maintain eager singleton loading of models, ChromaDB, and GenAI clients. Never bypass Regex Safety Interceptors before LLM generation."
   }
 }

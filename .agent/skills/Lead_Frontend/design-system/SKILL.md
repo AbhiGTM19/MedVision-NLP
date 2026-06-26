@@ -7,14 +7,15 @@ description: Manages TailwindCSS configuration and styling components for Medica
 You are the **Design System Specialist**. Your mission is to build dynamic, glassmorphic interfaces using TailwindCSS, specifically focusing on XAI annotations and medical data visualization.
 
 ## 1. Target Components:
-**Path:** `frontend/static/input.pcss`, `frontend/tailwind.config.js`, `frontend/package.json`
+**Path:** `frontend/static/css/input.pcss`, `frontend/tailwind.config.js`, `frontend/package.json`
 
 ## 2. Source of Truth Mappings:
 | Category | Mapping |
 | :--- | :--- |
-| **CSS Input** | `frontend/static/input.pcss` |
+| **CSS Input** | `frontend/static/css/input.pcss` |
 | **Tailwind Config** | `frontend/tailwind.config.js` |
-| **Compiled CSS** | `frontend/static/styles.css` |
+| **Compiled CSS** | `frontend/static/css/styles.css` |
+| **Assets / Lottie** | `frontend/static/assets/animations/` |
 | **Agent State** | `.agent/skills/Lead_Frontend/design-system/SKILL_STATE.json` |
 
 ## 3. Tooling Requirements:
@@ -29,9 +30,9 @@ You are the **Design System Specialist**. Your mission is to build dynamic, glas
 ## 5. Domain-Specific Rules:
 - Avoid inline CSS. Rely entirely on Tailwind utility classes.
 - Follow `.agent/rules/02-tailwind-frontend.md` rules for glassmorphism.
-- **Animation Vocabulary:** Refer to `.agent/skills/Lead_Frontend/design-system/animation-vocabulary.md` for standardized terminology when creating, reviewing, or prompting for motion, transitions, and easing effects.
-- **XAI Attribution Highlights:** Use amber-based opacity gradients (e.g. rgba(245, 158, 11, score)) to represent word attribution intensity from Captum. Ensure these colors pass accessibility contrast checks.
-- **Image Previews:** Ensure the Tesseract image upload dropzone (`#dropzone`) (DEPRECATED) provides visual feedback and properly scales the preview image.
+- **Animation Vocabulary:** Refer to `.agent/skills/Lead_Frontend/design-system/design-vocabulary.md` for standardized terminology when creating, reviewing, or prompting for motion, transitions, and easing effects.
+- **XAI Attribution Highlights:** Use blue-based opacity gradients (e.g. `rgba(59, 130, 246, score)`) to represent word attribution intensity from Captum. Ensure these colors pass accessibility contrast checks.
+- **Micro-Animations & Parsing:** Ensure Chatbot UI leverages **Lottie** for complex loading states and utilizes properly styled GitHub-Flavored Markdown (GFM) alerts (`[!NOTE]`, `[!CAUTION]`) for clinical safety warnings.
 
 ## 6. Karpathy Execution Protocol:
 - **XML-Strict Reasoning:** Wrap logic in `<thought>`, `<surgical_plan>`, `<verification_log>`.

@@ -152,4 +152,22 @@ Concepts that guide when and how to animate.
 * **Spatial consistency** — Animating so an element keeps its identity and position across states, so users never lose track of where things went.
 * **Hardware acceleration** — Animating transform and opacity lets the GPU keep motion smooth.
 * **Reduced motion** — Respecting the user's prefers-reduced-motion setting by toning down or removing motion.
-animation_vocabulary.md
+
+## Standard Web Font Sizes
+
+| Content Element | Desktop Size Range | Mobile Size Range | Key Purpose & Best Practices |
+| :--- | :--- | :--- | :--- |
+| H1 (Main Title) | 36px – 48px+ | 28px – 32px | Main page header; use only one per page. |
+| H2 (Section Header) | 24px – 32px | 20px – 24px | Major content blocks and key layout sections. |
+| H3 (Sub-sections) | 20px – 24px | 18px – 20px | Cards, list categories, or sub-points. |
+| H4 to H6 (Minor Headers) | 16px – 18px | 16px | Deeply nested text or small inline titles. |
+| Body Text | 16px – 18px+ | 14px – 16px | Core paragraphs, blogs, and narrative content. |
+| UI & Interactive Text | 14px – 16px | 14px – 16px | Navigation menus, forms, buttons, and settings. |
+| Secondary Text & Captions | 12px – 14px | 12px – 13px | Tooltips, legal fine print, footnotes, and images. |
+
+### Key Web Typography Principles
+
+* **Use Relative Units**: Avoid hardcoding absolute pixels (px) for text. Use `rem` (Root EM) or `em` units instead. A body size of `1rem` equals 16px by default but dynamically adapts if a user shifts their default browser settings.
+* **Implement a Type Scale**: Maintain visual rhythm by scaling headers using a fixed mathematical ratio (e.g., Major Third at 1.25 or Perfect Fourth at 1.333).
+* **Accessibility Minimums**: Keep functional body copy at a absolute minimum of 16px for broad desktop readability. Never let fine print dip below 12px, as sizes smaller than this fail standard Google and accessibility readability criteria.
+* **Line Height Rules**: For optimal readability, set line spacing (`line-height`) between 1.4 to 1.6 for regular paragraphs, and slightly tighter (1.1 to 1.3) for large headings.

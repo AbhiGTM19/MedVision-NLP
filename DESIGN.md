@@ -1,5 +1,5 @@
 ---
-name: OrthoPrognosis AI Clinical
+name: MedVision NLP
 colors:
   surface: '#f7f9fb'
   surface-dim: '#d8dadc'
@@ -53,50 +53,44 @@ colors:
   success-dim: '#89ceff'
   error-alert: '#ba1a1a'
 typography:
-  display-lg:
+  type-h1:
     fontFamily: Inter
-    fontSize: 48px
-    fontWeight: '700'
+    fontSize: 2.66rem
+    fontWeight: '900'
     lineHeight: '1.1'
-    letterSpacing: -0.02em
-  headline-lg:
+    letterSpacing: -0.05em
+  type-h2:
     fontFamily: Inter
-    fontSize: 32px
-    fontWeight: '600'
+    fontSize: 2rem
+    fontWeight: '700'
     lineHeight: '1.2'
-    letterSpacing: -0.01em
-  headline-lg-mobile:
+    letterSpacing: -0.025em
+  type-h3:
     fontFamily: Inter
-    fontSize: 24px
+    fontSize: 1.5rem
     fontWeight: '600'
-    lineHeight: '1.2'
-  title-md:
+    lineHeight: '1.3'
+    letterSpacing: -0.025em
+  type-h4:
     fontFamily: Inter
-    fontSize: 20px
+    fontSize: 1.125rem
     fontWeight: '600'
-    lineHeight: '1.4'
-  body-lg:
+    lineHeight: '1.3'
+  type-body:
     fontFamily: Inter
-    fontSize: 16px
-    fontWeight: '400'
+    fontSize: 1.125rem
+    fontWeight: '300'
     lineHeight: '1.6'
-  body-sm:
+  type-ui:
     fontFamily: Inter
-    fontSize: 14px
-    fontWeight: '400'
+    fontSize: 1rem
+    fontWeight: '700'
     lineHeight: '1.5'
-  label-caps:
+  type-caption:
     fontFamily: Inter
-    fontSize: 12px
-    fontWeight: '700'
-    lineHeight: '1'
-    letterSpacing: 0.05em
-  status-tiny:
-    fontFamily: Inter
-    fontSize: 10px
-    fontWeight: '700'
-    lineHeight: '1'
-    letterSpacing: 0.1em
+    fontSize: 0.875rem
+    fontWeight: '500'
+    lineHeight: '1.4'
 rounded:
   sm: 0.25rem
   DEFAULT: 0.5rem
@@ -117,7 +111,7 @@ spacing:
 
 ## Brand & Style
 
-The brand identity for OrthoPrognosis AI is defined by **Clinical Precision and Future-Forward Intelligence**. It is designed for medical professionals who require high-reliability tools that feel sophisticated yet approachable. 
+The brand identity for MedVision NLP is defined by **Clinical Precision and Future-Forward Intelligence**. It is designed for medical professionals who require high-reliability tools that feel sophisticated yet approachable. 
 
 The visual style is a **Modern-Corporate** hybrid with a heavy **Glassmorphic** influence. It balances the sterile, trustworthy nature of clinical software with the dynamic, airy feel of modern SaaS. The UI utilizes semi-transparent layers, backdrop blurs, and subtle animations (floating, pulsing rings) to communicate that the system is "active" and "intelligent." The goal is to evoke a sense of calm efficiency, reducing the cognitive load associated with complex medical data entry and analysis.
 
@@ -135,6 +129,25 @@ The system uses **Inter** exclusively to ensure maximum legibility and a systema
 - **Data Entry Labels:** Utilize a "Label-Caps" style—uppercase, bold, and slightly tracked out—to distinguish them clearly from the user-inputted data.
 - **Body Text:** Optimized for readability with a generous 1.6 line-height.
 - **Status/Meta:** Tiny 10px caps are used for non-essential system information to keep the interface clean.
+
+### Standard Web Font Sizes
+
+| Content Element | Desktop Size Range | Mobile Size Range | Key Purpose & Best Practices |
+| :--- | :--- | :--- | :--- |
+| H1 (Main Title) | 36px – 48px+ | 28px – 32px | Main page header; use only one per page. |
+| H2 (Section Header) | 24px – 32px | 20px – 24px | Major content blocks and key layout sections. |
+| H3 (Sub-sections) | 20px – 24px | 18px – 20px | Cards, list categories, or sub-points. |
+| H4 to H6 (Minor Headers) | 16px – 18px | 16px | Deeply nested text or small inline titles. |
+| Body Text | 16px – 18px+ | 14px – 16px | Core paragraphs, blogs, and narrative content. |
+| UI & Interactive Text | 14px – 16px | 14px – 16px | Navigation menus, forms, buttons, and settings. |
+| Secondary Text & Captions | 12px – 14px | 12px – 13px | Tooltips, legal fine print, footnotes, and images. |
+
+### Key Web Typography Principles
+
+* **Use Relative Units**: Avoid hardcoding absolute pixels (px) for text. Use `rem` (Root EM) or `em` units instead. A body size of `1rem` equals 16px by default but dynamically adapts if a user shifts their default browser settings.
+* **Implement a Type Scale**: Maintain visual rhythm by scaling headers using a fixed mathematical ratio (e.g., Major Third at 1.25 or Perfect Fourth at 1.333).
+* **Accessibility Minimums**: Keep functional body copy at a absolute minimum of 16px for broad desktop readability. Never let fine print dip below 12px, as sizes smaller than this fail standard Google and accessibility readability criteria.
+* **Line Height Rules**: For optimal readability, set line spacing (`line-height`) between 1.4 to 1.6 for regular paragraphs, and slightly tighter (1.1 to 1.3) for large headings.
 
 ## Layout & Spacing
 

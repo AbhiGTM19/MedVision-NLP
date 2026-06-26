@@ -1,17 +1,58 @@
-<!-- Footer -->
-<footer class="w-full mt-auto py-12 bg-surface-container-low border-t border-outline-variant/50">
-    <div class="max-w-7xl mx-auto px-8 flex flex-col md:flex-row justify-between items-center gap-8">
-        <div class="flex flex-col gap-2 items-center md:items-start">
+<!-- Fully Restructured Extended Footer Container -->
+<!-- 'pt-24 pb-12' creates a taller padding envelope so contents do not crowd the enlarged wave graphic -->
+<footer class="w-full mt-auto relative overflow-hidden bg-surface-container-low pt-12 pb-12">
+
+    <!-- Background Animated Waves Container Layer -->
+    <!-- Increased wrapper container block size from h-24 to h-40 to extend wave crest height -->
+    <div class="absolute inset-x-0 bottom-0 h-40 pointer-events-none select-none z-0">
+        <!-- Switched viewBox vertical bounding box from 900 to 450 to effectively double the scale depth of the paths -->
+        <svg version="1.1" xmlns="http://w3.org" xmlns:xlink="http://w3.org" x="0px" y="0px" width="100%" height="100%"
+            viewBox="0 0 1600 450" preserveAspectRatio="none">
+            <defs>
+                <!-- Gradient configuration optimized to fill the expanded wave shapes cleanly -->
+                <linearGradient id="bg" x2="0%" y2="100%">
+                    <stop offset="0%" style="stop-color: rgba(204, 204, 204, 0.18)"></stop>
+                    <stop offset="100%" style="stop-color: rgba(255, 255, 255, 1)"></stop>
+                </linearGradient>
+                <!-- Adjusted paths to anchor at the lower viewport base limits -->
+                <path id="wave" fill="url(#bg)"
+                    d="M-363.852,150.589c0,0,236.988-41.997,505.475,0
+              s371.981,38.998,575.971,0s293.985-39.278,505.474,5.859s493.475,48.368,716.963-4.995v300.106H-363.852V150.589z" />
+            </defs>
+            <g>
+                <!-- Retained fluid easing values while shifting translation metrics to align with the new 450px aspect ratio grid -->
+                <use xlink:href="#wave" opacity=".35">
+                    <animateTransform attributeName="transform" attributeType="XML" type="translate" dur="9s"
+                        calcMode="spline" values="270 50; -334 30; 270 50" keyTimes="0; .5; 1"
+                        keySplines="0.42, 0, 0.58, 1.0;0.42, 0, 0.58, 1.0" repeatCount="indefinite" />
+                </use>
+                <use xlink:href="#wave" opacity=".65">
+                    <animateTransform attributeName="transform" attributeType="XML" type="translate" dur="7s"
+                        calcMode="spline" values="-270 50;243 40;-270 50" keyTimes="0; .6; 1"
+                        keySplines="0.42, 0, 0.58, 1.0;0.42, 0, 0.58, 1.0" repeatCount="indefinite" />
+                </use>
+                <use xlink:href="#wave" opacity=".95">
+                    <animateTransform attributeName="transform" attributeType="XML" type="translate" dur="5s"
+                        calcMode="spline" values="0 50;-140 30;0 50" keyTimes="0; .4; 1"
+                        keySplines="0.42, 0, 0.58, 1.0;0.42, 0, 0.58, 1.0" repeatCount="indefinite" />
+                </use>
+            </g>
+        </svg>
+    </div>
+
+    <!-- Foreground Content Layer -->
+    <!-- Content container given an explicit 'relative z-10' stack to map safely over the towering graphics layer -->
+    <div class="max-w-7xl mx-auto px-8 flex flex-col md:flex-row justify-between items-center gap-8 relative z-10">
+        <div class="flex flex-col gap-2 items-center md:items-start text-[#000]">
             <div class="flex items-center gap-2">
-                <span class="material-symbols-outlined text-primary" data-icon="analytics">analytics</span>
-                <span class="font-bold tracking-tight text-on-surface">MedVision NLP</span>
+                <span class="material-symbols-outlined text-[20px]">medical_information</span>
+                <span class="type-h4 font-bold tracking-tight text-lg">MedVision NLP</span>
             </div>
-            <p class="font-light text-xs text-on-surface-variant">© 2026 MedVision NLP. Healthcare NLP.
-                All rights reserved.</p>
+            <p class="type-caption opacity-60 text-sm">© 2026 MedVision NLP. All rights reserved.</p>
         </div>
-        <div class="flex gap-6 items-center mt-4 md:mt-0">
-            <a href="https://github.com/AbhiGTM19" target="_blank" rel="noopener noreferrer"
-                class="text-on-surface-variant hover:text-primary transition-colors hover:scale-110 transform duration-200">
+        <div class="flex gap-6 items-center mt-4 md:mt-0 text-[#000]">
+            <a href="https://github.com" target="_blank" rel="noopener noreferrer"
+                class="hover:text-primary transition-colors hover:scale-110 transform duration-200">
                 <span class="sr-only">GitHub</span>
                 <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                     <path fill-rule="evenodd"
@@ -19,8 +60,8 @@
                         clip-rule="evenodd"></path>
                 </svg>
             </a>
-            <a href="https://linkedin.com/in/AbhiGTM19" target="_blank" rel="noopener noreferrer"
-                class="text-on-surface-variant hover:text-primary transition-colors hover:scale-110 transform duration-200">
+            <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer"
+                class="hover:text-primary transition-colors hover:scale-110 transform duration-200">
                 <span class="sr-only">LinkedIn</span>
                 <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                     <path fill-rule="evenodd"

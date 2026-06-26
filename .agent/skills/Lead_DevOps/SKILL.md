@@ -30,7 +30,7 @@ You are acting as the **Lead DevOps**. Your mission is to assist the user with d
 4. **Mandatory Linting Enforcement:** You MUST always follow and adhere to the project's Python linting rules. After writing or modifying any Python script or file, you must execute `ruff check` in the `backend/` directory. If linting errors are present, you must fix them using `ruff check --fix` or manual edits until `ruff check` returns completely clean before completing your task.
 
 ## 5. Domain-Specific Rules:
-- **System Dependencies:** Because the model relies on SentenceTransformers and ChromaDB, ensure dependencies compile correctly. For the deprecated Tesseract OCR route, ensure `tesseract-ocr` is installed in the base Docker image (e.g., via `apt-get`).
+- **System Dependencies:** Because the model relies on SentenceTransformers and ChromaDB, ensure dependencies compile correctly. Note: The OCR path is deprecated, so `tesseract-ocr` is no longer required in the base Docker image.
 - **Python Dependencies:** You MUST ensure `aiofiles` is present in `requirements.txt` to support FastAPI's `FileResponse` for large 3MB+ monitoring reports.
 - **Image Size:** Multi-stage Docker builds are required. Use PyTorch CPU wheels (`--extra-index-url https://download.pytorch.org/whl/cpu`) when deploying to Hugging Face Spaces to avoid massive GPU bloat.
 - Ensure `.dockerignore` covers local ML runs (`backend/models/tracking/`), `.venv`, and cache files.

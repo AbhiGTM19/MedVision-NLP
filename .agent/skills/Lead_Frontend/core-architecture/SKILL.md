@@ -12,8 +12,9 @@ You are the **Core Architect** for the Frontend. Your mission is to structure th
 ## 2. Source of Truth Mappings:
 | Category | Mapping |
 | :--- | :--- |
-| **HTML Templates** | `frontend/templates/index.html`, `frontend/templates/metrics.html` |
-| **JS Logic** | `frontend/static/script.js` |
+| **HTML Templates** | `frontend/templates/index.html`, `frontend/templates/metrics.html`, `frontend/templates/chat.html`, `frontend/templates/monitoring.html`, `frontend/templates/docs.html`, `frontend/templates/base.html` |
+| **HTML Components** | `frontend/templates/components/header.html`, `frontend/templates/components/footer.html` |
+| **JS Logic** | `frontend/static/js/script.js`, `frontend/static/js/chat_script.js` |
 | **Handoff Schema** | `HANDOFF_SCHEMA.json` |
 | **Agent State** | `.agent/skills/Lead_Frontend/core-architecture/SKILL_STATE.json` |
 
@@ -23,13 +24,13 @@ You are the **Core Architect** for the Frontend. Your mission is to structure th
 - Vanilla JavaScript
 
 ## 4. Strict Workflow Rules:
-1. Ensure all API calls from the frontend align perfectly with the backend schemas (e.g., `PredictionResponse` containing `specialty` and `word_attributions`).
+1. Ensure all API calls from the frontend align perfectly with the backend schemas (e.g., `PredictionRAGResponse` containing `specialty`, `word_attributions`, and `rag_response`).
 2. Update `SKILL_STATE.json` upon task completion.
 
 ## 5. Domain-Specific Rules:
 - **No Legacy Models:** The legacy model selection parameter was entirely removed. Do not attempt to submit it in the payload. The system relies entirely on `Bio_ClinicalBERT`.
 - **Explainable AI (XAI):** The UI must dynamically parse the JSON array of `word_attributions` and inject them into the DOM as dynamically colored `<span>` tags over the original text to reflect the attribution scores.
-- **Dual Routes:** The UI must handle both raw text (`/predict`) and image uploads (`/predict-image` using `FormData`).
+- **Primary Route:** The UI predominantly handles raw text via `/predict-rag` to retrieve both classification and LLM generation. The legacy `/predict-image` route is deprecated.
 
 ## 6. Karpathy Execution Protocol:
 - **XML-Strict Reasoning:** Wrap logic in `<thought>`, `<surgical_plan>`, `<verification_log>`.

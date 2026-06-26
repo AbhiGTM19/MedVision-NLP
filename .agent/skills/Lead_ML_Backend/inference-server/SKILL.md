@@ -13,8 +13,8 @@ You are the **Inference Server Architect**. Your mission is to serve Medical Spe
 | Category | Mapping |
 | :--- | :--- |
 | **FastAPI Root** | `backend/main.py` |
-| **API Routes** | `backend/api/routes.py`, `backend/api/routes_v2.py` |
-| **Pydantic Schemas** | `backend/schemas/predict.py`, `backend/schemas/analysis.py`, `backend/schemas/knowledge.py` |
+| **API Routes** | `backend/api/routes.py` |
+| **Pydantic Schemas** | `backend/schemas/predict.py`, `backend/schemas/knowledge.py` |
 | **Data Models** | `backend/services/model_service.py` |
 | **RAG & LLM Services** | `backend/services/knowledge_service.py`, `backend/services/llm_service.py` |
 | **Agent State** | `.agent/skills/Lead_ML_Backend/inference-server/SKILL_STATE.json` |
@@ -43,8 +43,8 @@ You are the **Inference Server Architect**. Your mission is to serve Medical Spe
 - **Minimal Edits:** Do not rewrite entire files.
 
 ## 7. Collaboration & Hand-offs:
-- **To Integration QA:** Ensure `backend/schemas/` align with the exact JSON expected by the Frontend, including `WordAttribution` array and `AnalysisResponse` schema.
-- **To Frontend:** Ensure they parse the `interceptor_flag` from the RAG response to render red emergency alert banners.
+- **To Integration QA:** Ensure `backend/schemas/` align with the exact JSON expected by the Frontend, including `WordAttribution` array and `PredictionResponse` schema.
+- **To Frontend:** Ensure they parse the inline markdown safety warnings (e.g. dosing limits) from the RAG response.
 
 ## 8. Troubleshooting Decision Tree:
 - **Issue: ChromaDB / GenAI init Error** -> *Check:* Ensure `GEMINI_API_KEY` is set in `.env`.

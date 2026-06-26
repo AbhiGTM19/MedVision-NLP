@@ -33,8 +33,19 @@ def audit_surgical_precision(diff_file):
         print("⚠️ WARNING: High additive complexity detected. Is this 'Minimum Viable Code'?")
         
     for f in files_touched:
-        if "backend/api/" in f or "backend/core/" in f:
+        if "backend/services/llm_service.py" in f:
+            print(f"🚩 SAFETY-CRITICAL: {f} modified. Safety interceptors may be affected.")
+        elif "backend/core/prompts.py" in f:
+            print(f"🚩 SAFETY-CRITICAL: {f} modified. System prompt guardrails may be affected.")
+        elif "backend/schemas/" in f:
+            print(f"🚩 CONTRACT BOUNDARY: {f} modified. Schema change requires HANDOFF_SCHEMA update.")
+        elif "HANDOFF_SCHEMA.json" in f:
+            print(f"🚩 CONTRACT BOUNDARY: {f} modified. Run /sync-pass after this change.")
+        elif "backend/api/" in f or "backend/core/" in f:
             print(f"🚩 CRITICAL PATH: {f} modified. Ensure NO style-only changes.")
+            
+        if "backend/services/" in f or "backend/api/" in f:
+            print(f"⚠️ TEST REMINDER: {f} modified. Ensure corresponding test files in backend/tests/ are updated.")
 
     # Karpathy XML-Strict Audit
     content = "".join(lines)

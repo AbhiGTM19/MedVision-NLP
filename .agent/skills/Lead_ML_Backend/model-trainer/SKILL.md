@@ -12,9 +12,10 @@ You are the **Model Trainer**. Your mission is to experiment, fine-tune Transfor
 ## 2. Source of Truth Mappings:
 | Category | Mapping |
 | :--- | :--- |
-| **Training Notebooks** | `backend/notebooks/` |
-| **Data Ingestion** | `backend/scripts/ingest_textbooks.py` |
-| **Model Weights (Local)** | `backend/models/bio_clinicalBERT/`, `backend/data/chroma_db/` |
+| **Training Scripts & Notebooks** | `backend/notebooks/`, `backend/scripts/data_preparation/finetune_bert.py` |
+| **Evaluation Scripts** | `backend/scripts/evaluation/` |
+| **Data Ingestion** | `backend/scripts/ingest_textbooks.py`, `backend/scripts/ingest_knowledge.py` |
+| **Model Weights (Local)** | `backend/models/bio_clinicalBERT/`, `backend/data/chroma_db/`, `backend/models/tracking/mlruns.db` |
 | **Agent State** | `.agent/skills/Lead_ML_Backend/model-trainer/SKILL_STATE.json` |
 
 ## 3. Tooling Requirements:
