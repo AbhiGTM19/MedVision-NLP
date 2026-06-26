@@ -1,38 +1,57 @@
 <!-- TopAppBar Shell -->
-<header class="{{ header_class | default('top-0 w-full z-50 bg-surface/80 border-b border-outline-variant/30') }}">
-    <nav class="flex justify-center items-center px-4 sm:px-6 h-16 max-w-[1600px] mx-auto">
+<header class="sticky z-50 w-full pt-[1.25rem] pointer-events-none">
+    <nav class="flex items-center justify-between w-full max-w-7xl mx-auto px-8 pointer-events-auto">
+        <!-- Brand Identity -->
+        <div class="flex items-center gap-3">
+            <div
+                class="w-10 h-10 bg-primary flex items-center justify-center rounded-full overflow-hidden text-white shadow-sm">
+                <span class="material-symbols-outlined text-[20px]">medical_information</span>
+            </div>
+            <span class="type-h3">MedVision</span>
+        </div>
 
-        <div class="hidden md:flex gap-8 items-center font-bold text-[1rem] pt-[2rem] uppercase tracking-widest">
-            <a class="{% if active_page == 'predictor' %}text-primary{% else %}text-on-surface-variant hover:text-primary{% endif %} transition-colors"
+        <!-- Navigation Links -->
+        <div
+            class="hidden md:flex items-center gap-8 px-8 py-2 bg-surface-container-low rounded-full border border-outline-variant/30 shadow-[inset_0_1px_2px_rgba(0,0,0,0.05)]">
+            <a class="{% if active_page == 'predictor' %}text-primary border-b-2 border-primary{% else %}text-on-surface-variant hover:text-primary transition-colors duration-300{% endif %} type-ui font-normal py-1"
                 href="/">Predictor</a>
-            <a class="{% if active_page == 'chat' %}text-primary{% else %}text-on-surface-variant hover:text-primary{% endif %} transition-colors"
+            <a class="{% if active_page == 'chat' %}text-primary border-b-2 border-primary{% else %}text-on-surface-variant hover:text-primary transition-colors duration-300{% endif %} type-ui font-normal py-1"
                 href="/chat-ui">Chat</a>
-            <a class="{% if active_page == 'metrics' %}text-primary{% else %}text-on-surface-variant hover:text-primary{% endif %} transition-colors"
+            <a class="{% if active_page == 'metrics' %}text-primary border-b-2 border-primary{% else %}text-on-surface-variant hover:text-primary transition-colors duration-300{% endif %} type-ui font-normal py-1"
                 href="/metrics">Metrics</a>
-            <a class="{% if active_page == 'monitoring' %}text-primary{% else %}text-on-surface-variant hover:text-primary{% endif %} transition-colors"
+            <a class="{% if active_page == 'monitoring' %}text-primary border-b-2 border-primary{% else %}text-on-surface-variant hover:text-primary transition-colors duration-300{% endif %} type-ui font-normal py-1"
                 href="/monitoring">Monitoring</a>
-            <a class="{% if active_page == 'docs' %}text-primary{% else %}text-on-surface-variant hover:text-primary{% endif %} transition-colors"
+            <a class="{% if active_page == 'docs' %}text-primary border-b-2 border-primary{% else %}text-on-surface-variant hover:text-primary transition-colors duration-300{% endif %} type-ui font-normal py-1 flex items-center gap-1"
                 href="/docs">API Docs</a>
         </div>
-        <div class="flex items-center gap-4">
 
-            <button class="md:hidden p-2" id="mobile-menu-btn">
-                <span class="material-symbols-outlined" data-icon="menu">menu</span>
+        <!-- Primary Action -->
+        <div class="flex items-center gap-2">
+            <a href="https://github.com/AbhiGTM19/MedVision-NLP" target="_blank"
+                class="hidden lg:flex bg-primary text-white px-6 py-2 rounded-full type-ui items-center gap-2 hover:bg-primary/90 hover:scale-105 active:scale-95 transition-all duration-300 shadow-sm">
+                Get Source
+                <span class="material-symbols-outlined text-[16px]">north_east</span>
+            </a>
+            <button
+                class="md:hidden p-2 text-on-surface hover:bg-surface-container-high rounded-full transition-colors flex items-center justify-center"
+                id="mobile-menu-btn">
+                <span class="material-symbols-outlined text-[24px]">menu</span>
             </button>
         </div>
     </nav>
+
     <!-- Mobile Nav Panel -->
     <div id="mobile-nav-panel"
-        class="hidden md:hidden bg-surface border-b border-outline-variant/30 flex flex-col px-6 py-4 gap-4 shadow-lg z-50 font-label text-sm uppercase tracking-widest {{ 'absolute top-[72px] left-0 w-full' if not header_class or 'fixed' not in header_class else '' }}">
-        <a class="{% if active_page == 'predictor' %}text-primary font-bold{% else %}text-on-surface-variant hover:text-primary{% endif %} transition-colors"
+        class="hidden md:hidden absolute top-[88px] left-4 right-4 bg-surface border border-outline-variant/30 rounded-2xl flex flex-col p-4 gap-2 shadow-lg z-50">
+        <a class="{% if active_page == 'predictor' %}bg-primary/10 text-primary{% else %}text-on-surface-variant hover:bg-surface-container{% endif %} px-4 py-3 rounded-xl transition-colors type-ui font-normal"
             href="/">Predictor</a>
-        <a class="{% if active_page == 'chat' %}text-primary font-bold{% else %}text-on-surface-variant hover:text-primary{% endif %} transition-colors"
+        <a class="{% if active_page == 'chat' %}bg-primary/10 text-primary{% else %}text-on-surface-variant hover:bg-surface-container{% endif %} px-4 py-3 rounded-xl transition-colors type-ui font-normal"
             href="/chat-ui">Chat</a>
-        <a class="{% if active_page == 'metrics' %}text-primary font-bold{% else %}text-on-surface-variant hover:text-primary{% endif %} transition-colors"
+        <a class="{% if active_page == 'metrics' %}bg-primary/10 text-primary{% else %}text-on-surface-variant hover:bg-surface-container{% endif %} px-4 py-3 rounded-xl transition-colors type-ui font-normal"
             href="/metrics">Metrics</a>
-        <a class="{% if active_page == 'monitoring' %}text-primary font-bold{% else %}text-on-surface-variant hover:text-primary{% endif %} transition-colors"
+        <a class="{% if active_page == 'monitoring' %}bg-primary/10 text-primary{% else %}text-on-surface-variant hover:bg-surface-container{% endif %} px-4 py-3 rounded-xl transition-colors type-ui font-normal"
             href="/monitoring">Monitoring</a>
-        <a class="text-on-surface-variant hover:text-primary transition-colors flex items-center gap-1" href="/docs"
-            target="_blank">API Docs <span class="material-symbols-outlined text-[16px]">open_in_new</span></a>
+        <a class="{% if active_page == 'docs' %}bg-primary/10 text-primary{% else %}text-on-surface-variant hover:bg-surface-container{% endif %} px-4 py-3 rounded-xl transition-colors type-ui font-normal flex items-center gap-2"
+            href="/docs">API Docs</a>
     </div>
 </header>

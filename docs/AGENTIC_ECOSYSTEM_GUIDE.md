@@ -36,7 +36,7 @@ MedVision-NLP/
 │   │   │   └── design-system/
 │   │   │       ├── SKILL.md
 │   │   │       ├── SKILL_STATE.json
-│   │   │       └── animation-vocabulary.md
+│   │   │       └── design-vocabulary.md
 │   │   ├── Lead_ML_Backend/
 │   │   │   ├── inference-server/
 │   │   │   │   ├── SKILL.md

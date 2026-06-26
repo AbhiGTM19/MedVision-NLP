@@ -32,8 +32,9 @@ class LLMService:
         chunks = knowledge_service.retrieve_context(query, specialty=specialty, top_k=5)
         
         # 2. Build context
-        context_text = "\n\n".join([f"Source: {c.source}\nContent: {c.content}" for c in chunks])
         sources = list(set([c.source for c in chunks]))
+        source_map = {source: idx + 1 for idx, source in enumerate(sources)}
+        context_text = "\n\n".join([f"[{source_map[c.source]}] Source: {c.source}\nContent: {c.content}" for c in chunks])
 
         # 3. Construct prompt
         prompt = RAG_SYSTEM_PROMPT.format(context_text=context_text, query=query)
@@ -54,6 +55,10 @@ class LLMService:
                 warning_msg = "\n\n> [!CAUTION]\n> **CRITICAL SAFETY WARNING:** A drug dosage was detected in this response. You MUST cross-reference all drug doses with the National Formulary of India (NFI) before clinical application."
                 answer_text += warning_msg
                 
+            # Add universal disclaimer
+            disclaimer = "\n\n---\n\n> [!CAUTION]\n> **Disclaimer:** This response is AI-generated for informational purposes only. It is NOT a substitute for professional medical advice, diagnosis, or treatment. Always consult a qualified healthcare provider for clinical decisions. Verify all drug dosages against the National Formulary of India (NFI)."
+            answer_text += disclaimer
+                
             return RAGResponse(answer=answer_text, sources=sources)
         except Exception as e:
             logger.error(f"Failed to generate RAG response: {e}", exc_info=True)
@@ -72,8 +77,9 @@ class LLMService:
             sources = []
             if last_user_msg:
                 chunks = knowledge_service.retrieve_context(last_user_msg, top_k=5)
-                context_text = "\n\n".join([f"Source: {c.source}\nContent: {c.content}" for c in chunks])
                 sources = list(set([c.source for c in chunks]))
+                source_map = {source: idx + 1 for idx, source in enumerate(sources)}
+                context_text = "\n\n".join([f"[{source_map[c.source]}] Source: {c.source}\nContent: {c.content}" for c in chunks])
 
             import json
             # Yield the sources first so the frontend can display them in the context drawer
@@ -119,19 +125,26 @@ class LLMService:
                 iterator = await iterator
                 
             full_response = ""
-            while True:
-                try:
-                    chunk = await anext(iterator)
-                    if chunk.text:
-                        full_response += chunk.text
-                        yield f"data: {json.dumps({'text': chunk.text})}\n\n"
-                except StopAsyncIteration:
-                    break
-                    
+            try:
+                async for chunk in response:
+                    try:
+                        text = chunk.text
+                        if text:
+                            full_response += text
+                            yield f"data: {json.dumps({'text': text})}\n\n"
+                    except ValueError:
+                        # Safety filter might cause chunk.text to raise ValueError
+                        continue
+            except Exception as stream_err:
+                logger.warning(f"Stream iteration interrupted: {stream_err}")
             # Phase 4: Regex Dosing Interceptor Safety Guardrail (Streaming)
             if re.search(r'\d+\.?\d*\s?(mg|mcg|mL|g|IU)', full_response, re.IGNORECASE):
                 warning_msg = "\n\n> [!CAUTION]\n> **CRITICAL SAFETY WARNING:** A drug dosage was detected in this response. You MUST cross-reference all drug doses with the National Formulary of India (NFI) before clinical application."
                 yield f"data: {json.dumps({'text': warning_msg})}\n\n"
+                
+            # Add universal disclaimer at the end
+            disclaimer = "\n\n---\n\n> [!CAUTION]\n> **Disclaimer:** This response is AI-generated for informational purposes only. It is NOT a substitute for professional medical advice, diagnosis, or treatment. Always consult a qualified healthcare provider for clinical decisions. Verify all drug dosages against the National Formulary of India (NFI)."
+            yield f"data: {json.dumps({'text': disclaimer})}\n\n"
 
         except Exception as e:
             logger.error(f"Failed to generate Chat response: {e}", exc_info=True)

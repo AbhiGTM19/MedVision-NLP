@@ -11,11 +11,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const resultsArea = document.getElementById('results-area');
     const annotatedText = document.getElementById('annotated-text');
     const breakdownText = document.getElementById('breakdown-text');
-    const ragResponseContainer = document.createElement('div');
-    ragResponseContainer.className = 'w-full bg-surface-container-low rounded-2xl p-8 border border-outline-variant/50 shadow-inner mt-8';
-    ragResponseContainer.innerHTML = '<h3 class="text-sm font-label uppercase tracking-widest text-outline mb-4">RAG Assistant Analysis</h3><div id="rag-content" class="text-on-surface leading-relaxed"></div>';
-    if(breakdownText) breakdownText.parentElement.parentElement.parentElement.appendChild(ragResponseContainer);
-    const ragContent = document.getElementById('rag-content');
+    // Removed dynamic RAG Response container injection
 
     
     const historyList = document.getElementById('history-list');
@@ -66,9 +62,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function populateModal(type) {
         if (type === 'fast') {
-            modalBody.innerHTML = `<p class="text-on-surface-variant leading-relaxed">The <strong class="text-primary">RAG Knowledge Pipeline</strong> retrieves relevant medical knowledge from a Vector Database (ChromaDB) to augment and ground language model predictions.</p>`;
+            modalBody.innerHTML = `<p class="type-body">The <strong class="text-primary">RAG Knowledge Pipeline</strong> retrieves relevant medical knowledge from a Vector Database (ChromaDB) to augment and ground language model predictions.</p>`;
         } else {
-            modalBody.innerHTML = `<p class="text-on-surface-variant leading-relaxed">The <strong class="text-secondary">Bio_ClinicalBERT Classifier</strong> uses a pre-trained Transformer model fine-tuned on the MIMIC-III clinical database. It computes dense embeddings of the transcribed text and applies a sequence classification head to predict the medical specialty.</p>`;
+            modalBody.innerHTML = `<p class="type-body">The <strong class="text-secondary">Bio_ClinicalBERT Classifier</strong> uses a pre-trained Transformer model fine-tuned on the MIMIC-III clinical database. It computes dense embeddings of the transcribed text and applies a sequence classification head to predict the medical specialty.</p>`;
         }
     }
 
@@ -137,7 +133,6 @@ document.addEventListener("DOMContentLoaded", () => {
     function displayResults(data) {
         annotatedText.innerHTML = '';
         breakdownText.innerHTML = '';
-        ragContent.innerHTML = '';
 
         const confPercent = (data.confidence * 100).toFixed(1) + '%';
 
@@ -176,17 +171,11 @@ document.addEventListener("DOMContentLoaded", () => {
         let summary = `The <em>Bio_ClinicalBERT</em> engine classified this text as <strong>${data.specialty}</strong> with ${confPercent} confidence.<br><br>`;
         summary += `The highlighted text above uses <strong>PyTorch Captum (Integrated Gradients)</strong> to visualize Feature Attribution. Darker highlights indicate words that had the strongest influence on the model's classification.`;
         breakdownText.innerHTML = summary;
-        
-        // 4. RAG Response
-        if (data.rag_response) {
-            let ragHtml = marked.parse(data.rag_response.answer);
-            if (data.rag_response.sources && data.rag_response.sources.length > 0) {
-                ragHtml += `<div class="mt-4 text-xs text-outline font-label uppercase tracking-widest">Sources: ${data.rag_response.sources.join(', ')}</div>`;
-            }
-            ragContent.innerHTML = ragHtml;
-            ragResponseContainer.classList.remove('hidden');
-        } else {
-            ragResponseContainer.classList.add('hidden');
+
+        // Bridge to Chat UI
+        const chatAssistantLink = document.getElementById('chat-assistant-link');
+        if (chatAssistantLink && data.text) {
+            chatAssistantLink.href = `/chat-ui?initial_query=${encodeURIComponent("Please analyze this clinical case: " + data.text)}`;
         }
     }
 
@@ -218,14 +207,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
         history.forEach(item => {
             const div = document.createElement('div');
-            div.className = "bg-surface dark:bg-surface-container p-4 rounded-xl flex justify-between items-center border border-outline-variant dark:border-outline-variant/10 shadow-sm dark:shadow-none animate-in slide-in-from-left duration-500";
+            div.className = "bg-white p-4 rounded-xl flex justify-between items-center border border-outline-variant/30 shadow-sm animate-in slide-in-from-left duration-500";
             
             div.innerHTML = `
                 <div class="flex flex-col gap-1 max-w-[70%]">
-                    <p class="text-sm text-on-surface truncate font-medium">"${item.text.substring(0, 60)}..."</p>
-                    <span class="text-[10px] text-outline font-medium">${new Date(item.timestamp).toLocaleTimeString()}</span>
+                    <p class="type-body truncate">"${item.text.substring(0, 60)}..."</p>
+                    <span class="type-caption">${new Date(item.timestamp).toLocaleTimeString()}</span>
                 </div>
-                <span class="px-3 py-1 bg-primary/10 text-primary border-primary/20 rounded-full text-xs font-bold border">${item.specialty}</span>
+                <span class="px-3 py-1 bg-primary/10 text-primary border-primary/20 rounded-full type-caption border">${item.specialty}</span>
             `;
             historyList.appendChild(div);
         });
@@ -234,5 +223,23 @@ document.addEventListener("DOMContentLoaded", () => {
     function clearHistory() {
         localStorage.removeItem('medvisionHistory');
         if(historyList) renderHistory();
+    }
+
+    // Intersection Observer for Bento Animations
+    const bentoCards = document.querySelectorAll('.bento-card');
+    if (bentoCards.length > 0) {
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('animate-fade-in-up');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        });
+
+        bentoCards.forEach(card => observer.observe(card));
     }
 });

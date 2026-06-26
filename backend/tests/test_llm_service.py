@@ -50,7 +50,8 @@ async def test_generate_rag_response_with_key(mock_llm_service):
         
         rag_response = await mock_llm_service.generate_rag_response("What is HTN?")
         
-        assert rag_response.answer == "This is a mock RAG answer."
+        assert "This is a mock RAG answer." in rag_response.answer
+        assert "Disclaimer:" in rag_response.answer
         assert isinstance(rag_response.sources, list)
 
 @pytest.mark.asyncio
