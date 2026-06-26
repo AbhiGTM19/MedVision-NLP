@@ -22,6 +22,23 @@ class KnowledgeService:
             CHROMA_DB_PATH.mkdir(parents=True, exist_ok=True)
             logger.info(f"Initializing ChromaDB at path: {CHROMA_DB_PATH}")
             sqlite_path = CHROMA_DB_PATH / "chroma.sqlite3"
+            
+            # --- Auto-Download from HF Dataset in Production ---
+            if not sqlite_path.exists() and settings.ENV == "prod":
+                logger.info("Production environment detected. Downloading Vector DB from Private Dataset...")
+                try:
+                    from huggingface_hub import snapshot_download
+                    snapshot_download(
+                        repo_id="abhshkgtm19/MedVision-DB",
+                        repo_type="dataset",
+                        local_dir=str(CHROMA_DB_PATH),
+                        token=settings.HF_TOKEN
+                    )
+                    logger.info("Database successfully downloaded to Persistent Storage!")
+                except Exception as dl_err:
+                    logger.error(f"Failed to download database from HF: {dl_err}")
+            # ---------------------------------------------------
+
             if sqlite_path.exists():
                 logger.info(f"Found chroma.sqlite3! Size: {sqlite_path.stat().st_size} bytes")
             else:
